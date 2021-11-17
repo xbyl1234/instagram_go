@@ -51,6 +51,9 @@ type Instagram struct {
 	// challenge URL
 	challengeURL string
 
+	encryptionId  string
+	encryptionKey string
+	authorization string
 	// Instagram objects
 
 	// Challenge controls security side of account (Like sms verify / It was me)
@@ -310,10 +313,10 @@ func (inst *Instagram) readMsisdnHeader() error {
 	}
 	_, err = inst.sendRequest(
 		&reqOptions{
-			Endpoint:   urlMsisdnHeader,
-			IsPost:     true,
-			Connection: "keep-alive",
-			Query:      generateSignature(b2s(data)),
+			Endpoint: urlMsisdnHeader,
+			IsPost:   true,
+
+			Query: generateSignature(b2s(data)),
 		},
 	)
 	return err
@@ -332,10 +335,10 @@ func (inst *Instagram) contactPrefill() error {
 	}
 	_, err = inst.sendRequest(
 		&reqOptions{
-			Endpoint:   urlContactPrefill,
-			IsPost:     true,
-			Connection: "keep-alive",
-			Query:      generateSignature(b2s(data)),
+			Endpoint: urlContactPrefill,
+			IsPost:   true,
+
+			Query: generateSignature(b2s(data)),
 		},
 	)
 	return err
@@ -344,9 +347,9 @@ func (inst *Instagram) contactPrefill() error {
 func (inst *Instagram) zrToken() error {
 	_, err := inst.sendRequest(
 		&reqOptions{
-			Endpoint:   urlZrToken,
-			IsPost:     false,
-			Connection: "keep-alive",
+			Endpoint: urlZrToken,
+			IsPost:   false,
+
 			Query: map[string]string{
 				"device_id":        inst.dID,
 				"token_hash":       "",
@@ -369,10 +372,10 @@ func (inst *Instagram) sendAdID() error {
 	}
 	_, err = inst.sendRequest(
 		&reqOptions{
-			Endpoint:   urlLogAttribution,
-			IsPost:     true,
-			Connection: "keep-alive",
-			Query:      generateSignature(data),
+			Endpoint: urlLogAttribution,
+			IsPost:   true,
+
+			Query: generateSignature(data),
 		},
 	)
 	return err

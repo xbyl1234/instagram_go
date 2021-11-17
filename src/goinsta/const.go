@@ -4,7 +4,7 @@ const (
 	goInstaAPIUrl        = "https://i.instagram.com/api/v1/"
 	goInstaAPIUrlv2      = "https://i.instagram.com/api/v2/"
 	goInstaUserAgent     = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
-	goInstaIGSigKey      = "c36436a942ea1dbb40d7f2d7d45280a620d991ce8c62fb4ce600f0a048c32c11"
+	goInstaUserAgent2    = "Instagram 207.0.0.39.120 Android (27/8.1.0; 420dpi; 1080x1794; Google/google; Pixel; sailfish; sailfish; zh_CN_#Hans; 321039115)"
 	fbAnalytics          = "567067343352427"
 	igCapabilities       = "3brTBw=="
 	connType             = "WIFI"

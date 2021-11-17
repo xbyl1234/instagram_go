@@ -65,13 +65,8 @@ func generateUUID() string {
 	return uuid
 }
 
-func generateSignature(data string) map[string]string {
-	m := make(map[string]string)
-	m["ig_sig_key_version"] = goInstaSigKeyVersion
-	m["signed_body"] = fmt.Sprintf(
-		"%s.%s", generateHMAC(data, goInstaIGSigKey), data,
-	)
-	return m
+func generateSignature(data string) string {
+	return "signed_body=SIGNATURE." + data
 }
 
 func genString(charSet string, length int) string {

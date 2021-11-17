@@ -15,7 +15,7 @@ import (
 
 type reqOptions struct {
 	// Connection is connection header. Default is "close".
-	Connection string
+	//Connection string
 
 	// Login process
 	Login bool
@@ -46,28 +46,65 @@ func (insta *Instagram) sendSimpleRequest(uri string, a ...interface{}) (body []
 	)
 }
 
+func (insta *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
+	req.Header.Set("connection", "keep-alive")
+	req.Header.Set("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
+	req.Header.Set("accept-language", "en-US")
+	req.Header.Set("user-agent", goInstaUserAgent)
+	req.Header.Set("x-ig-app-id", fbAnalytics)
+	req.Header.Set("x-ig-capabilities", igCapabilities)
+	req.Header.Set("x-ig-connection-type", connType)
+	req.Header.Set("x-ig-connection-speed", fmt.Sprintf("%dkbps", acquireRand(1000, 3700)))
+	req.Header.Set("x-ig-bandwidth-speed-kbps", "-1.000")
+	req.Header.Set("x-ig-bandwidth-totalbytes-b", "0")
+	req.Header.Set("x-ig-bandwidth-totaltime-ms", "0")
+
+	req.Header.Set("x-ads-opt-out", "0")
+	req.Header.Set("x-cm-latency", "-1.000")
+	req.Header.Set("x-ig-app-locale", "en_US")
+	req.Header.Set("x-ig-device-locale", "en_US")
+	req.Header.Set("x-pigeon-session-id", generateUUID())
+	req.Header.Set("x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10))
+	req.Header.Set("x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")
+	req.Header.Set("x-ig-device-id", insta.uuid)
+	req.Header.Set("x-ig-android-id", insta.dID)
+	req.Header.Set("x-fb-http-engine", "Liger")
+}
+
+func (insta *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
+	_url, _ := url.Parse(goInstaAPIUrl)
+	for _, value := range insta.c.Jar.Cookies(_url) {
+		if strings.Contains(value.Name, "csrftoken") {
+			insta.token = value.Value
+		}
+	}
+
+	encryptionId := resp.Header.Get("ig-set-password-encryption-key-id")
+	if encryptionId != "" {
+		insta.encryptionId = encryptionId
+	}
+	encryptionKey := resp.Header.Get("ig-set-password-encryption-pub-key")
+	if encryptionKey != "" {
+		insta.encryptionKey = encryptionKey
+	}
+	authorization := resp.Header.Get("ig-set-authorization")
+	if authorization != "" {
+		insta.authorization = authorization
+	}
+}
+
 func (insta *Instagram) SendRequest(reqOpt *reqOptions, response interface{}) (err error) {
 	method := "GET"
 	if reqOpt.IsPost {
 		method = "POST"
-	}
-	if reqOpt.Connection == "" {
-		reqOpt.Connection = "keep-alive"
 	}
 
 	nu := goInstaAPIUrl
 	if reqOpt.UseV2 {
 		nu = goInstaAPIUrlv2
 	}
-	if reqOpt.Signed {
-		data, err := Json2String(reqOpt.Query)
-		if err != nil {
-			return err
-		}
-		reqOpt.Query = generateSignature(data)
-	}
 
-	u, err := url.Parse(nu + reqOpt.Endpoint)
+	_url, err := url.Parse(nu + reqOpt.Endpoint)
 	if err != nil {
 		return err
 	}
@@ -80,32 +117,25 @@ func (insta *Instagram) SendRequest(reqOpt *reqOptions, response interface{}) (e
 	}
 
 	if reqOpt.IsPost {
-		bf.WriteString(vs.Encode())
+		if reqOpt.Signed {
+			bf.WriteString(generateSignature(vs.Encode()))
+		} else {
+			bf.WriteString(vs.Encode())
+		}
 	} else {
-		for k, v := range u.Query() {
+		for k, v := range _url.Query() {
 			vs.Add(k, strings.Join(v, " "))
 		}
-
-		u.RawQuery = vs.Encode()
+		_url.RawQuery = vs.Encode()
 	}
 
 	var req *http.Request
-	req, err = http.NewRequest(method, u.String(), bf)
+	req, err = http.NewRequest(method, _url.String(), bf)
 	if err != nil {
 		return
 	}
 
-	req.Header.Set("Connection", reqOpt.Connection)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Set("Accept-Language", "en-US")
-	req.Header.Set("User-Agent", goInstaUserAgent)
-	req.Header.Set("X-IG-App-ID", fbAnalytics)
-	req.Header.Set("X-IG-Capabilities", igCapabilities)
-	req.Header.Set("X-IG-Connection-Type", connType)
-	req.Header.Set("X-IG-Connection-Speed", fmt.Sprintf("%dkbps", acquireRand(1000, 3700)))
-	req.Header.Set("X-IG-Bandwidth-Speed-KBPS", "-1.000")
-	req.Header.Set("X-IG-Bandwidth-TotalBytes-B", "0")
-	req.Header.Set("X-IG-Bandwidth-TotalTime-MS", "0")
+	insta.setHeader(reqOpt, req)
 
 	resp, err := insta.c.Do(req)
 	if err != nil {
@@ -113,12 +143,7 @@ func (insta *Instagram) SendRequest(reqOpt *reqOptions, response interface{}) (e
 	}
 	defer resp.Body.Close()
 
-	u, _ = url.Parse(goInstaAPIUrl)
-	for _, value := range insta.c.Jar.Cookies(u) {
-		if strings.Contains(value.Name, "csrftoken") {
-			insta.token = value.Value
-		}
-	}
+	insta.afterRequest(_url, resp)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err == nil {
@@ -136,9 +161,6 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 	method := "GET"
 	if o.IsPost {
 		method = "POST"
-	}
-	if o.Connection == "" {
-		o.Connection = "keep-alive"
 	}
 
 	nu := goInstaAPIUrl
@@ -174,17 +196,7 @@ func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
 		return
 	}
 
-	req.Header.Set("Connection", o.Connection)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-	req.Header.Set("Accept-Language", "en-US")
-	req.Header.Set("User-Agent", goInstaUserAgent)
-	req.Header.Set("X-IG-App-ID", fbAnalytics)
-	req.Header.Set("X-IG-Capabilities", igCapabilities)
-	req.Header.Set("X-IG-Connection-Type", connType)
-	req.Header.Set("X-IG-Connection-Speed", fmt.Sprintf("%dkbps", acquireRand(1000, 3700)))
-	req.Header.Set("X-IG-Bandwidth-Speed-KBPS", "-1.000")
-	req.Header.Set("X-IG-Bandwidth-TotalBytes-B", "0")
-	req.Header.Set("X-IG-Bandwidth-TotalTime-MS", "0")
+	insta.setHeader(o, req)
 
 	resp, err := insta.c.Do(req)
 	if err != nil {
