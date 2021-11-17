@@ -44,7 +44,7 @@ func (challenge *Challenge) updateState() error {
 
 	data, err := insta.prepareData(map[string]interface{}{
 		"guid":      insta.uuid,
-		"device_id": insta.dID,
+		"device_id": insta.androidID,
 	})
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (challenge *Challenge) selectVerifyMethod(choice string, isReplay ...bool) 
 	data, err := insta.prepareData(map[string]interface{}{
 		"choice":    choice,
 		"guid":      insta.uuid,
-		"device_id": insta.dID,
+		"device_id": insta.androidID,
 	})
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (challenge *Challenge) SendSecurityCode(code string) error {
 	data, err := insta.prepareData(map[string]interface{}{
 		"security_code": code,
 		"guid":          insta.uuid,
-		"device_id":     insta.dID,
+		"device_id":     insta.androidID,
 	})
 	if err != nil {
 		return err

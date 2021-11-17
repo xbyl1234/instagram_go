@@ -26,12 +26,18 @@ func (this *Register) Do(username string, firstname string, password string) (*I
 	return inst, err
 }
 
+func (this *Register) Prepare() {
+	_ = this.inst.readMsisdnHeader()
+	_ = this.inst.syncFeatures()
+	_ = this.inst.zrToken()
+	_ = this.inst.contactPrefill()
+	_ = this.inst.launcherSync()
+	_ = this.inst.sendAdID()
+}
+
 func (this *Register) do(username string, firstname string, password string) (*Instagram, error) {
 	this.inst = New(username, password)
-	err := this.inst.Prepare()
-	if err != nil {
-		return nil, err
-	}
+	this.Prepare()
 
 	number, err := this.phone.RequirePhoneNumber()
 	if err != nil {
@@ -108,15 +114,15 @@ func (this *Register) genUsername(username string) (string, error) {
 
 func (this *Register) checkPhoneNumber() error {
 	params := map[string]string{
-		"phone_id":        this.inst.pid,
+		"phone_id":        this.inst.familyID,
 		"login_nonce_map": "{}",
 		"phone_number":    this.number,
 		"guid":            this.inst.uuid,
-		"device_id":       this.inst.dID,
+		"device_id":       this.inst.androidID,
 		"prefill_shown":   "False",
 	}
 
-	err := this.inst.SendRequest(&reqOptions{
+	err := this.inst.HttpRequestJson(&reqOptions{
 		Endpoint: urlCheckPhoneNumber,
 		IsPost:   true,
 		Signed:   true,
@@ -133,17 +139,17 @@ type RespSendSignupSmsCode struct {
 
 func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	params := map[string]string{
-		"phone_id":           this.inst.pid,
+		"phone_id":           this.inst.familyID,
 		"phone_number":       this.area + this.number,
 		"guid":               this.inst.uuid,
-		"device_id":          this.inst.dID,
+		"device_id":          this.inst.androidID,
 		"android_build_type": "release",
 		"waterfall_id":       this.inst.wid,
 	}
 	resp := &RespSendSignupSmsCode{}
-	err := this.inst.SendRequest(
+	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlZrToken,
+			Endpoint: urlSendSignupSmsCode,
 			IsPost:   true,
 			Signed:   true,
 			Query:    params,
@@ -171,14 +177,14 @@ func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSms
 		"verification_code": code,
 		"phone_number":      this.area + this.number,
 		"guid":              this.inst.uuid,
-		"device_id":         this.inst.dID,
+		"device_id":         this.inst.androidID,
 		"waterfall_id":      this.inst.wid,
 	}
 	resp := &RespValidateSignupSmsCode{}
 
-	err := this.inst.SendRequest(
+	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlZrToken,
+			Endpoint: urlValidateSignupSmsCode,
 			IsPost:   true,
 			Signed:   true,
 			Query:    params,
@@ -199,16 +205,16 @@ type RespUsernameSuggestions struct {
 
 func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggestions, error) {
 	params := map[string]string{
-		"phone_id":     this.inst.pid,
+		"phone_id":     this.inst.familyID,
 		"guid":         this.inst.uuid,
 		"name":         username,
-		"device_id":    this.inst.dID,
+		"device_id":    this.inst.androidID,
 		"email":        "",
 		"waterfall_id": this.inst.wid,
 	}
 	resp := &RespUsernameSuggestions{}
 
-	err := this.inst.SendRequest(
+	err := this.inst.HttpRequestJson(
 		&reqOptions{
 			Endpoint: urlUsernameSuggestions,
 			IsPost:   true,
@@ -233,6 +239,7 @@ func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggest
 //	"existing_user_password": false,
 //	"status": "ok"
 //}
+
 type RespCheckUsernameError struct {
 	Error string `json:"error"`
 }
@@ -252,9 +259,9 @@ func (this *Register) checkUsername(username string) (*RespCheckUsername, error)
 	}
 	resp := &RespCheckUsername{}
 
-	err := this.inst.SendRequest(
+	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlUsernameSuggestions,
+			Endpoint: urlCheckUsername,
 			IsPost:   true,
 			Signed:   true,
 			Query:    params,
@@ -300,18 +307,22 @@ func (this *Register) createValidated(
 	password string,
 	code string,
 	tosVersion string) (*RespCreateValidated, error) {
+	encodePasswd, err := encryptPassword(password, this.inst.ReadHeader(IGHeader_EncryptionId), this.inst.ReadHeader(IGHeader_EncryptionKey))
+	if err != nil {
+		return nil, err
+	}
 
 	rand.Seed(time.Now().UnixNano())
 	params := map[string]string{
 		"is_secondary_account_creation":          "false",
-		"jazoest":                                genJazoest(this.inst.pid),
+		"jazoest":                                genJazoest(this.inst.familyID),
 		"tos_version":                            tosVersion,
 		"suggestedUsername":                      "",
 		"verification_code":                      code,
-		"sn_result":                              "API_ERROR: class X.9ob:7: ",
+		"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
 		"do_not_auto_login_if_credentials_match": "true",
-		"phone_id":                               this.inst.pid,
-		"enc_password":                           password,
+		"phone_id":                               this.inst.familyID,
+		"enc_password":                           encodePasswd,
 		"phone_number":                           this.area + this.number,
 		"username":                               username,
 		"first_name":                             firstname,
@@ -319,8 +330,8 @@ func (this *Register) createValidated(
 		"adid":                                   this.inst.adid,
 		"guid":                                   this.inst.uuid,
 		"year":                                   "2000",
-		"device_id":                              "android-79c028b2e54c371e",
-		"_uuid":                                  "df00cccf-3663-412d-9145-585a4a833ce3",
+		"device_id":                              this.inst.androidID,
+		"_uuid":                                  this.inst.uuid,
 		"month":                                  strconv.Itoa(rand.Intn(12) + 1),
 		"sn_nonce":                               genSnNonce(this.area + this.number),
 		"force_sign_up_code":                     "",
@@ -331,9 +342,9 @@ func (this *Register) createValidated(
 	}
 	resp := &RespCreateValidated{}
 
-	err := this.inst.SendRequest(
+	err = this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlUsernameSuggestions,
+			Endpoint: urlCreateValidated,
 			IsPost:   true,
 			Signed:   true,
 			Query:    params,

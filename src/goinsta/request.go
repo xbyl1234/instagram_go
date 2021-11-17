@@ -14,32 +14,30 @@ import (
 )
 
 type reqOptions struct {
-	// Connection is connection header. Default is "close".
-	//Connection string
-
-	// Login process
-	Login bool
-
-	// Endpoint is the request path of instagram api
-	Endpoint string
-
-	// IsPost set to true will send request with POST method.
-	//
-	// By default this option is false.
-	IsPost bool
-
-	// UseV2 is set when API endpoint uses v2 url.
-	UseV2 bool
-
-	Signed bool
-	// Query is the parameters of the request
-	//
-	// This parameters are independents of the request method (POST|GET)
-	Query map[string]string
+	Login     bool
+	Endpoint  string
+	IsPost    bool
+	IsApiB    bool
+	Signed    bool
+	Query     map[string]string
+	HeaderKey []string
 }
 
+var (
+	IGHeader_EncryptionId           string = "password-encryption-key-id"
+	IGHeader_EncryptionKey          string = "password-encryption-pub-key"
+	IGHeader_Authorization          string = "authorization"
+	IGHeader_udsUserID              string = "ig-u-ds-user-id"
+	IGHeader_iguiggDirectRegionHint string = "ig-u-ig-direct-region-hint"
+	IGHeader_iguShbid               string = "ig-u-shbid"
+	IGHeader_iguShbts               string = "ig-u-shbts"
+	IGHeader_iguRur                 string = "ig-u-rur"
+	IGHeader_UseAuthHeaderForSso    string = "use-auth-header-for-sso"
+	IGHeader_XMid                   string = "x-mid"
+)
+
 func (insta *Instagram) sendSimpleRequest(uri string, a ...interface{}) (body []byte, err error) {
-	return insta.sendRequest(
+	return insta.HttpRequest(
 		&reqOptions{
 			Endpoint: fmt.Sprintf(uri, a...),
 		},
@@ -67,8 +65,13 @@ func (insta *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 	req.Header.Set("x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10))
 	req.Header.Set("x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")
 	req.Header.Set("x-ig-device-id", insta.uuid)
-	req.Header.Set("x-ig-android-id", insta.dID)
+	req.Header.Set("x-ig-android-id", insta.androidID)
 	req.Header.Set("x-fb-http-engine", "Liger")
+
+	for index := range reqOpt.HeaderKey {
+		key := reqOpt.HeaderKey[index]
+		req.Header.Set(key, insta.ReadHeader(key))
+	}
 }
 
 func (insta *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
@@ -79,34 +82,34 @@ func (insta *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 		}
 	}
 
-	encryptionId := resp.Header.Get("ig-set-password-encryption-key-id")
-	if encryptionId != "" {
-		insta.encryptionId = encryptionId
-	}
-	encryptionKey := resp.Header.Get("ig-set-password-encryption-pub-key")
-	if encryptionKey != "" {
-		insta.encryptionKey = encryptionKey
-	}
-	authorization := resp.Header.Get("ig-set-authorization")
-	if authorization != "" {
-		insta.authorization = authorization
+	for key := range resp.Header {
+		setting := strings.ToLower(key)
+		if strings.Index(setting, "ig-set-") == 0 {
+			insta.httpHeader[setting[len("ig-set-"):]] = resp.Header.Get(key)
+
+			if IGHeader_udsUserID == setting[len("ig-set-"):] {
+				insta.id = resp.Header.Get(key)
+			}
+		}
 	}
 }
 
-func (insta *Instagram) SendRequest(reqOpt *reqOptions, response interface{}) (err error) {
+func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	method := "GET"
 	if reqOpt.IsPost {
 		method = "POST"
 	}
 
-	nu := goInstaAPIUrl
-	if reqOpt.UseV2 {
-		nu = goInstaAPIUrlv2
+	var baseUrl string
+	if reqOpt.IsApiB {
+		baseUrl = goInstaAPIUrl_B
+	} else {
+		baseUrl = goInstaAPIUrl
 	}
 
-	_url, err := url.Parse(nu + reqOpt.Endpoint)
+	_url, err := url.Parse(baseUrl + reqOpt.Endpoint)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	vs := url.Values{}
@@ -132,14 +135,15 @@ func (insta *Instagram) SendRequest(reqOpt *reqOptions, response interface{}) (e
 	var req *http.Request
 	req, err = http.NewRequest(method, _url.String(), bf)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	insta.setHeader(reqOpt, req)
 
 	resp, err := insta.c.Do(req)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -149,73 +153,18 @@ func (insta *Instagram) SendRequest(reqOpt *reqOptions, response interface{}) (e
 	if err == nil {
 		err = isError(resp.StatusCode, body)
 	}
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(body, &response)
-	return err
+	return nil, err
 }
 
-func (insta *Instagram) sendRequest(o *reqOptions) (body []byte, err error) {
-	method := "GET"
-	if o.IsPost {
-		method = "POST"
-	}
-
-	nu := goInstaAPIUrl
-	if o.UseV2 {
-		nu = goInstaAPIUrlv2
-	}
-
-	u, err := url.Parse(nu + o.Endpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	vs := url.Values{}
-	bf := bytes.NewBuffer([]byte{})
-
-	for k, v := range o.Query {
-		vs.Add(k, v)
-	}
-
-	if o.IsPost {
-		bf.WriteString(vs.Encode())
-	} else {
-		for k, v := range u.Query() {
-			vs.Add(k, strings.Join(v, " "))
-		}
-
-		u.RawQuery = vs.Encode()
-	}
-
-	var req *http.Request
-	req, err = http.NewRequest(method, u.String(), bf)
-	if err != nil {
-		return
-	}
-
-	insta.setHeader(o, req)
-
-	resp, err := insta.c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	u, _ = url.Parse(goInstaAPIUrl)
-	for _, value := range insta.c.Jar.Cookies(u) {
-		if strings.Contains(value.Name, "csrftoken") {
-			insta.token = value.Value
-		}
-	}
-
-	body, err = ioutil.ReadAll(resp.Body)
-	if err == nil {
-		err = isError(resp.StatusCode, body)
-	}
+func (insta *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
+	body, err := insta.httpDo(reqOpt)
 	return body, err
+}
+
+func (insta *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
+	body, err := insta.httpDo(reqOpt)
+	err = json.Unmarshal(body, &response)
+	return err
 }
 
 func isError(code int, body []byte) (err error) {

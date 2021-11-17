@@ -2,7 +2,7 @@ package goinsta
 
 const (
 	goInstaAPIUrl        = "https://i.instagram.com/api/v1/"
-	goInstaAPIUrlv2      = "https://i.instagram.com/api/v2/"
+	goInstaAPIUrl_B      = "https://b.i.instagram.com/api/v1/"
 	goInstaUserAgent     = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
 	goInstaUserAgent2    = "Instagram 207.0.0.39.120 Android (27/8.1.0; 420dpi; 1080x1794; Google/google; Pixel; sailfish; sailfish; zh_CN_#Hans; 321039115)"
 	fbAnalytics          = "567067343352427"
@@ -30,6 +30,20 @@ const (
 )
 
 // Endpoints (with format vars)
+//注册流程
+//	i
+///api/v1/users/check_username/
+///api/v1/consent/new_user_flow_begins/
+///api/v1/dynamic_onboarding/get_steps/
+///api/v1/accounts/create_validated/
+//	b
+///api/v1/launcher/sync/
+///api/v1/zr/token/result/
+///api/v1/accounts/contact_point_prefill/
+///api/v1/multiple_accounts/get_account_family/
+///api/v1/dynamic_onboarding/get_steps/
+///api/v1/nux/new_account_nux_seen/
+
 const (
 	// login
 	urlMsisdnHeader   = "accounts/read_msisdn_header/"
@@ -50,6 +64,7 @@ const (
 	urlUsernameSuggestions   = "accounts/username_suggestions/"
 	urlCreateValidated       = "accounts/create_validated/"
 	urlCheckUsername         = "users/check_username/"
+	urlLauncherSync          = "launcher/sync/"
 
 	// account
 	urlCurrentUser   = "accounts/current_user/"
