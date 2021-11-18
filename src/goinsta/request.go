@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"makemoney/config"
+	"makemoney/log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -21,6 +23,14 @@ type reqOptions struct {
 	Signed    bool
 	Query     map[string]string
 	HeaderKey []string
+}
+type BaseApiResp struct {
+	Status    string `json:"status"`
+	ErrorType string `json:"error_type"`
+}
+
+func (this *BaseApiResp) isError() bool {
+	return this.Status != "ok"
 }
 
 var (
@@ -156,14 +166,59 @@ func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	return nil, err
 }
 
+func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, resp interface{}, body []byte, err error) {
+	defer func() {
+		if config.IsDebug {
+			str, err := json.Marshal(resp)
+			if err != nil {
+				log.Info("account: %s, url: %s, api resp %v", insta.User, reqOpt.Endpoint, resp)
+			} else {
+				log.Info("account: %s, url: %s, api resp %s", insta.User, reqOpt.Endpoint, str)
+			}
+		}
+	}()
+
+	if err != nil {
+		log.Warn("account: %s, url: %s, request error: %v", insta.User, reqOpt.Endpoint, err)
+		insta.ReqErrorCount += 1
+		return
+	}
+
+	if resp != nil {
+		apiResp := resp.(BaseApiResp)
+		if apiResp.isError() {
+			log.Warn("account: %s, url: %s, api error %v", insta.User, reqOpt.Endpoint, body)
+			insta.ReqApiErrorCount += 1
+		} else {
+			insta.ReqSuccessCount += 1
+		}
+	} else if body != nil {
+		var response BaseApiResp
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			log.Warn("account: %s, url: %s, Unmarshal error %s", insta.User, reqOpt.Endpoint, body)
+			insta.ReqApiErrorCount += 1
+		} else {
+			if response.isError() {
+				log.Warn("account: %s, url: %s, api error: %s", insta.User, reqOpt.Endpoint, body)
+				insta.ReqApiErrorCount += 1
+			} else {
+				insta.ReqSuccessCount += 1
+			}
+		}
+	}
+}
+
 func (insta *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 	body, err := insta.httpDo(reqOpt)
+	insta.CheckInstReqError(reqOpt, nil, body, err)
 	return body, err
 }
 
 func (insta *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
 	body, err := insta.httpDo(reqOpt)
 	err = json.Unmarshal(body, &response)
+	insta.CheckInstReqError(reqOpt, response, body, err)
 	return err
 }
 

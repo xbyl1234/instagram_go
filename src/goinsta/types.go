@@ -5,16 +5,6 @@ import (
 	"net/http"
 )
 
-type BaseApiResp struct {
-	err       error
-	Status    string `json:"status"`
-	ErrorType string `json:"error_type"`
-}
-
-func (this *BaseApiResp) isError() bool {
-	return this.Status != "ok" || this.err != nil
-}
-
 // ConfigFile is a structure to store the session information so that can be exported or imported.
 type ConfigFile struct {
 	ID        int64          `json:"id"`

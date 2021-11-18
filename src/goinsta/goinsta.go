@@ -56,6 +56,9 @@ type Instagram struct {
 
 	IsLogin bool
 
+	ReqSuccessCount  int
+	ReqErrorCount    int
+	ReqApiErrorCount int
 	// Instagram objects
 
 	// Challenge controls security side of account (Like sms verify / It was me)

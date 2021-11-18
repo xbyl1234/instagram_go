@@ -9,4 +9,3 @@ type MakeMoneyError struct {
 func (this *MakeMoneyError) Error() string {
 	return this.ErrStr
 }
-
