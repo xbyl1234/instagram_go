@@ -14,6 +14,7 @@ type PhoneVerificationCode interface {
 	BlackPhone(number string) error
 	GetBalance() (string, error)
 	GetProvider() string
+	GetArea() string
 	Login() error
 }
 
@@ -30,7 +31,8 @@ type PhoneInfo struct {
 	ProjectID          string `json:"project_id"`
 	RetryTimeout       int    `json:"retry_timeout"`
 	RetryDelay         int    `json:"retry_delay"`
-	Provider           string `bson:"provider"`
+	Provider           string `json:"provider"`
+	Area               string `json:"area"`
 	client             *http.Client
 	reqLock            sync.Mutex
 	lastReqPhoneTime   time.Time
@@ -40,6 +42,10 @@ type PhoneInfo struct {
 
 func (this *PhoneInfo) GetProvider() string {
 	return this.Provider
+}
+
+func (this *PhoneInfo) GetArea() string {
+	return this.Area
 }
 
 func NewPhoneVerificationCode(provider string) (PhoneVerificationCode, error) {

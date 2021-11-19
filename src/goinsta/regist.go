@@ -2,7 +2,9 @@ package goinsta
 
 import (
 	"makemoney/goinsta/dbhelper"
+	"makemoney/log"
 	"makemoney/phone"
+	"makemoney/proxy"
 	"math/rand"
 	"strconv"
 	"time"
@@ -10,19 +12,23 @@ import (
 
 type Register struct {
 	inst   *Instagram
-	area   string
 	number string
 	phone  phone.PhoneVerificationCode
+	proxy  *proxy.Proxy
 }
 
-func NewRegister(area string, _phone phone.PhoneVerificationCode) *Register {
+func NewRegister(_proxy *proxy.Proxy, _phone phone.PhoneVerificationCode) *Register {
 	register := &Register{}
 	register.phone = _phone
+	register.proxy = _proxy
 	return register
 }
 
 func (this *Register) Do(username string, firstname string, password string) (*Instagram, error) {
 	inst, err := this.do(username, firstname, password)
+	if err != nil {
+		log.Error("register ip %s, error %v", this.proxy.Rip, err)
+	}
 	return inst, err
 }
 
@@ -36,7 +42,7 @@ func (this *Register) Prepare() {
 }
 
 func (this *Register) do(username string, firstname string, password string) (*Instagram, error) {
-	this.inst = New(username, password)
+	this.inst = New(username, password, this.proxy)
 	this.Prepare()
 
 	number, err := this.phone.RequirePhoneNumber()
@@ -54,11 +60,11 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	if err != nil {
 		return nil, err
 	}
-	dbhelper.UpdatePhoneSendOnce(this.phone.GetProvider(), this.area, this.number)
+	dbhelper.UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
 	var flag = false
 	defer func() {
 		if flag {
-			dbhelper.UpdatePhoneRegisterOnce(this.area, this.number)
+			dbhelper.UpdatePhoneRegisterOnce(this.phone.GetArea(), this.number)
 		}
 	}()
 
@@ -106,7 +112,6 @@ func (this *Register) genUsername(username string) (string, error) {
 				return sugName, nil
 			}
 		}
-
 	}
 
 	return "", &ApiError{"not find available username!"}
@@ -140,7 +145,7 @@ type RespSendSignupSmsCode struct {
 func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	params := map[string]string{
 		"phone_id":           this.inst.familyID,
-		"phone_number":       this.area + this.number,
+		"phone_number":       this.phone.GetArea() + this.number,
 		"guid":               this.inst.uuid,
 		"device_id":          this.inst.androidID,
 		"android_build_type": "release",
@@ -175,7 +180,7 @@ type RespValidateSignupSmsCode struct {
 func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSmsCode, error) {
 	params := map[string]string{
 		"verification_code": code,
-		"phone_number":      this.area + this.number,
+		"phone_number":      this.phone.GetArea() + this.number,
 		"guid":              this.inst.uuid,
 		"device_id":         this.inst.androidID,
 		"waterfall_id":      this.inst.wid,
@@ -323,7 +328,7 @@ func (this *Register) createValidated(
 		"do_not_auto_login_if_credentials_match": "true",
 		"phone_id":                               this.inst.familyID,
 		"enc_password":                           encodePasswd,
-		"phone_number":                           this.area + this.number,
+		"phone_number":                           this.phone.GetArea() + this.number,
 		"username":                               username,
 		"first_name":                             firstname,
 		"day":                                    strconv.Itoa(rand.Intn(27) + 1),
@@ -333,7 +338,7 @@ func (this *Register) createValidated(
 		"device_id":                              this.inst.androidID,
 		"_uuid":                                  this.inst.uuid,
 		"month":                                  strconv.Itoa(rand.Intn(12) + 1),
-		"sn_nonce":                               genSnNonce(this.area + this.number),
+		"sn_nonce":                               genSnNonce(this.phone.GetArea() + this.number),
 		"force_sign_up_code":                     "",
 		"waterfall_id":                           this.inst.wid,
 		"qs_stamp":                               "",

@@ -7,6 +7,7 @@ import (
 	"makemoney/config"
 	"net/http"
 	neturl "net/url"
+	"os"
 )
 
 func LoadJsonFile(path string, ret interface{}) error {
@@ -17,6 +18,23 @@ func LoadJsonFile(path string, ret interface{}) error {
 
 	err = json.Unmarshal(by, ret)
 	return err
+}
+
+func Dumps(path string, obj interface{}) error {
+	by, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	_, err = file.Write(by)
+	if err != nil {
+		return err
+	}
+	_ = file.Close()
+	return nil
 }
 
 func DebugHttpClient(clinet *http.Client) {
@@ -31,4 +49,15 @@ func DebugHttpClient(clinet *http.Client) {
 			}
 		}
 	}
+}
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }

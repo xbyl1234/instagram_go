@@ -1,11 +1,10 @@
 package goinsta
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"makemoney/tools"
+	"makemoney/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
@@ -59,8 +58,10 @@ type Instagram struct {
 	ReqSuccessCount  int
 	ReqErrorCount    int
 	ReqApiErrorCount int
-	// Instagram objects
 
+	proxy *proxy.Proxy
+
+	// Instagram objects
 	// Challenge controls security side of account (Like sms verify / It was me)
 	Challenge *Challenge
 	// Profiles is the user interaction
@@ -106,7 +107,7 @@ func (inst *Instagram) SetCookieJar(jar http.CookieJar) error {
 }
 
 // New creates Instagram structure
-func New(username, password string) *Instagram {
+func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	// this call never returns error
 	jar, _ := cookiejar.New(nil)
 	inst := &Instagram{
@@ -117,14 +118,12 @@ func New(username, password string) *Instagram {
 		familyID:  generateUUID(),
 		wid:       generateUUID(),
 		c: &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyFromEnvironment,
-			},
-			Jar: jar,
+			Jar:       jar,
+			Transport: _proxy.GetProxy(),
 		},
 	}
-
-	tools.DebugHttpClient(inst.c)
+	inst.proxy = _proxy
+	//tools.DebugHttpClient(inst.c)
 
 	inst.init()
 
@@ -144,22 +143,9 @@ func (inst *Instagram) init() {
 }
 
 // SetProxy sets proxy for connection.
-func (inst *Instagram) SetProxy(url string, insecure bool) error {
-	uri, err := neturl.Parse(url)
-	if err == nil {
-		inst.c.Transport = &http.Transport{
-			Proxy: http.ProxyURL(uri),
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: insecure,
-			},
-		}
-	}
-	return err
-}
-
-// UnsetProxy unsets proxy for connection.
-func (inst *Instagram) UnsetProxy() {
-	inst.c.Transport = nil
+func (inst *Instagram) SetProxy(_proxy *proxy.Proxy) {
+	inst.proxy = _proxy
+	inst.c.Transport = _proxy.GetProxy()
 }
 
 // Save exports config to ~/.goinsta
