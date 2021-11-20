@@ -113,7 +113,10 @@ type AccountCookies struct {
 }
 
 func SaveNewAccount(account AccountCookies) error {
-	_, err := MogoHelper.account.UpdateOne(context.TODO(), bson.M{"username": account.Username}, account,
+	_, err := MogoHelper.account.UpdateOne(
+		context.TODO(),
+		bson.M{"username": account.Username},
+		bson.M{"$set": account},
 		options.Update().SetUpsert(true))
 	return err
 }
