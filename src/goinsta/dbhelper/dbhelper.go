@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -83,14 +84,36 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 		bson.D{
 			{"area", area},
 			{"phone", number},
-		}, bson.D{{"$inc", bson.M{"register_count": 1}},
-		}, options.Update().SetUpsert(true))
+		}, bson.D{{"$inc", bson.M{"register_count": 1}}}, options.Update().SetUpsert(true))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func InsertNewAccount() {
+type AccountCookies struct {
+	ID                  string            `json:"id"`
+	Username            string            `json:"username"`
+	Passwd              string            `json:"passwd"`
+	Adid                string            `json:"adid"`
+	Wid                 string            `json:"wid"`
+	HttpHeader          map[string]string `json:"http_header"`
+	ProxyID             string            `json:"proxy_id"`
+	IsLogin             bool              `json:"is_login"`
+	AndroidID           string            `json:"android_id"`
+	UUID                string            `json:"uuid"`
+	RankToken           string            `json:"rank_token"`
+	Token               string            `json:"token"`
+	FamilyID            string            `json:"family_id"`
+	Cookies             []*http.Cookie    `json:"cookies"`
+	CookiesB            []*http.Cookie    `json:"cookies_b"`
+	RegisterPhoneNumber string            `json:"register_phone_number"`
+	RegisterPhoneArea   string            `json:"register_phone_area"`
+	RegisterIpCountry   string            `json:"register_ip_country"`
+}
 
+func SaveNewAccount(account AccountCookies) error {
+	_, err := MogoHelper.account.UpdateOne(context.TODO(), bson.M{"username": account.Username}, account,
+		options.Update().SetUpsert(true))
+	return err
 }

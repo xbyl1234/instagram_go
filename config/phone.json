@@ -10,5 +10,6 @@
   "token": "bge7xdKG0iNNvJ8KTcxCGUzq+qgVMfyCeKc2WdoPBWLv2C29HLj+7+zCqLqVrecHthn0+dLxjDw7nOncByiZomYW1eHzQqJwtJCgwNdPNlTMmb0OfgHar3kPE7NFkZCyxaPZcYIHMXI2wrrGUOw1KxaQc5k+0eAmA+LNo5mk/NY=",
   "project_id": "10058",
   "retry_timeout": 180,
-  "retry_delay": 3
+  "retry_delay": 3,
+  "area": "+86"
 }

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"makemoney/config"
 	"makemoney/log"
+	"makemoney/tools"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -27,10 +28,24 @@ type reqOptions struct {
 type BaseApiResp struct {
 	Status    string `json:"status"`
 	ErrorType string `json:"error_type"`
+	Message   string `json:"message"`
 }
 
 func (this *BaseApiResp) isError() bool {
 	return this.Status != "ok"
+}
+
+func (this *BaseApiResp) CheckError(err error) error {
+	if err != nil {
+		return err
+	}
+	if this == nil {
+		return &tools.MakeMoneyError{ErrStr: this.Message, ErrType: tools.OtherError}
+	}
+	if this.Status != "ok" {
+		return &tools.MakeMoneyError{ErrStr: this.Message, ErrType: tools.ApiError}
+	}
+	return nil
 }
 
 var (
@@ -122,24 +137,25 @@ func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		return nil, err
 	}
 
-	vs := url.Values{}
 	bf := bytes.NewBuffer([]byte{})
 
-	for k, v := range reqOpt.Query {
-		vs.Add(k, v)
+	var query string
+	_query, err := json.Marshal(reqOpt.Query)
+	if err != nil {
+		return nil, err
+	}
+	query = b2s(_query)
+
+	if reqOpt.Signed {
+		query = "signed_body=SIGNATURE." + url.QueryEscape(query)
+	} else {
+		query = url.QueryEscape(query)
 	}
 
 	if reqOpt.IsPost {
-		if reqOpt.Signed {
-			bf.WriteString(generateSignature(vs.Encode()))
-		} else {
-			bf.WriteString(vs.Encode())
-		}
+		bf.WriteString(query)
 	} else {
-		for k, v := range _url.Query() {
-			vs.Add(k, strings.Join(v, " "))
-		}
-		_url.RawQuery = vs.Encode()
+		_url.RawQuery = query
 	}
 
 	var req *http.Request
@@ -163,65 +179,58 @@ func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	if err == nil {
 		err = isError(resp.StatusCode, body)
 	}
-	return nil, err
+	return body, err
 }
 
-func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, resp interface{}, body []byte, err error) {
+func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, body []byte, err error) {
+	var hadLog = false
 	defer func() {
-		if config.IsDebug {
-			str, err := json.Marshal(resp)
-			if err != nil {
-				log.Info("account: %s, url: %s, api resp %v", insta.User, reqOpt.Endpoint, resp)
-			} else {
-				log.Info("account: %s, url: %s, api resp %s", insta.User, reqOpt.Endpoint, str)
-			}
+		if !hadLog {
+			insta.ReqSuccessCount += 1
+		}
+
+		if config.IsDebug && !hadLog {
+			log.Info("account: %s, url: %s, api resp %s", insta.User, reqOpt.Endpoint, body)
 		}
 	}()
 
 	if err != nil {
 		log.Warn("account: %s, url: %s, request error: %v", insta.User, reqOpt.Endpoint, err)
 		insta.ReqErrorCount += 1
+		hadLog = true
 		return
 	}
 
-	if resp != nil {
-		apiResp := resp.(BaseApiResp)
-		if apiResp.isError() {
-			log.Warn("account: %s, url: %s, api error %v", insta.User, reqOpt.Endpoint, body)
+	resp := &BaseApiResp{}
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		log.Warn("account: %s, url: %s, Unmarshal error %s", insta.User, reqOpt.Endpoint, body)
+		insta.ReqApiErrorCount += 1
+		hadLog = true
+	} else {
+		if resp.isError() {
+			log.Warn("account: %s, url: %s, api error: %s", insta.User, reqOpt.Endpoint, body)
 			insta.ReqApiErrorCount += 1
-		} else {
-			insta.ReqSuccessCount += 1
-		}
-	} else if body != nil {
-		var response BaseApiResp
-		err = json.Unmarshal(body, &response)
-		if err != nil {
-			log.Warn("account: %s, url: %s, Unmarshal error %s", insta.User, reqOpt.Endpoint, body)
-			insta.ReqApiErrorCount += 1
-		} else {
-			if response.isError() {
-				log.Warn("account: %s, url: %s, api error: %s", insta.User, reqOpt.Endpoint, body)
-				insta.ReqApiErrorCount += 1
-			} else {
-				insta.ReqSuccessCount += 1
-			}
+			hadLog = true
 		}
 	}
 }
 
 func (insta *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 	body, err := insta.httpDo(reqOpt)
-	insta.CheckInstReqError(reqOpt, nil, body, err)
+	insta.CheckInstReqError(reqOpt, body, err)
 	return body, err
 }
 
 func (insta *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
 	body, err := insta.httpDo(reqOpt)
+	insta.CheckInstReqError(reqOpt, body, err)
+
 	err = json.Unmarshal(body, &response)
-	insta.CheckInstReqError(reqOpt, response, body, err)
 	return err
 }
 
+//{"message":"Please wait a few minutes before you try again.","status":"fail"}
 func isError(code int, body []byte) (err error) {
 	switch code {
 	case 200:
@@ -279,6 +288,9 @@ func (insta *Instagram) prepareDataQuery(other ...map[string]interface{}) map[st
 	data := map[string]string{
 		"_uuid":      insta.uuid,
 		"_csrftoken": insta.token,
+	}
+	if insta.Account != nil && insta.Account.ID != 0 {
+		data["_uid"] = strconv.FormatInt(insta.Account.ID, 10)
 	}
 	for i := range other {
 		for key, value := range other[i] {

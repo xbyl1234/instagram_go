@@ -5,6 +5,7 @@ import (
 	"makemoney/log"
 	"makemoney/tools"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -84,8 +85,8 @@ func (this *PhoneDo889) RequirePhoneNumber() (string, error) {
 
 type PhoneDo889_ReqPhoneCode struct {
 	Message string `json:"message"`
-	Code    string `json:"code"`
-	Data    []struct {
+	//Code    string `json:"code"`
+	Data []struct {
 		ProjectId   string `json:""`
 		Modle       string `json:"modle"`
 		Phone       string `json:"phone"`
@@ -96,7 +97,7 @@ type PhoneDo889_ReqPhoneCode struct {
 func (this *PhoneDo889) RequirePhoneCode(number string) (string, error) {
 	//http://api.fghfdf.cn/api/get_message
 	start := time.Now()
-	for ; time.Since(start) < this.retryTimeout; {
+	for time.Since(start) < this.retryTimeout {
 		var respJson PhoneDo889_ReqPhoneCode
 		err := http_helper.HttpDoJson(this.client, &http_helper.RequestOpt{ReqUrl: this.UrlReqPhoneCode,
 			Params: map[string]string{
@@ -106,15 +107,18 @@ func (this *PhoneDo889) RequirePhoneCode(number string) (string, error) {
 		}, &respJson)
 
 		if err != nil {
-			return "", err
+			log.Warn("to getting phone %s code error: %v", number, err)
+		} else {
+			if respJson.Message == "ok" {
+				if len(respJson.Data) != 0 && len(respJson.Data[0].Modle) > 12 {
+					return strings.ReplaceAll(respJson.Data[0].Modle[4:11], " ", ""), err
+				} else {
+					log.Warn("to getting phone %s code parse error", number)
+				}
+			} else {
+				log.Warn("to getting phone %s code error: %v", number, respJson.Message)
+			}
 		}
-		if respJson.Message != "ok" {
-			return "", &tools.MakeMoneyError{ErrStr: respJson.Message}
-		}
-		if respJson.Code != "" {
-			return respJson.Code, nil
-		}
-
 		time.Sleep(this.retryDelay)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"makemoney/log"
 	"makemoney/phone"
 	"makemoney/proxy"
+	"makemoney/tools"
 	"math/rand"
 	"strconv"
 	"time"
@@ -56,7 +57,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	//	return nil, err
 	//}
 	respSendSignupSmsCode, err := this.sendSignupSmsCode()
-	err = CheckApiError(respSendSignupSmsCode, err)
+	err = respSendSignupSmsCode.CheckError(err)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +75,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	}
 
 	validateSignupSmsCode, err := this.validateSignupSmsCode(code)
-	err = CheckApiError(validateSignupSmsCode, err)
+	err = validateSignupSmsCode.CheckError(err)
 	if err != nil {
 		return nil, err
 	}
@@ -86,18 +87,20 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	this.inst.User = username
 
 	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion)
-	err = CheckApiError(createValidated, err)
+	err = createValidated.CheckError(err)
 	if err != nil {
 		return nil, err
 	}
 
+	this.inst.IsLogin = true
+	this.inst.id = strconv.FormatInt(createValidated.CreatedUser.ID, 10)
 	flag = true
 	return this.inst, err
 }
 
 func (this *Register) genUsername(username string) (string, error) {
 	usernameSuggestions, err := this.usernameSuggestions(username)
-	err = CheckApiError(usernameSuggestions, err)
+	err = usernameSuggestions.CheckError(err)
 	if err != nil {
 		return "", err
 	}
@@ -114,7 +117,7 @@ func (this *Register) genUsername(username string) (string, error) {
 		}
 	}
 
-	return "", &ApiError{"not find available username!"}
+	return "", &tools.MakeMoneyError{ErrStr: "not find available username!", ErrType: tools.ApiError}
 }
 
 func (this *Register) checkPhoneNumber() error {
@@ -127,12 +130,12 @@ func (this *Register) checkPhoneNumber() error {
 		"prefill_shown":   "False",
 	}
 
-	err := this.inst.HttpRequestJson(&reqOptions{
+	_, err := this.inst.HttpRequest(&reqOptions{
 		Endpoint: urlCheckPhoneNumber,
 		IsPost:   true,
 		Signed:   true,
 		Query:    params,
-	}, nil)
+	})
 	return err
 }
 
@@ -299,7 +302,7 @@ type RespCreateValidatedError struct {
 type RespCreateValidated struct {
 	BaseApiResp
 	RespCreateValidatedError
-	AccountCreated        string      `json:"account_created"`
+	AccountCreated        bool        `json:"account_created"`
 	CreatedUser           Account     `json:"created_user"`
 	ExistingUser          bool        `json:"existing_user"`
 	MultipleUsersOnDevice bool        `json:"multiple_users_on_device"`

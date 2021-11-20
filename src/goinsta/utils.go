@@ -73,23 +73,23 @@ func toString(i interface{}) string {
 	return ""
 }
 
-func prepareRecipients(cc interface{}) (bb string, err error) {
-	var b []byte
-	ids := make([][]int64, 0)
-	switch c := cc.(type) {
-	case *Conversation:
-		for i := range c.Users {
-			ids = append(ids, []int64{c.Users[i].ID})
-		}
-	case *Item:
-		ids = append(ids, []int64{c.User.ID})
-	case int64:
-		ids = append(ids, []int64{c})
-	}
-	b, err = json.Marshal(ids)
-	bb = b2s(b)
-	return
-}
+//func prepareRecipients(cc interface{}) (bb string, err error) {
+//	var b []byte
+//	ids := make([][]int64, 0)
+//	switch c := cc.(type) {
+//	case *Conversation:
+//		for i := range c.Users {
+//			ids = append(ids, []int64{c.Users[i].ID})
+//		}
+//	case *Item:
+//		ids = append(ids, []int64{c.User.ID})
+//	case int64:
+//		ids = append(ids, []int64{c})
+//	}
+//	b, err = json.Marshal(ids)
+//	bb = b2s(b)
+//	return
+//}
 
 // getImageDimensionFromReader return image dimension , types is .jpg and .png
 func getImageDimensionFromReader(rdr io.Reader) (int, int, error) {

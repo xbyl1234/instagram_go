@@ -1,15 +1,11 @@
 package goinsta
 
 import (
-	"encoding/json"
-	"io"
-	"io/ioutil"
 	"makemoney/proxy"
+	"makemoney/tools"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -31,29 +27,22 @@ import (
 // Also you can use SetProxy and UnsetProxy to set and unset proxy.
 // Golang also provides the option to set a proxy using HTTP_PROXY env var.
 type Instagram struct {
-	User string
-	Pass string
-	// device id: android-1923fjnma8123
-	androidID string
-	// uuid: 8493-1233-4312312-5123
-	uuid string
-	// rankToken
-	rankToken string
-	// token
-	token string
-
-	familyID string
-	// ads id
-	adid string
-	//waterfall id
-	wid string
-	// challenge URL
-	challengeURL string
-
-	id         string
-	httpHeader map[string]string
-
-	IsLogin bool
+	User                string
+	Pass                string
+	androidID           string
+	uuid                string
+	rankToken           string
+	token               string
+	familyID            string
+	adid                string
+	wid                 string
+	challengeURL        string
+	id                  string
+	httpHeader          map[string]string
+	registerPhoneNumber string
+	registerPhoneArea   string
+	registerIpCountry   string
+	IsLogin             bool
 
 	ReqSuccessCount  int
 	ReqErrorCount    int
@@ -63,25 +52,25 @@ type Instagram struct {
 
 	// Instagram objects
 	// Challenge controls security side of account (Like sms verify / It was me)
-	Challenge *Challenge
+	//Challenge *Challenge
 	// Profiles is the user interaction
-	Profiles *Profiles
+	//Profiles *Profiles
 	// Account stores all personal data of the user and his/her options.
 	Account *Account
 	// Search performs searching of multiple things (users, locations...)
-	Search *Search
+	//Search *Search
 	// Timeline allows to receive timeline media.
-	Timeline *Timeline
+	//Timeline *Timeline
 	// Activity are instagram notifications.
-	Activity *Activity
+	//Activity *Activity
 	// Inbox are instagram message/chat system.
-	Inbox *Inbox
+	//Inbox *Inbox
 	// Feed for search over feeds
-	Feed *Feed
+	//Feed *Feed
 	// User contacts from mobile address book
-	Contacts *Contacts
+	//Contacts *Contacts
 	// Location instance
-	Locations *LocationInstance
+	//Locations *LocationInstance
 
 	c *http.Client
 }
@@ -117,13 +106,15 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 		uuid:      generateUUID(), // both uuid must be differents
 		familyID:  generateUUID(),
 		wid:       generateUUID(),
+		adid:      generateUUID(),
 		c: &http.Client{
 			Jar:       jar,
 			Transport: _proxy.GetProxy(),
 		},
 	}
 	inst.proxy = _proxy
-	//tools.DebugHttpClient(inst.c)
+	inst.httpHeader = make(map[string]string)
+	tools.DebugHttpClient(inst.c)
 
 	inst.init()
 
@@ -131,144 +122,21 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 }
 
 func (inst *Instagram) init() {
-	inst.Challenge = newChallenge(inst)
-	inst.Profiles = newProfiles(inst)
-	inst.Activity = newActivity(inst)
-	inst.Timeline = newTimeline(inst)
-	inst.Search = newSearch(inst)
-	inst.Inbox = newInbox(inst)
-	inst.Feed = newFeed(inst)
-	inst.Contacts = newContacts(inst)
-	inst.Locations = newLocation(inst)
+	//inst.Challenge = newChallenge(inst)
+	//inst.Profiles = newProfiles(inst)
+	//inst.Activity = newActivity(inst)
+	//inst.Timeline = newTimeline(inst)
+	//inst.Search = newSearch(inst)
+	//inst.Inbox = newInbox(inst)
+	//inst.Feed = newFeed(inst)
+	//inst.Contacts = newContacts(inst)
+	//inst.Locations = newLocation(inst)
 }
 
 // SetProxy sets proxy for connection.
 func (inst *Instagram) SetProxy(_proxy *proxy.Proxy) {
 	inst.proxy = _proxy
 	inst.c.Transport = _proxy.GetProxy()
-}
-
-// Save exports config to ~/.goinsta
-func (inst *Instagram) Save() error {
-	home := os.Getenv("HOME")
-	if home == "" {
-		home = os.Getenv("home") // for plan9
-	}
-	return inst.Export(filepath.Join(home, ".goinsta"))
-}
-
-// Export exports *Instagram object options
-func (inst *Instagram) Export(path string) error {
-	url, err := neturl.Parse(goInstaAPIUrl)
-	if err != nil {
-		return err
-	}
-
-	config := ConfigFile{
-		ID:        inst.Account.ID,
-		User:      inst.User,
-		AndroidID: inst.androidID,
-		UUID:      inst.uuid,
-		RankToken: inst.rankToken,
-		Token:     inst.token,
-		FamilyID:  inst.familyID,
-		Cookies:   inst.c.Jar.Cookies(url),
-	}
-	bytes, err := json.Marshal(config)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(path, bytes, 0644)
-}
-
-// Export exports selected *Instagram object options to an io.Writer
-func Export(inst *Instagram, writer io.Writer) error {
-	url, err := neturl.Parse(goInstaAPIUrl)
-	if err != nil {
-		return err
-	}
-
-	config := ConfigFile{
-		ID:        inst.Account.ID,
-		User:      inst.User,
-		AndroidID: inst.androidID,
-		UUID:      inst.uuid,
-		RankToken: inst.rankToken,
-		Token:     inst.token,
-		FamilyID:  inst.familyID,
-		Cookies:   inst.c.Jar.Cookies(url),
-	}
-	bytes, err := json.Marshal(config)
-	if err != nil {
-		return err
-	}
-	_, err = writer.Write(bytes)
-	return err
-}
-
-// ImportReader imports instagram configuration from io.Reader
-//
-// This function does not set proxy automatically. Use SetProxy after this call.
-func ImportReader(r io.Reader) (*Instagram, error) {
-	bytes, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	config := ConfigFile{}
-	err = json.Unmarshal(bytes, &config)
-	if err != nil {
-		return nil, err
-	}
-	return ImportConfig(config)
-}
-
-// ImportConfig imports instagram configuration from a configuration object.
-//
-// This function does not set proxy automatically. Use SetProxy after this call.
-func ImportConfig(config ConfigFile) (*Instagram, error) {
-	url, err := neturl.Parse(goInstaAPIUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	inst := &Instagram{
-		User:      config.User,
-		androidID: config.AndroidID,
-		uuid:      config.UUID,
-		rankToken: config.RankToken,
-		token:     config.Token,
-		familyID:  config.FamilyID,
-		c: &http.Client{
-			Transport: &http.Transport{
-				Proxy: http.ProxyFromEnvironment,
-			},
-		},
-	}
-	inst.c.Jar, err = cookiejar.New(nil)
-	if err != nil {
-		return inst, err
-	}
-	inst.c.Jar.SetCookies(url, config.Cookies)
-
-	inst.init()
-	inst.Account = &Account{inst: inst, ID: config.ID}
-	inst.Account.Sync()
-
-	return inst, nil
-}
-
-// Import imports instagram configuration
-//
-// This function does not set proxy automatically. Use SetProxy after this call.
-func Import(path string) (*Instagram, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return ImportReader(f)
 }
 
 func (inst *Instagram) ReadHeader(key string) string {
@@ -311,6 +179,7 @@ func (inst *Instagram) contactPrefill() error {
 			Endpoint: urlContactPrefill,
 			IsPost:   true,
 			IsApiB:   true,
+			Signed:   true,
 			Query:    query,
 		},
 	)
@@ -339,6 +208,7 @@ func (inst *Instagram) launcherSync() error {
 			Endpoint: urlLauncherSync,
 			IsPost:   true,
 			IsApiB:   true,
+			Signed:   true,
 			Query:    query,
 		},
 	)
@@ -370,6 +240,7 @@ func (inst *Instagram) sendAdID() error {
 			Endpoint: urlLogAttribution,
 			IsPost:   true,
 			IsApiB:   true,
+			Signed:   true,
 			Query: map[string]string{
 				"adid": inst.adid,
 			},
@@ -469,17 +340,27 @@ func (inst *Instagram) Logout() error {
 }
 
 func (inst *Instagram) syncFeatures() error {
+	var params map[string]string
+	if inst.IsLogin {
+		params = map[string]string{
+			"id":          inst.id,
+			"_uid":        inst.id,
+			"_uuid":       inst.uuid,
+			"experiments": goInstaExperiments,
+		}
+	} else {
+		params = map[string]string{
+			"id":          inst.uuid,
+			"experiments": goInstaExperiments,
+		}
+	}
 	_, err := inst.HttpRequest(
 		&reqOptions{
 			Endpoint: urlQeSync,
-			Query: map[string]string{
-				"id":          inst.id,
-				"_uid":        inst.id,
-				"_uuid":       inst.uuid,
-				"experiments": goInstaExperiments,
-			},
-			IsPost: true,
-			Login:  true,
+			Query:    params,
+			IsPost:   true,
+			Login:    true,
+			Signed:   true,
 		},
 	)
 	return err
@@ -531,10 +412,10 @@ func (inst *Instagram) megaphoneLog() error {
 // The argument can be int64 or string
 //
 // See example: examples/media/like.go
-func (inst *Instagram) GetMedia(o interface{}) (*FeedMedia, error) {
-	media := &FeedMedia{
-		inst:   inst,
-		NextID: o,
-	}
-	return media, media.Sync()
-}
+//func (inst *Instagram) GetMedia(o interface{}) (*FeedMedia, error) {
+//	media := &FeedMedia{
+//		inst:   inst,
+//		NextID: o,
+//	}
+//	return media, media.Sync()
+//}

@@ -1,18 +1,10 @@
 package goinsta
 
-import (
-	"encoding/json"
-	"fmt"
-)
+//type accountResp struct {
+//	Status  string  `json:"status"`
+//	Account Account `json:"logged_in_user"`
+//}
 
-type accountResp struct {
-	Status  string  `json:"status"`
-	Account Account `json:"logged_in_user"`
-}
-
-// Account is personal account object
-//
-// See examples: examples/account/*
 type Account struct {
 	inst *Instagram
 	//for register
@@ -78,373 +70,366 @@ type Account struct {
 	CanBoostPost               bool         `json:"can_boost_post"`
 }
 
-// Sync updates account information
-func (account *Account) Sync() error {
-	insta := account.inst
-	data, err := insta.prepareData()
-	if err != nil {
-		return err
-	}
-	body, err := insta.sendRequest(&reqOptions{
-		Endpoint: urlCurrentUser,
-		Query:    generateSignature(data),
-		IsPost:   true,
-	})
-	if err == nil {
-		resp := profResp{}
-		err = json.Unmarshal(body, &resp)
-		if err == nil {
-			*account = resp.Account
-			account.inst = insta
-		}
-	}
-	return err
-}
-
-// ChangePassword changes current password.
+//func (account *Account) Sync() error {
+//	var resp profResp
+//	inst := account.inst
+//	err := account.inst.HttpRequestJson(&reqOptions{
+//		Endpoint: urlCurrentUser,
+//		Query:    account.inst.prepareDataQuery(),
+//		IsPost:   true},
+//		resp)
 //
-// GoInsta does not store current instagram password (for security reasons)
-// If you want to change your password you must parse old and new password.
+//	if err == nil {
+//		*account = resp.Account
+//		account.inst = inst
+//	}
+//	return err
+//}
 //
-// See example: examples/account/changePass.go
-func (account *Account) ChangePassword(old, new string) error {
-	insta := account.inst
-	data, err := insta.prepareData(
-		map[string]interface{}{
-			"old_password":  old,
-			"new_password1": new,
-			"new_password2": new,
-		},
-	)
-	if err == nil {
-		_, err = insta.sendRequest(
-			&reqOptions{
-				Endpoint: urlChangePass,
-				Query:    generateSignature(data),
-				IsPost:   true,
-			},
-		)
-	}
-	return err
-}
-
-type profResp struct {
-	Status  string  `json:"status"`
-	Account Account `json:"user"`
-}
-
-// RemoveProfilePic removes current profile picture
+//// ChangePassword changes current password.
+////
+//// GoInsta does not store current instagram password (for security reasons)
+//// If you want to change your password you must parse old and new password.
+////
+//// See example: examples/account/changePass.go
+//func (account *Account) ChangePassword(old, new string) error {
+//	insta := account.inst
+//	data, err := insta.prepareData(
+//		map[string]interface{}{
+//			"old_password":  old,
+//			"new_password1": new,
+//			"new_password2": new,
+//		},
+//	)
+//	if err == nil {
+//		_, err = insta.sendRequest(
+//			&reqOptions{
+//				Endpoint: urlChangePass,
+//				Query:    generateSignature(data),
+//				IsPost:   true,
+//			},
+//		)
+//	}
+//	return err
+//}
 //
-// This function updates current Account information.
+//type profResp struct {
+//	Status  string  `json:"status"`
+//	Account Account `json:"user"`
+//}
 //
-// See example: examples/account/removeProfilePic.go
-func (account *Account) RemoveProfilePic() error {
-	insta := account.inst
-	data, err := insta.prepareData()
-	if err != nil {
-		return err
-	}
-
-	body, err := insta.sendRequest(
-		&reqOptions{
-			Endpoint: urlRemoveProfPic,
-			Query:    generateSignature(data),
-			IsPost:   true,
-		},
-	)
-	if err == nil {
-		resp := profResp{}
-		err = json.Unmarshal(body, &resp)
-		if err == nil {
-			*account = resp.Account
-			account.inst = insta
-		}
-	}
-	return err
-}
-
-// SetPrivate sets account to private mode.
+//// RemoveProfilePic removes current profile picture
+////
+//// This function updates current Account information.
+////
+//// See example: examples/account/removeProfilePic.go
+//func (account *Account) RemoveProfilePic() error {
+//	insta := account.inst
+//	data, err := insta.prepareData()
+//	if err != nil {
+//		return err
+//	}
 //
-// This function updates current Account information.
+//	body, err := insta.sendRequest(
+//		&reqOptions{
+//			Endpoint: urlRemoveProfPic,
+//			Query:    generateSignature(data),
+//			IsPost:   true,
+//		},
+//	)
+//	if err == nil {
+//		resp := profResp{}
+//		err = json.Unmarshal(body, &resp)
+//		if err == nil {
+//			*account = resp.Account
+//			account.inst = insta
+//		}
+//	}
+//	return err
+//}
 //
-// See example: examples/account/setPrivate.go
-func (account *Account) SetPrivate() error {
-	insta := account.inst
-	data, err := insta.prepareData()
-	if err != nil {
-		return err
-	}
-
-	body, err := insta.sendRequest(
-		&reqOptions{
-			Endpoint: urlSetPrivate,
-			Query:    generateSignature(data),
-			IsPost:   true,
-		},
-	)
-	if err == nil {
-		resp := profResp{}
-		err = json.Unmarshal(body, &resp)
-		if err == nil {
-			*account = resp.Account
-			account.inst = insta
-		}
-	}
-	return err
-}
-
-// SetPublic sets account to public mode.
+//// SetPrivate sets account to private mode.
+////
+//// This function updates current Account information.
+////
+//// See example: examples/account/setPrivate.go
+//func (account *Account) SetPrivate() error {
+//	insta := account.inst
+//	data, err := insta.prepareData()
+//	if err != nil {
+//		return err
+//	}
 //
-// This function updates current Account information.
+//	body, err := insta.sendRequest(
+//		&reqOptions{
+//			Endpoint: urlSetPrivate,
+//			Query:    generateSignature(data),
+//			IsPost:   true,
+//		},
+//	)
+//	if err == nil {
+//		resp := profResp{}
+//		err = json.Unmarshal(body, &resp)
+//		if err == nil {
+//			*account = resp.Account
+//			account.inst = insta
+//		}
+//	}
+//	return err
+//}
 //
-// See example: examples/account/setPublic.go
-func (account *Account) SetPublic() error {
-	insta := account.inst
-	data, err := insta.prepareData()
-	if err != nil {
-		return err
-	}
-
-	body, err := insta.sendRequest(
-		&reqOptions{
-			Endpoint: urlSetPublic,
-			Query:    generateSignature(data),
-			IsPost:   true,
-		},
-	)
-	if err == nil {
-		resp := profResp{}
-		err = json.Unmarshal(body, &resp)
-		if err == nil {
-			*account = resp.Account
-			account.inst = insta
-		}
-	}
-	return err
-}
-
-// Followers returns a list of user followers.
+//// SetPublic sets account to public mode.
+////
+//// This function updates current Account information.
+////
+//// See example: examples/account/setPublic.go
+//func (account *Account) SetPublic() error {
+//	insta := account.inst
+//	data, err := insta.prepareData()
+//	if err != nil {
+//		return err
+//	}
 //
-// Users.Next can be used to paginate
+//	body, err := insta.sendRequest(
+//		&reqOptions{
+//			Endpoint: urlSetPublic,
+//			Query:    generateSignature(data),
+//			IsPost:   true,
+//		},
+//	)
+//	if err == nil {
+//		resp := profResp{}
+//		err = json.Unmarshal(body, &resp)
+//		if err == nil {
+//			*account = resp.Account
+//			account.inst = insta
+//		}
+//	}
+//	return err
+//}
 //
-// See example: examples/account/followers.go
-func (account *Account) Followers() *Users {
-	endpoint := fmt.Sprintf(urlFollowers, account.ID)
-	users := &Users{}
-	users.inst = account.inst
-	users.endpoint = endpoint
-	return users
-}
-
-// Following returns a list of user following.
+//// Followers returns a list of user followers.
+////
+//// Users.Next can be used to paginate
+////
+//// See example: examples/account/followers.go
+//func (account *Account) Followers() *Users {
+//	endpoint := fmt.Sprintf(urlFollowers, account.ID)
+//	users := &Users{}
+//	users.inst = account.inst
+//	users.endpoint = endpoint
+//	return users
+//}
 //
-// Users.Next can be used to paginate
+//// Following returns a list of user following.
+////
+//// Users.Next can be used to paginate
+////
+//// See example: examples/account/following.go
+//func (account *Account) Following() *Users {
+//	endpoint := fmt.Sprintf(urlFollowing, account.ID)
+//	users := &Users{}
+//	users.inst = account.inst
+//	users.endpoint = endpoint
+//	return users
+//}
 //
-// See example: examples/account/following.go
-func (account *Account) Following() *Users {
-	endpoint := fmt.Sprintf(urlFollowing, account.ID)
-	users := &Users{}
-	users.inst = account.inst
-	users.endpoint = endpoint
-	return users
-}
-
-// Feed returns current account feed
+//// Feed returns current account feed
+////
+//// 	params can be:
+//// 		string: timestamp of the minimum media timestamp.
+////
+//// minTime is the minimum timestamp of media.
+////
+//// For pagination use FeedMedia.Next()
+//func (account *Account) Feed(params ...interface{}) *FeedMedia {
+//	insta := account.inst
 //
-// 	params can be:
-// 		string: timestamp of the minimum media timestamp.
+//	media := &FeedMedia{}
+//	media.inst = insta
+//	media.endpoint = urlUserFeed
+//	media.uid = account.ID
 //
-// minTime is the minimum timestamp of media.
+//	for _, param := range params {
+//		switch s := param.(type) {
+//		case string:
+//			media.timestamp = s
+//		}
+//	}
 //
-// For pagination use FeedMedia.Next()
-func (account *Account) Feed(params ...interface{}) *FeedMedia {
-	insta := account.inst
-
-	media := &FeedMedia{}
-	media.inst = insta
-	media.endpoint = urlUserFeed
-	media.uid = account.ID
-
-	for _, param := range params {
-		switch s := param.(type) {
-		case string:
-			media.timestamp = s
-		}
-	}
-
-	return media
-}
-
-// Stories returns account stories.
+//	return media
+//}
 //
-// Use StoryMedia.Next for pagination.
+//// Stories returns account stories.
+////
+//// Use StoryMedia.Next for pagination.
+////
+//// See example: examples/account/stories.go
+//func (account *Account) Stories() *StoryMedia {
+//	media := &StoryMedia{}
+//	media.uid = account.ID
+//	media.inst = account.inst
+//	media.endpoint = urlUserStories
+//	return media
+//}
 //
-// See example: examples/account/stories.go
-func (account *Account) Stories() *StoryMedia {
-	media := &StoryMedia{}
-	media.uid = account.ID
-	media.inst = account.inst
-	media.endpoint = urlUserStories
-	return media
-}
-
-// Tags returns media where account is tagged in
+//// Tags returns media where account is tagged in
+////
+//// For pagination use FeedMedia.Next()
+//func (account *Account) Tags(minTimestamp []byte) (*FeedMedia, error) {
+//	timestamp := b2s(minTimestamp)
+//	body, err := account.inst.sendRequest(
+//		&reqOptions{
+//			Endpoint: fmt.Sprintf(urlUserTags, account.ID),
+//			Query: map[string]string{
+//				"max_id":         "",
+//				"rank_token":     account.inst.rankToken,
+//				"min_timestamp":  timestamp,
+//				"ranked_content": "true",
+//			},
+//		},
+//	)
+//	if err != nil {
+//		return nil, err
+//	}
 //
-// For pagination use FeedMedia.Next()
-func (account *Account) Tags(minTimestamp []byte) (*FeedMedia, error) {
-	timestamp := b2s(minTimestamp)
-	body, err := account.inst.sendRequest(
-		&reqOptions{
-			Endpoint: fmt.Sprintf(urlUserTags, account.ID),
-			Query: map[string]string{
-				"max_id":         "",
-				"rank_token":     account.inst.rankToken,
-				"min_timestamp":  timestamp,
-				"ranked_content": "true",
-			},
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	media := &FeedMedia{}
-	err = json.Unmarshal(body, media)
-	media.inst = account.inst
-	media.endpoint = urlUserTags
-	media.uid = account.ID
-	return media, err
-}
-
-// Saved returns saved media.
-// To get all the media you have to
-// use the Next() method.
-func (account *Account) Saved() *SavedMedia {
-	return &SavedMedia{
-		inst:     account.inst,
-		endpoint: urlFeedSaved,
-		err:      nil,
-	}
-}
-
-type editResp struct {
-	Status  string  `json:"status"`
-	Account Account `json:"user"`
-}
-
-func (account *Account) edit() {
-	insta := account.inst
-	acResp := editResp{}
-	body, err := insta.sendRequest(
-		&reqOptions{
-			Endpoint: urlCurrentUser,
-			Query: map[string]string{
-				"edit": "true",
-			},
-		},
-	)
-	if err == nil {
-		err = json.Unmarshal(body, &acResp)
-		if err == nil {
-			acResp.Account.inst = insta
-			*account = acResp.Account
-		}
-	}
-}
-
-// SetBiography changes your Instagram's biography.
+//	media := &FeedMedia{}
+//	err = json.Unmarshal(body, media)
+//	media.inst = account.inst
+//	media.endpoint = urlUserTags
+//	media.uid = account.ID
+//	return media, err
+//}
 //
-// This function updates current Account information.
-func (account *Account) SetBiography(bio string) error {
-	account.edit() // preparing to edit
-	insta := account.inst
-	data, err := insta.prepareData(
-		map[string]interface{}{
-			"raw_text": bio,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	body, err := insta.sendRequest(
-		&reqOptions{
-			Endpoint: urlSetBiography,
-			Query:    generateSignature(data),
-			IsPost:   true,
-		},
-	)
-	if err == nil {
-		var resp struct {
-			User struct {
-				Pk        int64  `json:"pk"`
-				Biography string `json:"biography"`
-			} `json:"user"`
-			Status string `json:"status"`
-		}
-		err = json.Unmarshal(body, &resp)
-		if err == nil {
-			account.Biography = resp.User.Biography
-		}
-	}
-	return err
-}
-
-// Liked are liked publications
-func (account *Account) Liked() *FeedMedia {
-	insta := account.inst
-
-	media := &FeedMedia{}
-	media.inst = insta
-	media.endpoint = urlFeedLiked
-	return media
-}
-
-// PendingFollowRequests returns pending follow requests.
-func (account *Account) PendingFollowRequests() ([]User, error) {
-	insta := account.inst
-	resp, err := insta.sendRequest(
-		&reqOptions{
-			Endpoint: urlFriendshipPending,
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	var result struct {
-		Users []User `json:"users"`
-		// TODO: pagination
-		// TODO: SuggestedUsers
-		Status string `json:"status"`
-	}
-	err = json.Unmarshal(resp, &result)
-	if err != nil {
-		return nil, err
-	}
-	if result.Status != "ok" {
-		return nil, fmt.Errorf("bad status: %s", result.Status)
-	}
-
-	return result.Users, nil
-}
-
-// Archived returns current account archive feed
+//// Saved returns saved media.
+//// To get all the media you have to
+//// use the Next() method.
+//func (account *Account) Saved() *SavedMedia {
+//	return &SavedMedia{
+//		inst:     account.inst,
+//		endpoint: urlFeedSaved,
+//		err:      nil,
+//	}
+//}
 //
-// For pagination use FeedMedia.Next()
-func (account *Account) Archived(params ...interface{}) *FeedMedia {
-	insta := account.inst
-
-	media := &FeedMedia{}
-	media.inst = insta
-	media.endpoint = urlUserArchived
-
-	for _, param := range params {
-		switch s := param.(type) {
-		case string:
-			media.timestamp = s
-		}
-	}
-
-	return media
-}
+//type editResp struct {
+//	Status  string  `json:"status"`
+//	Account Account `json:"user"`
+//}
+//
+//func (account *Account) edit() {
+//	insta := account.inst
+//	acResp := editResp{}
+//	body, err := insta.sendRequest(
+//		&reqOptions{
+//			Endpoint: urlCurrentUser,
+//			Query: map[string]string{
+//				"edit": "true",
+//			},
+//		},
+//	)
+//	if err == nil {
+//		err = json.Unmarshal(body, &acResp)
+//		if err == nil {
+//			acResp.Account.inst = insta
+//			*account = acResp.Account
+//		}
+//	}
+//}
+//
+//// SetBiography changes your Instagram's biography.
+////
+//// This function updates current Account information.
+//func (account *Account) SetBiography(bio string) error {
+//	account.edit() // preparing to edit
+//	insta := account.inst
+//	data, err := insta.prepareData(
+//		map[string]interface{}{
+//			"raw_text": bio,
+//		},
+//	)
+//	if err != nil {
+//		return err
+//	}
+//
+//	body, err := insta.sendRequest(
+//		&reqOptions{
+//			Endpoint: urlSetBiography,
+//			Query:    generateSignature(data),
+//			IsPost:   true,
+//		},
+//	)
+//	if err == nil {
+//		var resp struct {
+//			User struct {
+//				Pk        int64  `json:"pk"`
+//				Biography string `json:"biography"`
+//			} `json:"user"`
+//			Status string `json:"status"`
+//		}
+//		err = json.Unmarshal(body, &resp)
+//		if err == nil {
+//			account.Biography = resp.User.Biography
+//		}
+//	}
+//	return err
+//}
+//
+//// Liked are liked publications
+//func (account *Account) Liked() *FeedMedia {
+//	insta := account.inst
+//
+//	media := &FeedMedia{}
+//	media.inst = insta
+//	media.endpoint = urlFeedLiked
+//	return media
+//}
+//
+//// PendingFollowRequests returns pending follow requests.
+//func (account *Account) PendingFollowRequests() ([]User, error) {
+//	insta := account.inst
+//	resp, err := insta.sendRequest(
+//		&reqOptions{
+//			Endpoint: urlFriendshipPending,
+//		},
+//	)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	var result struct {
+//		Users []User `json:"users"`
+//		// TODO: pagination
+//		// TODO: SuggestedUsers
+//		Status string `json:"status"`
+//	}
+//	err = json.Unmarshal(resp, &result)
+//	if err != nil {
+//		return nil, err
+//	}
+//	if result.Status != "ok" {
+//		return nil, fmt.Errorf("bad status: %s", result.Status)
+//	}
+//
+//	return result.Users, nil
+//}
+//
+//// Archived returns current account archive feed
+////
+//// For pagination use FeedMedia.Next()
+//func (account *Account) Archived(params ...interface{}) *FeedMedia {
+//	insta := account.inst
+//
+//	media := &FeedMedia{}
+//	media.inst = insta
+//	media.endpoint = urlUserArchived
+//
+//	for _, param := range params {
+//		switch s := param.(type) {
+//		case string:
+//			media.timestamp = s
+//		}
+//	}
+//
+//	return media
+//}

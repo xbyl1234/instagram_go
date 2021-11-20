@@ -1,6 +1,8 @@
 package goinsta
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // ErrorN is general instagram error
 type ErrorN struct {
@@ -55,20 +57,4 @@ type ChallengeError struct {
 
 func (e ChallengeError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Status, e.Message)
-}
-
-type ApiError struct {
-	ErrorType string `json:"error_type"`
-}
-
-func (e ApiError) Error() string {
-	return e.ErrorType
-}
-
-func CheckApiError(resp interface{}, err error) error {
-	apiResp := (resp).(BaseApiResp)
-	if apiResp.isError() {
-		return &ApiError{apiResp.ErrorType}
-	}
-	return err
 }

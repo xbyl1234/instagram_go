@@ -31,7 +31,7 @@ func (this *Proxy) GetProxy() *http.Transport {
 	if this.ProxyType == 0 {
 		var proxyUrl string
 		if this.NeedAuth {
-			proxyUrl = "http://" + this.Username + "@" + this.Passwd + this.Ip + ":" + this.Port
+			proxyUrl = "http://" + this.Username + ":" + this.Passwd + "@" + this.Ip + ":" + this.Port
 		} else {
 			proxyUrl = "http://" + this.Ip + ":" + this.Port
 		}
@@ -83,7 +83,7 @@ func InitProxyPool(path string) error {
 	}
 
 	var ProxyList map[string]Proxy
-	err := tools.LoadJsonFile(path, ProxyList)
+	err := tools.LoadJsonFile(path, &ProxyList)
 	if err != nil {
 		return err
 	}

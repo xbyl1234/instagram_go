@@ -27,9 +27,10 @@ for line in f.readlines():
         ip['id'] = str(uuid.uuid4())
         if ips.get(ip['id']):
             print("你妈卖批!!!!")
-        ips[ip['id']] = ip['id']
+        ips[ip['id']] = ip
 
 print("all count", str(len(ips)))
 
 f = open("../data/" + filename.replace(".csv", "") + "_" + location + ".txt", "w")
+d = json.dumps(ips)
 json.dump(ips, f)
