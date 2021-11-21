@@ -70,22 +70,46 @@ type Account struct {
 	CanBoostPost               bool         `json:"can_boost_post"`
 }
 
-//func (account *Account) Sync() error {
-//	var resp profResp
-//	inst := account.inst
-//	err := account.inst.HttpRequestJson(&reqOptions{
-//		Endpoint: urlCurrentUser,
-//		Query:    account.inst.prepareDataQuery(),
-//		IsPost:   true},
-//		resp)
-//
-//	if err == nil {
-//		*account = resp.Account
-//		account.inst = inst
-//	}
-//	return err
-//}
-//
+func (this *Account) Sync() error {
+	var resp profResp
+	inst := this.inst
+	err := this.inst.HttpRequestJson(&reqOptions{
+		Endpoint: urlCurrentUser,
+		Query:    this.inst.prepareDataQuery(),
+		IsPost:   true},
+		resp)
+
+	if err == nil {
+		*this = resp.Account
+		this.inst = inst
+	}
+	return err
+}
+
+type RespChangeProfilePicture struct {
+	BaseApiResp
+	User User `json:"user"`
+}
+
+func (this *Account) ChangeProfilePicture(path string) error {
+	upID, err := this.inst.Upload.RuploadIgPhoto(path)
+	if err != nil {
+		return err
+	}
+	var resp RespChangeProfilePicture
+	err = this.inst.HttpRequestJson(&reqOptions{
+		Endpoint: urlChangeProfilePicture,
+		Query: map[string]string{
+			"_uuid":          this.inst.uuid,
+			"upload_id":      upID,
+			"use_fbuploader": "true",
+		},
+		IsPost: true},
+		&resp)
+	err = resp.CheckError(err)
+	return err
+}
+
 //// ChangePassword changes current password.
 ////
 //// GoInsta does not store current instagram password (for security reasons)
@@ -113,10 +137,11 @@ type Account struct {
 //	return err
 //}
 //
-//type profResp struct {
-//	Status  string  `json:"status"`
-//	Account Account `json:"user"`
-//}
+type profResp struct {
+	Status  string  `json:"status"`
+	Account Account `json:"user"`
+}
+
 //
 //// RemoveProfilePic removes current profile picture
 ////
@@ -277,7 +302,7 @@ type Account struct {
 ////
 //// For pagination use FeedMedia.Next()
 //func (account *Account) Tags(minTimestamp []byte) (*FeedMedia, error) {
-//	timestamp := b2s(minTimestamp)
+//	timestamp := tools.B2s(minTimestamp)
 //	body, err := account.inst.sendRequest(
 //		&reqOptions{
 //			Endpoint: fmt.Sprintf(urlUserTags, account.ID),

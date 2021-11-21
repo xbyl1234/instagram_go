@@ -285,7 +285,7 @@ package goinsta
 //		map[string]interface{}{
 //			"recipient_users": to,
 //			"client_context":  generateUUID(),
-//			"thread_ids":      b2s(thread),
+//			"thread_ids":      tools.B2s(thread),
 //			"action":          "send_item",
 //		},
 //	)
@@ -321,7 +321,7 @@ package goinsta
 //		map[string]interface{}{
 //			"recipient_users": to,
 //			"client_context":  generateUUID(),
-//			"thread_ids":      b2s(thread),
+//			"thread_ids":      tools.B2s(thread),
 //			"action":          "send_item",
 //			"text":            text,
 //		},
@@ -340,7 +340,7 @@ package goinsta
 //// Write is like Send but being compatible with io.Writer.
 //func (c *Conversation) Write(b []byte) (int, error) {
 //	n := len(b)
-//	return n, c.Send(b2s(b))
+//	return n, c.Send(tools.B2s(b))
 //}
 //
 //// Next loads next set of private messages.

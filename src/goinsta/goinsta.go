@@ -50,27 +50,16 @@ type Instagram struct {
 
 	proxy *proxy.Proxy
 
-	// Instagram objects
-	// Challenge controls security side of account (Like sms verify / It was me)
 	//Challenge *Challenge
-	// Profiles is the user interaction
 	//Profiles *Profiles
-	// Account stores all personal data of the user and his/her options.
 	Account *Account
-	// Search performs searching of multiple things (users, locations...)
-	//Search *Search
-	// Timeline allows to receive timeline media.
+	Search  *Search
 	//Timeline *Timeline
-	// Activity are instagram notifications.
 	//Activity *Activity
-	// Inbox are instagram message/chat system.
 	//Inbox *Inbox
-	// Feed for search over feeds
 	//Feed *Feed
-	// User contacts from mobile address book
-	//Contacts *Contacts
-	// Location instance
 	//Locations *LocationInstance
+	Upload *Upload
 
 	c *http.Client
 }
@@ -103,10 +92,10 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 		User:      username,
 		Pass:      password,
 		androidID: generateDeviceID(),
-		uuid:      generateUUID(), // both uuid must be differents
-		familyID:  generateUUID(),
-		wid:       generateUUID(),
-		adid:      generateUUID(),
+		uuid:      tools.GenerateUUID(), // both uuid must be differents
+		familyID:  tools.GenerateUUID(),
+		wid:       tools.GenerateUUID(),
+		adid:      tools.GenerateUUID(),
 		c: &http.Client{
 			Jar:       jar,
 			Transport: _proxy.GetProxy(),
@@ -122,11 +111,12 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 }
 
 func (inst *Instagram) init() {
+	inst.Upload = NewUpload(inst)
 	//inst.Challenge = newChallenge(inst)
 	//inst.Profiles = newProfiles(inst)
 	//inst.Activity = newActivity(inst)
 	//inst.Timeline = newTimeline(inst)
-	//inst.Search = newSearch(inst)
+	inst.Search = newSearch(inst)
 	//inst.Inbox = newInbox(inst)
 	//inst.Feed = newFeed(inst)
 	//inst.Contacts = newContacts(inst)
@@ -306,7 +296,7 @@ func (inst *Instagram) Prepare() error {
 //	body, err := inst.sendRequest(
 //		&reqOptions{
 //			Endpoint: urlLogin,
-//			Query:    generateSignature(b2s(result)),
+//			Query:    generateSignature(tools.B2s(result)),
 //			IsPost:   true,
 //			Login:    true,
 //		},
@@ -376,7 +366,7 @@ func (inst *Instagram) megaphoneLog() error {
 				"action":    "seen",
 				"reason":    "",
 				"device_id": inst.androidID,
-				"uuid":      generateMD5Hash(string(time.Now().Unix())),
+				"uuid":      tools.GenerateMD5Hash(string(time.Now().Unix())),
 			},
 			IsPost: true,
 			Login:  true,

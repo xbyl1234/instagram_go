@@ -6,7 +6,7 @@ import pathlib
 import shutil
 
 path = "C:/Users/Administrator/Desktop/project/github/instagram_project/抓包/"
-file_name = "launcher_sync"
+file_name = "change_profile_picture"
 input_file = pathlib.Path(path + file_name)
 
 file_object = open(input_file, 'rb')

@@ -533,7 +533,7 @@ type User struct {
 //	body, err := user.inst.sendRequest(
 //		&reqOptions{
 //			Endpoint: fmt.Sprintf(urlUserHighlights, user.ID),
-//			Query:    generateSignature(b2s(data)),
+//			Query:    generateSignature(tools.B2s(data)),
 //		},
 //	)
 //	if err == nil {
@@ -561,7 +561,7 @@ type User struct {
 ////
 //// See example: examples/user/tags.go
 //func (user *User) Tags(minTimestamp []byte) (*FeedMedia, error) {
-//	timestamp := b2s(minTimestamp)
+//	timestamp := tools.B2s(minTimestamp)
 //	body, err := user.inst.sendRequest(
 //		&reqOptions{
 //			Endpoint: fmt.Sprintf(urlUserTags, user.ID),

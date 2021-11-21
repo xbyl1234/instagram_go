@@ -1,6 +1,7 @@
 package goinsta
 
 const (
+	goInstaHost          = "https://i.instagram.com/"
 	goInstaAPIUrl        = "https://i.instagram.com/api/v1/"
 	goInstaAPIUrl_B      = "https://b.i.instagram.com/api/v1/"
 	goInstaUserAgent     = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
@@ -67,15 +68,16 @@ const (
 	urlLauncherSync          = "launcher/sync/"
 
 	// account
-	urlCurrentUser   = "accounts/current_user/"
-	urlChangePass    = "accounts/change_password/"
-	urlSetPrivate    = "accounts/set_private/"
-	urlSetPublic     = "accounts/set_public/"
-	urlRemoveProfPic = "accounts/remove_profile_picture/"
-	urlFeedSaved     = "feed/saved/"
-	urlSetBiography  = "accounts/set_biography/"
-	urlEditProfile   = "accounts/edit_profile"
-	urlFeedLiked     = "feed/liked/"
+	urlCurrentUser          = "accounts/current_user/"
+	urlChangePass           = "accounts/change_password/"
+	urlSetPrivate           = "accounts/set_private/"
+	urlSetPublic            = "accounts/set_public/"
+	urlRemoveProfPic        = "accounts/remove_profile_picture/"
+	urlFeedSaved            = "feed/saved/"
+	urlSetBiography         = "accounts/set_biography/"
+	urlEditProfile          = "accounts/edit_profile"
+	urlFeedLiked            = "feed/liked/"
+	urlChangeProfilePicture = "accounts/change_profile_picture/"
 
 	// account and profile
 	urlFollowers = "friendships/%d/followers/"
@@ -156,5 +158,5 @@ const (
 	urlTagContent = "tags/%s/ranked_sections/"
 
 	// upload
-	urlUploadStory = "https://i.instagram.com/rupload_igphoto/103079408575885_0_-1340379573"
+	urlUploadStory = "rupload_igphoto/"
 )

@@ -9,10 +9,10 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"image"
+	"makemoney/tools"
 	"time"
 
 	// Required for getImageDimensionFromReader in jpg and png format
@@ -20,20 +20,7 @@ import (
 	_ "image/png"
 	"io"
 	"strconv"
-	"unsafe"
 )
-
-func b2s(b []byte) string {
-	return *(*string)(unsafe.Pointer(&b))
-}
-
-func Json2String(params map[string]string) (string, error) {
-	data, err := json.Marshal(params)
-	if err != nil {
-		return "", err
-	}
-	return b2s(data), nil
-}
 
 func toString(i interface{}) string {
 	switch s := i.(type) {
@@ -66,7 +53,7 @@ func toString(i interface{}) string {
 	case uint8:
 		return strconv.FormatInt(int64(s), 10)
 	case []byte:
-		return b2s(s)
+		return tools.B2s(s)
 	case error:
 		return s.Error()
 	}
@@ -87,7 +74,7 @@ func toString(i interface{}) string {
 //		ids = append(ids, []int64{c})
 //	}
 //	b, err = json.Marshal(ids)
-//	bb = b2s(b)
+//	bb = tools.B2s(b)
 //	return
 //}
 
@@ -136,8 +123,8 @@ func AesGcmEncrypt(key []byte, iv []byte, plainText []byte, add []byte) ([]byte,
 func encryptPassword(password string, encId string, encPubKey string) (string, error) {
 	//byte[] rand_key = new byte[32], iv = new byte[12];
 	_time := strconv.FormatInt(time.Now().Unix(), 10)
-	randKey := genString(charSet_All, 32)
-	iv := genString(charSet_All, 12)
+	randKey := tools.GenString(tools.CharSet_All, 32)
+	iv := tools.GenString(tools.CharSet_All, 12)
 	decodedPubKey, err := base64.StdEncoding.DecodeString(encPubKey)
 	if err != nil {
 		return "", err

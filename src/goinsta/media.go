@@ -772,7 +772,7 @@ package goinsta
 //	data, err := insta.prepareData(
 //		map[string]interface{}{
 //			"user_ids":                   []string{id},
-//			"supported_capabilities_new": b2s(qjson),
+//			"supported_capabilities_new": tools.B2s(qjson),
 //		},
 //	)
 //	if err != nil {

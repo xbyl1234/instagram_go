@@ -120,3 +120,16 @@ func SaveNewAccount(account AccountCookies) error {
 		options.Update().SetUpsert(true))
 	return err
 }
+
+func LoadDBAllAccount() ([]AccountCookies, error) {
+	cursor, err := MogoHelper.account.Find(context.TODO(), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	var ret []AccountCookies
+	err = cursor.All(context.TODO(), ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
