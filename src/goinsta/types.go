@@ -32,19 +32,19 @@ type Nametag struct {
 //	Friendship Friendship `json:"friendship_status"`
 //}
 //
-//// Location stores media location information.
-//type Location struct {
-//	Pk               int64   `json:"pk"`
-//	Name             string  `json:"name"`
-//	Address          string  `json:"address"`
-//	City             string  `json:"city"`
-//	ShortName        string  `json:"short_name"`
-//	Lng              float64 `json:"lng"`
-//	Lat              float64 `json:"lat"`
-//	ExternalSource   string  `json:"external_source"`
-//	FacebookPlacesID int64   `json:"facebook_places_id"`
-//}
-//
+// Location stores media location information.
+type Location struct {
+	Pk               int64   `json:"pk"`
+	Name             string  `json:"name"`
+	Address          string  `json:"address"`
+	City             string  `json:"city"`
+	ShortName        string  `json:"short_name"`
+	Lng              float64 `json:"lng"`
+	Lat              float64 `json:"lat"`
+	ExternalSource   string  `json:"external_source"`
+	FacebookPlacesID int64   `json:"facebook_places_id"`
+}
+
 //// SuggestedUsers stores the information about user suggestions.
 type SuggestedUsers struct {
 	Type        int `json:"type"`
@@ -85,12 +85,11 @@ type Friendship struct {
 	IsMutingReel    bool `json:"is_muting_reel"`
 }
 
-//
-//// Images are different quality images
-//type Images struct {
-//	Versions []Candidate `json:"candidates"`
-//}
-//
+// Images are different quality images
+type Images struct {
+	Versions []Candidate `json:"candidates"`
+}
+
 //// GetBest returns the URL of the image with the best quality.
 //func (img Images) GetBest() string {
 //	best := ""
@@ -104,61 +103,61 @@ type Friendship struct {
 //	return best
 //}
 //
-//// Candidate is something that I really have no idea what it is.
-//type Candidate struct {
-//	Width  int    `json:"width"`
-//	Height int    `json:"height"`
-//	URL    string `json:"url"`
-//}
-//
-//// Tag is the information of an user being tagged on any media.
-//type Tag struct {
-//	In []struct {
-//		User                  User        `json:"user"`
-//		Position              []float64   `json:"position"`
-//		StartTimeInVideoInSec interface{} `json:"start_time_in_video_in_sec"`
-//		DurationInVideoInSec  interface{} `json:"duration_in_video_in_sec"`
-//	} `json:"in"`
-//}
-//
-//// Caption is media caption
-//type Caption struct {
-//	ID              int64  `json:"pk"`
-//	UserID          int64  `json:"user_id"`
-//	Text            string `json:"text"`
-//	Type            int    `json:"type"`
-//	CreatedAt       int64  `json:"created_at"`
-//	CreatedAtUtc    int64  `json:"created_at_utc"`
-//	ContentType     string `json:"content_type"`
-//	Status          string `json:"status"`
-//	BitFlags        int    `json:"bit_flags"`
-//	User            User   `json:"user"`
-//	DidReportAsSpam bool   `json:"did_report_as_spam"`
-//	MediaID         int64  `json:"media_id"`
-//	HasTranslation  bool   `json:"has_translation"`
-//}
-//
-//// Mentions is a user being mentioned on media.
-//type Mentions struct {
-//	X        float64 `json:"x"`
-//	Y        float64 `json:"y"`
-//	Z        int64   `json:"z"`
-//	Width    float64 `json:"width"`
-//	Height   float64 `json:"height"`
-//	Rotation float64 `json:"rotation"`
-//	IsPinned int     `json:"is_pinned"`
-//	User     User    `json:"user"`
-//}
-//
-//// Video are different quality videos
-//type Video struct {
-//	Type   int    `json:"type"`
-//	Width  int    `json:"width"`
-//	Height int    `json:"height"`
-//	URL    string `json:"url"`
-//	ID     string `json:"id"`
-//}
-//
+// Candidate is something that I really have no idea what it is.
+type Candidate struct {
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	URL    string `json:"url"`
+}
+
+// Tag is the information of an user being tagged on any media.
+type Tag struct {
+	In []struct {
+		User                  User        `json:"user"`
+		Position              []float64   `json:"position"`
+		StartTimeInVideoInSec interface{} `json:"start_time_in_video_in_sec"`
+		DurationInVideoInSec  interface{} `json:"duration_in_video_in_sec"`
+	} `json:"in"`
+}
+
+// Caption is media caption
+type Caption struct {
+	ID              int64  `json:"pk"`
+	UserID          int64  `json:"user_id"`
+	Text            string `json:"text"`
+	Type            int    `json:"type"`
+	CreatedAt       int64  `json:"created_at"`
+	CreatedAtUtc    int64  `json:"created_at_utc"`
+	ContentType     string `json:"content_type"`
+	Status          string `json:"status"`
+	BitFlags        int    `json:"bit_flags"`
+	User            User   `json:"user"`
+	DidReportAsSpam bool   `json:"did_report_as_spam"`
+	MediaID         int64  `json:"media_id"`
+	HasTranslation  bool   `json:"has_translation"`
+}
+
+// Mentions is a user being mentioned on media.
+type Mentions struct {
+	X        float64 `json:"x"`
+	Y        float64 `json:"y"`
+	Z        int64   `json:"z"`
+	Width    float64 `json:"width"`
+	Height   float64 `json:"height"`
+	Rotation float64 `json:"rotation"`
+	IsPinned int     `json:"is_pinned"`
+	User     User    `json:"user"`
+}
+
+// Video are different quality videos
+type Video struct {
+	Type   int    `json:"type"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	URL    string `json:"url"`
+	ID     string `json:"id"`
+}
+
 //type timeStoryResp struct {
 //	Status string       `json:"status"`
 //	Media  []StoryMedia `json:"tray"`
@@ -213,21 +212,22 @@ type Friendship struct {
 //}
 //
 //// Broadcast is live videos.
-//type Broadcast struct {
-//	ID                   int64  `json:"id"`
-//	BroadcastStatus      string `json:"broadcast_status"`
-//	DashManifest         string `json:"dash_manifest"`
-//	ExpireAt             int64  `json:"expire_at"`
-//	EncodingTag          string `json:"encoding_tag"`
-//	InternalOnly         bool   `json:"internal_only"`
-//	NumberOfQualities    int    `json:"number_of_qualities"`
-//	CoverFrameURL        string `json:"cover_frame_url"`
-//	BroadcastOwner       User   `json:"broadcast_owner"`
-//	PublishedTime        int64  `json:"published_time"`
-//	MediaID              string `json:"media_id"`
-//	BroadcastMessage     string `json:"broadcast_message"`
-//	OrganicTrackingToken string `json:"organic_tracking_token"`
-//}
+type Broadcast struct {
+	ID                   int64  `json:"id"`
+	BroadcastStatus      string `json:"broadcast_status"`
+	DashManifest         string `json:"dash_manifest"`
+	ExpireAt             int64  `json:"expire_at"`
+	EncodingTag          string `json:"encoding_tag"`
+	InternalOnly         bool   `json:"internal_only"`
+	NumberOfQualities    int    `json:"number_of_qualities"`
+	CoverFrameURL        string `json:"cover_frame_url"`
+	BroadcastOwner       User   `json:"broadcast_owner"`
+	PublishedTime        int64  `json:"published_time"`
+	MediaID              string `json:"media_id"`
+	BroadcastMessage     string `json:"broadcast_message"`
+	OrganicTrackingToken string `json:"organic_tracking_token"`
+}
+
 //
 //// BlockedUser stores information about a used that has been blocked before.
 //type BlockedUser struct {
@@ -279,12 +279,12 @@ type Friendship struct {
 //	UserID    int64  `json:"user_id"`
 //}
 //
-//type respLikers struct {
-//	Users     []User `json:"users"`
-//	UserCount int64  `json:"user_count"`
-//	Status    string `json:"status"`
-//}
-//
+type respLikers struct {
+	Users     []User `json:"users"`
+	UserCount int64  `json:"user_count"`
+	Status    string `json:"status"`
+}
+
 //type threadResp struct {
 //	Conversation Conversation `json:"thread"`
 //	Status       string       `json:"status"`

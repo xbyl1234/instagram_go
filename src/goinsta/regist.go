@@ -121,7 +121,7 @@ func (this *Register) genUsername(username string) (string, error) {
 }
 
 func (this *Register) checkPhoneNumber() error {
-	params := map[string]string{
+	params := map[string]interface{}{
 		"phone_id":        this.inst.familyID,
 		"login_nonce_map": "{}",
 		"phone_number":    this.number,
@@ -146,7 +146,7 @@ type RespSendSignupSmsCode struct {
 }
 
 func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
-	params := map[string]string{
+	params := map[string]interface{}{
 		"phone_id":           this.inst.familyID,
 		"phone_number":       this.phone.GetArea() + this.number,
 		"guid":               this.inst.uuid,
@@ -181,7 +181,7 @@ type RespValidateSignupSmsCode struct {
 }
 
 func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSmsCode, error) {
-	params := map[string]string{
+	params := map[string]interface{}{
 		"verification_code": code,
 		"phone_number":      this.phone.GetArea() + this.number,
 		"guid":              this.inst.uuid,
@@ -212,7 +212,7 @@ type RespUsernameSuggestions struct {
 }
 
 func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggestions, error) {
-	params := map[string]string{
+	params := map[string]interface{}{
 		"phone_id":     this.inst.familyID,
 		"guid":         this.inst.uuid,
 		"name":         username,
@@ -261,7 +261,7 @@ type RespCheckUsername struct {
 }
 
 func (this *Register) checkUsername(username string) (*RespCheckUsername, error) {
-	params := map[string]string{
+	params := map[string]interface{}{
 		"_uuid":    this.inst.uuid,
 		"username": username,
 	}
@@ -321,7 +321,7 @@ func (this *Register) createValidated(
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	params := map[string]string{
+	params := map[string]interface{}{
 		"is_secondary_account_creation":          "false",
 		"jazoest":                                genJazoest(this.inst.familyID),
 		"tos_version":                            tosVersion,

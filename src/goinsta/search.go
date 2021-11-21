@@ -2,27 +2,30 @@ package goinsta
 
 import (
 	"fmt"
-	"strconv"
-	"time"
 )
 
 // Search is the object for all searches like Facebook, Location or Tag search.
 type Search struct {
-	inst *Instagram
+	inst      *Instagram
+	q         string
+	rankToken string
+	pageToken string
 }
 
 // SearchResult handles the data for the results given by each type of Search.
 type SearchResult struct {
+	BaseApiResp
 	HasMore    bool   `json:"has_more"`
 	RankToken  string `json:"rank_token"`
+	PageToken  string `json:"page_token"`
 	Status     string `json:"status"`
 	NumResults int64  `json:"num_results"`
-
 	// User search results
 	Users []User `json:"users"`
 
 	// Tag search results
-	Tags []struct {
+	InformModule interface{} `json:"inform_module"`
+	Tags         []struct {
 		ID               int64       `json:"id"`
 		Name             string      `json:"name"`
 		MediaCount       int         `json:"media_count"`
@@ -58,30 +61,32 @@ type SearchResult struct {
 			MediaCount int    `json:"media_count"`
 		} `json:"hashtag"`
 	} `json:"hashtags"`
+
 	ClearClientCache bool `json:"clear_client_cache"`
 }
 
 // newSearch creates new Search structure
-func newSearch(inst *Instagram) *Search {
+func newSearch(inst *Instagram, q string) *Search {
 	search := &Search{
 		inst: inst,
+		q:    q,
 	}
 	return search
 }
 
 // User search by username, you can use count optional parameter to get more than 50 items.
-func (search *Search) User(user string, countParam ...int) (*SearchResult, error) {
+func (this *Search) User(user string, countParam ...int) (*SearchResult, error) {
 	count := 50
 	if len(countParam) > 0 {
 		count = countParam[0]
 	}
-	insta := search.inst
+	insta := this.inst
 	res := &SearchResult{}
 
 	err := insta.HttpRequestJson(
 		&reqOptions{
 			Endpoint: urlSearchUser,
-			Query: map[string]string{
+			Query: map[string]interface{}{
 				"ig_sig_key_version": goInstaSigKeyVersion,
 				"is_typeahead":       "true",
 				"q":                  user,
@@ -100,73 +105,78 @@ func (search *Search) User(user string, countParam ...int) (*SearchResult, error
 }
 
 // Tags search by tag
-func (search *Search) Tags(tag string) (*SearchResult, error) {
-	insta := search.inst
+func (this *Search) NextTags() (*SearchResult, error) {
 	res := &SearchResult{}
+	var params = map[string]interface{}{
+		"search_surface":  "hashtag_search_page",
+		"timezone_offset": -18000,
+		"count":           30,
+		"q":               this.q,
+	}
 
-	err := insta.HttpRequestJson(
+	if this.pageToken != "" {
+		params["rank_token"] = this.rankToken
+		params["page_token"] = this.pageToken
+	}
+
+	err := this.inst.HttpRequestJson(
 		&reqOptions{
 			Endpoint: urlSearchTag,
-			Query: map[string]string{
-				"is_typeahead": "true",
-				"rank_token":   insta.rankToken,
-				"q":            tag,
-			},
+			Query:    params,
 		}, res)
 
 	if err != nil {
-		return nil, err
+		this.rankToken = res.RankToken
+		this.pageToken = res.PageToken
 	}
-
 	return res, err
 }
 
-// Location search by location.
-// DEPRECATED - Instagram does not allow Location search method.
-// Lat and Lng (Latitude & Longitude) cannot be ""
-func (search *Search) Location(lat, lng, location string) (*SearchResult, error) {
-	insta := search.inst
-	q := map[string]string{
-		"rank_token":     insta.rankToken,
-		"latitude":       lat,
-		"longitude":      lng,
-		"ranked_content": "true",
+func (this *Search) NextLocation() (*SearchResult, error) {
+	insta := this.inst
+	params := map[string]interface{}{
+		"places_search_page": "places_search_page",
+		"timezone_offset":    -18000,
+		"lat":                nil,
+		"lng":                nil,
+		"count":              30,
+		"query":              this.q,
 	}
-
-	if location != "" {
-		q["search_query"] = location
-	} else {
-		q["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
+	if this.pageToken != "" {
+		params["rank_token"] = this.rankToken
+		params["page_token"] = this.pageToken
 	}
 
 	res := &SearchResult{}
 	err := insta.HttpRequestJson(
 		&reqOptions{
 			Endpoint: urlSearchLocation,
-			Query:    q,
+			Query:    params,
 		}, res)
+
 	if err != nil {
-		return nil, err
+		this.rankToken = res.RankToken
+		this.pageToken = res.PageToken
 	}
 
 	return res, err
 }
 
-// Facebook search by facebook user.
-func (search *Search) Facebook(user string) (*SearchResult, error) {
-	insta := search.inst
-
-	res := &SearchResult{}
-	err := insta.HttpRequestJson(
-		&reqOptions{
-			Endpoint: urlSearchFacebook,
-			Query: map[string]string{
-				"query":      user,
-				"rank_token": insta.rankToken,
-			},
-		}, res)
-	if err != nil {
-		return nil, err
-	}
-	return res, err
-}
+//// Facebook search by facebook user.
+//func (this *Search) Facebook(user string) (*SearchResult, error) {
+//	insta := this.inst
+//
+//	res := &SearchResult{}
+//	err := insta.HttpRequestJson(
+//		&reqOptions{
+//			Endpoint: urlSearchFacebook,
+//			Query: map[string]interface{}{
+//				"query":      user,
+//				"rank_token": insta.rankToken,
+//			},
+//		}, res)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return res, err
+//}

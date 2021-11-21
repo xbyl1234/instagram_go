@@ -111,7 +111,7 @@ const (
 	// search
 	urlSearchUser     = "users/search/"
 	urlSearchTag      = "tags/search/"
-	urlSearchLocation = "location_search/"
+	urlSearchLocation = "fbsearch/places"
 	urlSearchFacebook = "fbsearch/topsearch/"
 
 	// feeds

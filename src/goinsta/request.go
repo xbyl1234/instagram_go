@@ -22,7 +22,7 @@ type reqOptions struct {
 	IsPost    bool
 	IsApiB    bool
 	Signed    bool
-	Query     map[string]string
+	Query     map[string]interface{}
 	HeaderKey []string
 }
 

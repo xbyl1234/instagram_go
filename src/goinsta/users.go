@@ -1,13 +1,9 @@
 package goinsta
 
-//
-//import (
-//	"encoding/json"
-//	"errors"
-//	"fmt"
-//	"strconv"
-//)
-//
+import (
+	"errors"
+)
+
 //// Users is a struct that stores many user's returned by many different methods.
 //type Users struct {
 //	inst *Instagram
@@ -39,7 +35,8 @@ package goinsta
 //}
 //
 //// ErrNoMore is an error that comes when there is no more elements available on the list.
-//var ErrNoMore = errors.New("List end have been reached")
+var ErrNoMore = errors.New("List end have been reached")
+
 //
 //// Next allows to paginate after calling:
 //// Account.Follow* and User.Follow*

@@ -7,40 +7,40 @@ package goinsta
 //)
 //
 //// Hashtag is used for getting the media that matches a hashtag on instagram.
-//type Hashtag struct {
-//	inst *Instagram
-//	err  error
-//
-//	Name string `json:"name"`
-//
-//	Sections []struct {
-//		LayoutType    string `json:"layout_type"`
-//		LayoutContent struct {
-//			// F*ck you instagram.
-//			// Why you do this f*cking horribly structure?!?
-//			// Media []Media IS EASY. CHECK IT!
-//			Medias []struct {
-//				Item Item `json:"media"`
-//			} `json:"medias"`
-//		} `json:"layout_content"`
-//		FeedType        string `json:"feed_type"`
-//		ExploreItemInfo struct {
-//			NumColumns      int     `json:"num_columns"`
-//			TotalNumColumns int     `json:"total_num_columns"`
-//			AspectRatio     float32 `json:"aspect_ratio"`
-//			Autoplay        bool    `json:"autoplay"`
-//		} `json:"explore_item_info"`
-//	} `json:"sections"`
-//	MediaCount          int     `json:"media_count"`
-//	ID                  int64   `json:"id"`
-//	MoreAvailable       bool    `json:"more_available"`
-//	NextID              string  `json:"next_max_id"`
-//	NextPage            int     `json:"next_page"`
-//	NextMediaIds        []int64 `json:"next_media_ids"`
-//	AutoLoadMoreEnabled bool    `json:"auto_load_more_enabled"`
-//	Status              string  `json:"status"`
-//}
-//
+type Hashtag struct {
+	inst *Instagram
+	err  error
+
+	Name string `json:"name"`
+
+	Sections []struct {
+		LayoutType    string `json:"layout_type"`
+		LayoutContent struct {
+			// F*ck you instagram.
+			// Why you do this f*cking horribly structure?!?
+			// Media []Media IS EASY. CHECK IT!
+			Medias []struct {
+				Item Item `json:"media"`
+			} `json:"medias"`
+		} `json:"layout_content"`
+		FeedType        string `json:"feed_type"`
+		ExploreItemInfo struct {
+			NumColumns      int     `json:"num_columns"`
+			TotalNumColumns int     `json:"total_num_columns"`
+			AspectRatio     float32 `json:"aspect_ratio"`
+			Autoplay        bool    `json:"autoplay"`
+		} `json:"explore_item_info"`
+	} `json:"sections"`
+	MediaCount          int     `json:"media_count"`
+	ID                  int64   `json:"id"`
+	MoreAvailable       bool    `json:"more_available"`
+	NextID              string  `json:"next_max_id"`
+	NextPage            int     `json:"next_page"`
+	NextMediaIds        []int64 `json:"next_media_ids"`
+	AutoLoadMoreEnabled bool    `json:"auto_load_more_enabled"`
+	Status              string  `json:"status"`
+}
+
 //func (h *Hashtag) setValues() {
 //	for i := range h.Sections {
 //		for j := range h.Sections[i].LayoutContent.Medias {

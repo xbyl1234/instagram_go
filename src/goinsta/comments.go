@@ -1,58 +1,57 @@
 package goinsta
 
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+)
+
+// Comments allows user to interact with media (item) comments.
+// You can Add or Delete by index or by user name.
+type Comments struct {
+	item     *Item
+	endpoint string
+	err      error
+
+	Items                          []Comment       `json:"comments"`
+	CommentCount                   int64           `json:"comment_count"`
+	Caption                        Caption         `json:"caption"`
+	CaptionIsEdited                bool            `json:"caption_is_edited"`
+	HasMoreComments                bool            `json:"has_more_comments"`
+	HasMoreHeadloadComments        bool            `json:"has_more_headload_comments"`
+	ThreadingEnabled               bool            `json:"threading_enabled"`
+	MediaHeaderDisplay             string          `json:"media_header_display"`
+	InitiateAtTop                  bool            `json:"initiate_at_top"`
+	InsertNewCommentToTop          bool            `json:"insert_new_comment_to_top"`
+	PreviewComments                []Comment       `json:"preview_comments"`
+	NextMaxID                      json.RawMessage `json:"next_max_id,omitempty"`
+	NextMinID                      json.RawMessage `json:"next_min_id,omitempty"`
+	CommentLikesEnabled            bool            `json:"comment_likes_enabled"`
+	DisplayRealtimeTypingIndicator bool            `json:"display_realtime_typing_indicator"`
+	Status                         string          `json:"status"`
+	//PreviewComments                []Comment `json:"preview_comments"`
+}
+
+func (comments *Comments) setValues() {
+	for i := range comments.Items {
+		comments.Items[i].setValues(comments.item.media.instagram())
+	}
+}
+
+func newComments(item *Item) *Comments {
+	c := &Comments{
+		item: item,
+	}
+	return c
+}
+
+func (comments Comments) Error() error {
+	return comments.err
+}
+
+// Disable disables comments in FeedMedia.
 //
-//import (
-//	"encoding/json"
-//	"fmt"
-//	"strconv"
-//)
-//
-//// Comments allows user to interact with media (item) comments.
-//// You can Add or Delete by index or by user name.
-//type Comments struct {
-//	item     *Item
-//	endpoint string
-//	err      error
-//
-//	Items                          []Comment       `json:"comments"`
-//	CommentCount                   int64           `json:"comment_count"`
-//	Caption                        Caption         `json:"caption"`
-//	CaptionIsEdited                bool            `json:"caption_is_edited"`
-//	HasMoreComments                bool            `json:"has_more_comments"`
-//	HasMoreHeadloadComments        bool            `json:"has_more_headload_comments"`
-//	ThreadingEnabled               bool            `json:"threading_enabled"`
-//	MediaHeaderDisplay             string          `json:"media_header_display"`
-//	InitiateAtTop                  bool            `json:"initiate_at_top"`
-//	InsertNewCommentToTop          bool            `json:"insert_new_comment_to_top"`
-//	PreviewComments                []Comment       `json:"preview_comments"`
-//	NextMaxID                      json.RawMessage `json:"next_max_id,omitempty"`
-//	NextMinID                      json.RawMessage `json:"next_min_id,omitempty"`
-//	CommentLikesEnabled            bool            `json:"comment_likes_enabled"`
-//	DisplayRealtimeTypingIndicator bool            `json:"display_realtime_typing_indicator"`
-//	Status                         string          `json:"status"`
-//	//PreviewComments                []Comment `json:"preview_comments"`
-//}
-//
-//func (comments *Comments) setValues() {
-//	for i := range comments.Items {
-//		comments.Items[i].setValues(comments.item.media.instagram())
-//	}
-//}
-//
-//func newComments(item *Item) *Comments {
-//	c := &Comments{
-//		item: item,
-//	}
-//	return c
-//}
-//
-//func (comments Comments) Error() error {
-//	return comments.err
-//}
-//
-//// Disable disables comments in FeedMedia.
-////
-//// See example: examples/media/commentDisable.go
+// See example: examples/media/commentDisable.go
 //func (comments *Comments) Disable() error {
 //	switch comments.item.media.(type) {
 //	case *StoryMedia:
@@ -79,10 +78,10 @@ package goinsta
 //	)
 //	return err
 //}
+
+// Enable enables comments in FeedMedia
 //
-//// Enable enables comments in FeedMedia
-////
-//// See example: examples/media/commentEnable.go
+// See example: examples/media/commentEnable.go
 //func (comments *Comments) Enable() error {
 //	switch comments.item.media.(type) {
 //	case *StoryMedia:
@@ -109,73 +108,74 @@ package goinsta
 //	)
 //	return err
 //}
+
+// Next allows comment pagination.
 //
-//// Next allows comment pagination.
-////
-//// This function support concurrency methods to get comments using Last and Next ID
-////
-//// New comments are stored in Comments.Items
-//func (comments *Comments) Next() bool {
-//	if comments.err != nil {
-//		return false
-//	}
+// This function support concurrency methods to get comments using Last and Next ID
 //
-//	item := comments.item
-//	insta := item.media.instagram()
-//	endpoint := comments.endpoint
-//	query := map[string]string{
-//		// "can_support_threading": "true",
-//	}
-//	if comments.NextMaxID != nil {
-//		next, _ := strconv.Unquote(string(comments.NextMaxID))
-//		query["max_id"] = next
-//	} else if comments.NextMinID != nil {
-//		next, _ := strconv.Unquote(string(comments.NextMinID))
-//		query["min_id"] = next
-//	}
+// New comments are stored in Comments.Items
+func (comments *Comments) Next() bool {
+	if comments.err != nil {
+		return false
+	}
+
+	item := comments.item
+	insta := item.media.instagram()
+	endpoint := comments.endpoint
+	query := map[string]interface{}{
+		"can_support_threading":   true,
+		"carousel_index":          0,
+		"analytics_module":        "comments_v2_feed_contextual_profile",
+		"is_carousel_bumped_post": false,
+		"feed_position":           0,
+	}
+
+	if comments.NextMaxID != nil {
+		next, _ := strconv.Unquote(string(comments.NextMaxID))
+		query["max_id"] = next
+	} else if comments.NextMinID != nil {
+		next, _ := strconv.Unquote(string(comments.NextMinID))
+		query["min_id"] = next
+	}
+
+	c := Comments{}
+	err := insta.HttpRequestJson(
+		&reqOptions{
+			Endpoint: endpoint,
+			Query:    query,
+		}, &c)
+
+	if err == nil {
+		*comments = c
+		comments.endpoint = endpoint
+		comments.item = item
+		if (!comments.HasMoreComments || comments.NextMaxID == nil) &&
+			(!comments.HasMoreHeadloadComments || comments.NextMinID == nil) {
+			comments.err = ErrNoMore
+		}
+		comments.setValues()
+		return true
+	}
+	comments.err = err
+	return false
+}
+
+// Sync prepare Comments to receive comments.
+// Use Next to receive comments.
 //
-//	body, err := insta.sendRequest(
-//		&reqOptions{
-//			Endpoint:   endpoint,
-//			Connection: "keep-alive",
-//			Query:      query,
-//		},
-//	)
-//	if err == nil {
-//		c := Comments{}
-//		err = json.Unmarshal(body, &c)
-//		if err == nil {
-//			*comments = c
-//			comments.endpoint = endpoint
-//			comments.item = item
-//			if (!comments.HasMoreComments || comments.NextMaxID == nil) &&
-//				(!comments.HasMoreHeadloadComments || comments.NextMinID == nil) {
-//				comments.err = ErrNoMore
-//			}
-//			comments.setValues()
-//			return true
-//		}
-//	}
-//	comments.err = err
-//	return false
-//}
+// See example: examples/media/commentsSync.go
+func (comments *Comments) Sync() {
+	endpoint := fmt.Sprintf(urlCommentSync, comments.item.ID)
+	comments.endpoint = endpoint
+	return
+}
+
+// Add push a comment in media.
 //
-//// Sync prepare Comments to receive comments.
-//// Use Next to receive comments.
-////
-//// See example: examples/media/commentsSync.go
-//func (comments *Comments) Sync() {
-//	endpoint := fmt.Sprintf(urlCommentSync, comments.item.ID)
-//	comments.endpoint = endpoint
-//	return
-//}
+// If parent media is a Story this function will send a private message
+// replying the Instagram story.
 //
-//// Add push a comment in media.
-////
-//// If parent media is a Story this function will send a private message
-//// replying the Instagram story.
-////
-//// See example: examples/media/commentsAdd.go
+// See example: examples/media/commentsAdd.go
 //func (comments *Comments) Add(text string) (err error) {
 //	var opt *reqOptions
 //	item := comments.item
@@ -226,8 +226,8 @@ package goinsta
 //	_, err = insta.sendRequest(opt)
 //	return err
 //}
-//
-//// Del deletes comment.
+
+// Del deletes comment.
 //func (comments *Comments) Del(comment *Comment) error {
 //	insta := comments.item.media.instagram()
 //
@@ -246,19 +246,19 @@ package goinsta
 //	)
 //	return err
 //}
+
+// DelByID removes comment using id.
 //
-//// DelByID removes comment using id.
-////
-//// See example: examples/media/commentsDelByID.go
+// See example: examples/media/commentsDelByID.go
 //func (comments *Comments) DelByID(id string) error {
 //	return comments.Del(&Comment{idstr: id})
 //}
+
+// DelMine removes all of your comments limited by parsed parameter.
 //
-//// DelMine removes all of your comments limited by parsed parameter.
-////
-//// If limit is <= 0 DelMine will delete all your comments.
-////
-//// See example: examples/media/commentsDelMine.go
+// If limit is <= 0 DelMine will delete all your comments.
+//
+// See example: examples/media/commentsDelMine.go
 //func (comments *Comments) DelMine(limit int) error {
 //	i := 0
 //	if limit <= 0 {
@@ -284,58 +284,58 @@ package goinsta
 //	}
 //	return nil
 //}
-//
-//// Comment is a type of Media retrieved by the Comments methods
-//type Comment struct {
-//	inst  *Instagram
-//	idstr string
-//
-//	ID                             int64     `json:"pk"`
-//	Text                           string    `json:"text"`
-//	Type                           int       `json:"type"`
-//	User                           User      `json:"user"`
-//	UserID                         int64     `json:"user_id"`
-//	BitFlags                       int       `json:"bit_flags"`
-//	ChildCommentCount              int       `json:"child_comment_count"`
-//	CommentIndex                   int       `json:"comment_index"`
-//	CommentLikeCount               int       `json:"comment_like_count"`
-//	ContentType                    string    `json:"content_type"`
-//	CreatedAt                      int64     `json:"created_at"`
-//	CreatedAtUtc                   int64     `json:"created_at_utc"`
-//	DidReportAsSpam                bool      `json:"did_report_as_spam"`
-//	HasLikedComment                bool      `json:"has_liked_comment"`
-//	InlineComposerDisplayCondition string    `json:"inline_composer_display_condition"`
-//	OtherPreviewUsers              []User    `json:"other_preview_users"`
-//	PreviewChildComments           []Comment `json:"preview_child_comments"`
-//	NextMaxChildCursor             string    `json:"next_max_child_cursor,omitempty"`
-//	HasMoreTailChildComments       bool      `json:"has_more_tail_child_comments,omitempty"`
-//	NextMinChildCursor             string    `json:"next_min_child_cursor,omitempty"`
-//	HasMoreHeadChildComments       bool      `json:"has_more_head_child_comments,omitempty"`
-//	NumTailChildComments           int       `json:"num_tail_child_comments,omitempty"`
-//	NumHeadChildComments           int       `json:"num_head_child_comments,omitempty"`
-//	Status                         string    `json:"status"`
-//}
-//
-//func (c *Comment) setValues(inst *Instagram) {
-//	c.User.inst = inst
-//	for i := range c.OtherPreviewUsers {
-//		c.OtherPreviewUsers[i].inst = inst
-//	}
-//	for i := range c.PreviewChildComments {
-//		c.PreviewChildComments[i].setValues(inst)
-//	}
-//}
-//
-//func (c Comment) getid() string {
-//	switch {
-//	case c.ID == 0:
-//		return c.idstr
-//	case c.idstr == "":
-//		return strconv.FormatInt(c.ID, 10)
-//	}
-//	return ""
-//}
-//
+
+// Comment is a type of Media retrieved by the Comments methods
+type Comment struct {
+	inst  *Instagram
+	idstr string
+
+	ID                             int64     `json:"pk"`
+	Text                           string    `json:"text"`
+	Type                           int       `json:"type"`
+	User                           User      `json:"user"`
+	UserID                         int64     `json:"user_id"`
+	BitFlags                       int       `json:"bit_flags"`
+	ChildCommentCount              int       `json:"child_comment_count"`
+	CommentIndex                   int       `json:"comment_index"`
+	CommentLikeCount               int       `json:"comment_like_count"`
+	ContentType                    string    `json:"content_type"`
+	CreatedAt                      int64     `json:"created_at"`
+	CreatedAtUtc                   int64     `json:"created_at_utc"`
+	DidReportAsSpam                bool      `json:"did_report_as_spam"`
+	HasLikedComment                bool      `json:"has_liked_comment"`
+	InlineComposerDisplayCondition string    `json:"inline_composer_display_condition"`
+	OtherPreviewUsers              []User    `json:"other_preview_users"`
+	PreviewChildComments           []Comment `json:"preview_child_comments"`
+	NextMaxChildCursor             string    `json:"next_max_child_cursor,omitempty"`
+	HasMoreTailChildComments       bool      `json:"has_more_tail_child_comments,omitempty"`
+	NextMinChildCursor             string    `json:"next_min_child_cursor,omitempty"`
+	HasMoreHeadChildComments       bool      `json:"has_more_head_child_comments,omitempty"`
+	NumTailChildComments           int       `json:"num_tail_child_comments,omitempty"`
+	NumHeadChildComments           int       `json:"num_head_child_comments,omitempty"`
+	Status                         string    `json:"status"`
+}
+
+func (c *Comment) setValues(inst *Instagram) {
+	c.User.inst = inst
+	for i := range c.OtherPreviewUsers {
+		c.OtherPreviewUsers[i].inst = inst
+	}
+	for i := range c.PreviewChildComments {
+		c.PreviewChildComments[i].setValues(inst)
+	}
+}
+
+func (c Comment) getid() string {
+	switch {
+	case c.ID == 0:
+		return c.idstr
+	case c.idstr == "":
+		return strconv.FormatInt(c.ID, 10)
+	}
+	return ""
+}
+
 //// Like likes comment.
 //func (c *Comment) Like() error {
 //	data, err := c.inst.prepareData()

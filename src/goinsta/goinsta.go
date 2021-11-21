@@ -10,22 +10,6 @@ import (
 	"time"
 )
 
-// Instagram represent the main API handler
-//
-// Profiles: Represents instragram's user profile.
-// Account:  Represents instagram's personal account.
-// Search:   Represents instagram's search.
-// Timeline: Represents instagram's timeline.
-// Activity: Represents instagram's user activity.
-// Inbox:    Represents instagram's messages.
-// Location: Represents instagram's locations.
-//
-// See Scheme section in README.md for more information.
-//
-// We recommend to use Export and Import functions after first Login.
-//
-// Also you can use SetProxy and UnsetProxy to set and unset proxy.
-// Golang also provides the option to set a proxy using HTTP_PROXY env var.
 type Instagram struct {
 	User                string
 	Pass                string
@@ -53,7 +37,6 @@ type Instagram struct {
 	//Challenge *Challenge
 	//Profiles *Profiles
 	Account *Account
-	Search  *Search
 	//Timeline *Timeline
 	//Activity *Activity
 	//Inbox *Inbox
@@ -64,14 +47,6 @@ type Instagram struct {
 	c *http.Client
 }
 
-// SetHTTPTransport sets http transport. This further allows users to tweak the underlying
-// low level transport for adding additional fucntionalities.
-func (inst *Instagram) SetHTTPTransport(transport http.RoundTripper) {
-	inst.c.Transport = transport
-}
-
-// SetCookieJar sets the Cookie Jar. This further allows to use a custom implementation
-// of a cookie jar which may be backed by a different data store such as redis.
 func (inst *Instagram) SetCookieJar(jar http.CookieJar) error {
 	url, err := neturl.Parse(goInstaAPIUrl)
 	if err != nil {
@@ -84,7 +59,6 @@ func (inst *Instagram) SetCookieJar(jar http.CookieJar) error {
 	return nil
 }
 
-// New creates Instagram structure
 func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	// this call never returns error
 	jar, _ := cookiejar.New(nil)
@@ -116,11 +90,14 @@ func (inst *Instagram) init() {
 	//inst.Profiles = newProfiles(inst)
 	//inst.Activity = newActivity(inst)
 	//inst.Timeline = newTimeline(inst)
-	inst.Search = newSearch(inst)
 	//inst.Inbox = newInbox(inst)
 	//inst.Feed = newFeed(inst)
 	//inst.Contacts = newContacts(inst)
 	//inst.Locations = newLocation(inst)
+}
+
+func (inst *Instagram) GetSearch(q string) *Search {
+	return newSearch(inst, q)
 }
 
 // SetProxy sets proxy for connection.
@@ -138,7 +115,7 @@ func (inst *Instagram) readMsisdnHeader() error {
 		&reqOptions{
 			Endpoint: urlMsisdnHeader,
 			IsPost:   true,
-			Query: map[string]string{
+			Query: map[string]interface{}{
 				"device_id": inst.uuid,
 			},
 		},
@@ -148,17 +125,17 @@ func (inst *Instagram) readMsisdnHeader() error {
 
 //注册成功后触发
 func (inst *Instagram) contactPrefill() error {
-	var query map[string]string
+	var query map[string]interface{}
 
 	if inst.IsLogin {
-		query = map[string]string{
+		query = map[string]interface{}{
 			"_uid":      inst.id,
 			"device_id": inst.uuid,
 			"_uuid":     inst.uuid,
 			"usage":     "auto_confirmation",
 		}
 	} else {
-		query = map[string]string{
+		query = map[string]interface{}{
 			"phone_id": inst.familyID,
 			"usage":    "prefill",
 		}
@@ -177,17 +154,17 @@ func (inst *Instagram) contactPrefill() error {
 }
 
 func (inst *Instagram) launcherSync() error {
-	var query map[string]string
+	var query map[string]interface{}
 
 	if inst.IsLogin {
-		query = map[string]string{
+		query = map[string]interface{}{
 			"id":                      inst.id,
 			"_uid":                    inst.id,
 			"_uuid":                   inst.uuid,
 			"server_config_retrieval": "1",
 		}
 	} else {
-		query = map[string]string{
+		query = map[string]interface{}{
 			"id":                      inst.uuid,
 			"server_config_retrieval": "1",
 		}
@@ -211,7 +188,7 @@ func (inst *Instagram) zrToken() error {
 			Endpoint: urlZrToken,
 			IsPost:   false,
 			IsApiB:   true,
-			Query: map[string]string{
+			Query: map[string]interface{}{
 				"device_id":        inst.androidID,
 				"token_hash":       "",
 				"custom_device_id": inst.uuid,
@@ -231,7 +208,7 @@ func (inst *Instagram) sendAdID() error {
 			IsPost:   true,
 			IsApiB:   true,
 			Signed:   true,
-			Query: map[string]string{
+			Query: map[string]interface{}{
 				"adid": inst.adid,
 			},
 		},
@@ -330,16 +307,16 @@ func (inst *Instagram) Logout() error {
 }
 
 func (inst *Instagram) syncFeatures() error {
-	var params map[string]string
+	var params map[string]interface{}
 	if inst.IsLogin {
-		params = map[string]string{
+		params = map[string]interface{}{
 			"id":          inst.id,
 			"_uid":        inst.id,
 			"_uuid":       inst.uuid,
 			"experiments": goInstaExperiments,
 		}
 	} else {
-		params = map[string]string{
+		params = map[string]interface{}{
 			"id":          inst.uuid,
 			"experiments": goInstaExperiments,
 		}
@@ -360,7 +337,7 @@ func (inst *Instagram) megaphoneLog() error {
 	_, err := inst.HttpRequest(
 		&reqOptions{
 			Endpoint: urlMegaphoneLog,
-			Query: map[string]string{
+			Query: map[string]interface{}{
 				"id":        strconv.FormatInt(inst.Account.ID, 10),
 				"type":      "feed_aysf",
 				"action":    "seen",
