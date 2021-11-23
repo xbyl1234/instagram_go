@@ -54,6 +54,24 @@ type Item struct {
 	media    Media
 	Comments *Comments `json:"-"`
 
+	CanSeeInsightsAsBrand      bool   `json:"can_see_insights_as_brand"`
+	CanViewMorePreviewComments bool   `json:"can_view_more_preview_comments"`
+	CommercialityStatus        string `json:"commerciality_status"`
+	DeletedReason              int    `json:"deleted_reason"`
+	FundraiserTag              struct {
+		HasStandaloneFundraiser bool `json:"has_standalone_fundraiser"`
+	} `json:"fundraiser_tag"`
+	HideViewAllCommentEntrypoint bool   `json:"hide_view_all_comment_entrypoint"`
+	IntegrityReviewDecision      string `json:"integrity_review_decision"`
+	IsCommercial                 bool   `json:"is_commercial"`
+	IsInProfileGrid              bool   `json:"is_in_profile_grid"`
+	IsPaidPartnership            bool   `json:"is_paid_partnership"`
+	IsUnifiedVideo               bool   `json:"is_unified_video"`
+	LikeAndViewCountsDisabled    bool   `json:"like_and_view_counts_disabled"`
+	NextMaxId                    int64  `json:"next_max_id"`
+	ProductType                  string `json:"product_type"`
+	ProfileGridControlEnabled    bool   `json:"profile_grid_control_enabled"`
+
 	TakenAt          int64   `json:"taken_at"`
 	Pk               int64   `json:"pk"`
 	ID               string  `json:"id"`
@@ -336,7 +354,7 @@ func (item *Item) Hashtags() []Hashtag {
 
 	i := 0
 	for _, tag := range tags {
-		hsh[i].Name = tag[1:]
+		hsh[i].name = tag[1:]
 		i++
 	}
 
@@ -344,7 +362,7 @@ func (item *Item) Hashtags() []Hashtag {
 		tags := rxpTags.FindAllString(comment.Text, -1)
 
 		for _, tag := range tags {
-			hsh = append(hsh, Hashtag{Name: tag[1:]})
+			hsh = append(hsh, Hashtag{name: tag[1:]})
 		}
 	}
 

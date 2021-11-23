@@ -83,6 +83,9 @@ type Friendship struct {
 	IsPrivate       bool `json:"is_private"`
 	Muting          bool `json:"muting"`
 	IsMutingReel    bool `json:"is_muting_reel"`
+	IsRestricted    bool `json:"is_restricted"`
+	IsFeedFavorite  bool `json:"is_feed_favorite"`
+	IsBestie        bool `json:"is_bestie"`
 }
 
 // Images are different quality images
@@ -122,19 +125,22 @@ type Tag struct {
 
 // Caption is media caption
 type Caption struct {
-	ID              int64  `json:"pk"`
-	UserID          int64  `json:"user_id"`
-	Text            string `json:"text"`
-	Type            int    `json:"type"`
-	CreatedAt       int64  `json:"created_at"`
-	CreatedAtUtc    int64  `json:"created_at_utc"`
-	ContentType     string `json:"content_type"`
-	Status          string `json:"status"`
-	BitFlags        int    `json:"bit_flags"`
-	User            User   `json:"user"`
-	DidReportAsSpam bool   `json:"did_report_as_spam"`
-	MediaID         int64  `json:"media_id"`
-	HasTranslation  bool   `json:"has_translation"`
+	ID                 int64  `json:"pk"`
+	UserID             int64  `json:"user_id"`
+	Text               string `json:"text"`
+	Type               int    `json:"type"`
+	CreatedAt          int64  `json:"created_at"`
+	CreatedAtUtc       int64  `json:"created_at_utc"`
+	ContentType        string `json:"content_type"`
+	Status             string `json:"status"`
+	BitFlags           int    `json:"bit_flags"`
+	User               User   `json:"user"`
+	DidReportAsSpam    bool   `json:"did_report_as_spam"`
+	MediaID            int64  `json:"media_id"`
+	HasTranslation     bool   `json:"has_translation"`
+	IsCovered          bool   `json:"is_covered"`
+	PrivateReplyStatus int    `json:"private_reply_status"`
+	ShareEnabled       bool   `json:"share_enabled"`
 }
 
 // Mentions is a user being mentioned on media.
@@ -226,19 +232,19 @@ type Broadcast struct {
 	MediaID              string `json:"media_id"`
 	BroadcastMessage     string `json:"broadcast_message"`
 	OrganicTrackingToken string `json:"organic_tracking_token"`
+	UserId               int64  `json:"user_id"`
 }
 
-//
-//// BlockedUser stores information about a used that has been blocked before.
-//type BlockedUser struct {
-//	// TODO: Convert to user
-//	UserID        int64  `json:"user_id"`
-//	Username      string `json:"username"`
-//	FullName      string `json:"full_name"`
-//	ProfilePicURL string `json:"profile_pic_url"`
-//	BlockAt       int64  `json:"block_at"`
-//}
-//
+// BlockedUser stores information about a used that has been blocked before.
+type BlockedUser struct {
+	// TODO: Convert to user
+	UserID        int64  `json:"user_id"`
+	Username      string `json:"username"`
+	FullName      string `json:"full_name"`
+	ProfilePicURL string `json:"profile_pic_url"`
+	BlockAt       int64  `json:"block_at"`
+}
+
 //// Unblock unblocks blocked user.
 //func (b *BlockedUser) Unblock() error {
 //	u := User{ID: b.UserID}

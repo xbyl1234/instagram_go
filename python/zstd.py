@@ -6,7 +6,7 @@ import pathlib
 import shutil
 
 path = "C:/Users/Administrator/Desktop/project/github/instagram_project/抓包/"
-file_name = "search_tag"
+file_name = "sections2"
 input_file = pathlib.Path(path + file_name)
 
 file_object = open(input_file, 'rb')

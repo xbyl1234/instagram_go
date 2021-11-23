@@ -177,6 +177,8 @@ type User struct {
 	FbPageCallToActionID         string       `json:"fb_page_call_to_action_id"`
 	Zip                          string       `json:"zip"`
 	Friendship                   Friendship   `json:"friendship_status"`
+
+	account_badges []interface{} `json:"account_badges"`
 }
 
 //// SetInstagram will update instagram instance for selected User.
