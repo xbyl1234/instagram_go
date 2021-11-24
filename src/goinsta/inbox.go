@@ -82,7 +82,7 @@ package goinsta
 //	insta := inbox.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: endpoint,
+//			ApiPath: endpoint,
 //			Query:    params,
 //		},
 //	)
@@ -116,7 +116,7 @@ package goinsta
 //	insta := inbox.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: endpoint,
+//			ApiPath: endpoint,
 //			Query:    params,
 //		},
 //	)
@@ -182,7 +182,7 @@ package goinsta
 //	_, err = insta.sendRequest(
 //		&reqOptions{
 //			Connection: "keep-alive",
-//			Endpoint:   urlInboxSend,
+//			ApiPath:   urlInboxSend,
 //			Query:      data,
 //			IsPost:     true,
 //		},
@@ -292,7 +292,7 @@ package goinsta
 //	_, err = insta.sendRequest(
 //		&reqOptions{
 //			Connection: "keep-alive",
-//			Endpoint:   urlInboxSendLike,
+//			ApiPath:   urlInboxSendLike,
 //			Query:      data,
 //			IsPost:     true,
 //		},
@@ -329,7 +329,7 @@ package goinsta
 //	_, err = insta.sendRequest(
 //		&reqOptions{
 //			Connection: "keep-alive",
-//			Endpoint:   urlInboxSend,
+//			ApiPath:   urlInboxSend,
 //			Query:      data,
 //			IsPost:     true,
 //		},
@@ -358,7 +358,7 @@ package goinsta
 //	insta := c.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlInboxThread, c.ID),
+//			ApiPath: fmt.Sprintf(urlInboxThread, c.ID),
 //			Query: map[string]string{
 //				"cursor":            c.lastItemID(),
 //				"direction":         "older", // go to upper

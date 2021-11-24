@@ -1,7 +1,7 @@
 package phone
 
 import (
-	"makemoney/tools"
+	"makemoney/common"
 	"net/http"
 	"sync"
 	"time"
@@ -51,13 +51,13 @@ func (this *PhoneInfo) GetArea() string {
 func NewPhoneVerificationCode(provider string) (PhoneVerificationCode, error) {
 	if provider == "do889" {
 		ret := &PhoneDo889{}
-		err := tools.LoadJsonFile("./config/phone.json", ret)
+		err := common.LoadJsonFile("./config/phone.json", ret)
 		if err == nil {
 			ret.retryDelay = time.Duration(ret.RetryDelay) * time.Second
 			ret.retryTimeout = time.Duration(ret.RetryTimeout) * time.Second
 			ret.client = &http.Client{}
 			//ret.reqLock = &sync.Mutex{}
-			tools.DebugHttpClient(ret.client)
+			common.DebugHttpClient(ret.client)
 		}
 		return ret, err
 	}

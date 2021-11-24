@@ -1,9 +1,9 @@
 package phone
 
 import (
-	"makemoney/http_helper"
-	"makemoney/log"
-	"makemoney/tools"
+	"makemoney/common"
+	"makemoney/common/http_helper"
+	"makemoney/common/log"
 	"strconv"
 	"strings"
 	"time"
@@ -77,7 +77,7 @@ func (this *PhoneDo889) RequirePhoneNumber() (string, error) {
 		return "", err
 	}
 	if respJson.Message != "ok" {
-		return "", &tools.MakeMoneyError{ErrStr: respJson.Message}
+		return "", &common.MakeMoneyError{ErrStr: respJson.Message}
 	}
 	this.RemainCount, _ = strconv.Atoi(respJson.RemainCount)
 	return respJson.Mobile, err
@@ -122,7 +122,7 @@ func (this *PhoneDo889) RequirePhoneCode(number string) (string, error) {
 		time.Sleep(this.retryDelay)
 	}
 
-	return "", &tools.MakeMoneyError{ErrStr: "require code timeout"}
+	return "", &common.MakeMoneyError{ErrStr: "require code timeout"}
 }
 
 type PhoneDo889_ReleasePhone struct {
@@ -144,7 +144,7 @@ func (this *PhoneDo889) ReleasePhone(number string) error {
 		return err
 	}
 	if respJson.Message != "ok" {
-		return &tools.MakeMoneyError{ErrStr: respJson.Message}
+		return &common.MakeMoneyError{ErrStr: respJson.Message}
 	}
 	return nil
 }
@@ -168,7 +168,7 @@ func (this *PhoneDo889) BlackPhone(number string) error {
 		return err
 	}
 	if respJson.Message != "ok" {
-		return &tools.MakeMoneyError{ErrStr: respJson.Message}
+		return &common.MakeMoneyError{ErrStr: respJson.Message}
 	}
 	return nil
 }
@@ -193,7 +193,7 @@ func (this *PhoneDo889) GetBalance() (string, error) {
 		return "", err
 	}
 	if respJson.Message != "ok" {
-		return "", &tools.MakeMoneyError{ErrStr: respJson.Message}
+		return "", &common.MakeMoneyError{ErrStr: respJson.Message}
 	}
 	return respJson.Data[0].Money, nil
 }

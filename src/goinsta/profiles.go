@@ -42,7 +42,7 @@ package goinsta
 //
 //	body, err := prof.inst.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserByID, id),
+//			ApiPath: fmt.Sprintf(urlUserByID, id),
 //			Query:    generateSignature(data),
 //		},
 //	)

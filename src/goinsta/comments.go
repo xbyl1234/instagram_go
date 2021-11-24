@@ -71,7 +71,7 @@ func (comments Comments) Error() error {
 //
 //	_, err = insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlCommentDisable, comments.item.ID),
+//			ApiPath: fmt.Sprintf(urlCommentDisable, comments.item.ID),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -101,7 +101,7 @@ func (comments Comments) Error() error {
 //
 //	_, err = insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlCommentEnable, comments.item.ID),
+//			ApiPath: fmt.Sprintf(urlCommentEnable, comments.item.ID),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -141,8 +141,8 @@ func (comments *Comments) Next() bool {
 	c := Comments{}
 	err := insta.HttpRequestJson(
 		&reqOptions{
-			Endpoint: endpoint,
-			Query:    query,
+			ApiPath: endpoint,
+			Query:   query,
 		}, &c)
 
 	if err == nil {
@@ -201,7 +201,7 @@ func (comments *Comments) Sync() {
 //		)
 //		opt = &reqOptions{
 //			Connection: "keep-alive",
-//			Endpoint:   fmt.Sprintf("%s?media_type=%s", urlReplyStory, item.MediaToString()),
+//			ApiPath:   fmt.Sprintf("%s?media_type=%s", urlReplyStory, item.MediaToString()),
 //			Query:      query,
 //			IsPost:     true,
 //		}
@@ -213,7 +213,7 @@ func (comments *Comments) Sync() {
 //			},
 //		)
 //		opt = &reqOptions{
-//			Endpoint: fmt.Sprintf(urlCommentAdd, item.Pk),
+//			ApiPath: fmt.Sprintf(urlCommentAdd, item.Pk),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		}
@@ -239,7 +239,7 @@ func (comments *Comments) Sync() {
 //
 //	_, err = insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlCommentDelete, comments.item.ID, id),
+//			ApiPath: fmt.Sprintf(urlCommentDelete, comments.item.ID, id),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -345,7 +345,7 @@ func (c Comment) getid() string {
 //
 //	_, err = c.inst.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlCommentLike, c.getid()),
+//			ApiPath: fmt.Sprintf(urlCommentLike, c.getid()),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -362,7 +362,7 @@ func (c Comment) getid() string {
 //
 //	_, err = c.inst.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlCommentUnlike, c.getid()),
+//			ApiPath: fmt.Sprintf(urlCommentUnlike, c.getid()),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},

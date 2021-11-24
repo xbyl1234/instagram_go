@@ -23,7 +23,7 @@ package goinsta
 //	insta := feed.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlFeedLocationID, locationID),
+//			ApiPath: fmt.Sprintf(urlFeedLocationID, locationID),
 //			Query: map[string]string{
 //				"rank_token":     insta.rankToken,
 //				"ranked_content": "true",
@@ -59,7 +59,7 @@ package goinsta
 //	insta := feed.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlFeedTag, tag),
+//			ApiPath: fmt.Sprintf(urlFeedTag, tag),
 //			Query: map[string]string{
 //				"rank_token":     insta.rankToken,
 //				"ranked_content": "true",
@@ -128,7 +128,7 @@ package goinsta
 //				"max_id":     ft.NextID,
 //				"rank_token": insta.rankToken,
 //			},
-//			Endpoint: fmt.Sprintf(urlFeedTag, name),
+//			ApiPath: fmt.Sprintf(urlFeedTag, name),
 //		},
 //	)
 //	if err == nil {

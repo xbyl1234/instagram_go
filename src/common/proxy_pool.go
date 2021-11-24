@@ -1,11 +1,10 @@
-package proxy
+package common
 
 import (
 	"container/list"
 	"crypto/tls"
 	"golang.org/x/net/proxy"
-	"makemoney/log"
-	"makemoney/tools"
+	"makemoney/common/log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -13,7 +12,7 @@ import (
 )
 
 type Proxy struct {
-	Id          string    `json:"id"`
+	ID          string    `json:"id"`
 	Ip          string    `json:"ip"`
 	Port        string    `json:"port"`
 	Username    string    `json:"username"`
@@ -66,7 +65,7 @@ type ProxyPoolt struct {
 	allCount          int
 	proxysAvailable   *list.List
 	proxyNotAvailable *list.List
-	allProxys         map[string]Proxy
+	allProxys         map[string]*Proxy
 	repeIndex         int
 	proxyLock         sync.Mutex
 	path              string
@@ -78,12 +77,12 @@ var ProxyPool ProxyPoolt
 func InitProxyPool(path string) error {
 	ProxyPool.path = path
 	ProxyPool.dumpsPath = strings.ReplaceAll(path, ".json", "_dumps.json")
-	if tools.PathExists(ProxyPool.dumpsPath) {
+	if PathExists(ProxyPool.dumpsPath) {
 		path = ProxyPool.dumpsPath
 	}
 
-	var ProxyList map[string]Proxy
-	err := tools.LoadJsonFile(path, &ProxyList)
+	var ProxyList map[string]*Proxy
+	err := LoadJsonFile(path, &ProxyList)
 	if err != nil {
 		return err
 	}
@@ -93,7 +92,7 @@ func InitProxyPool(path string) error {
 		if vul.IsRisk || vul.IsConnError || vul.IsUsed {
 			continue
 		}
-		ProxyPool.proxysAvailable.PushBack(&vul)
+		ProxyPool.proxysAvailable.PushBack(vul)
 	}
 
 	ProxyPool.allCount = len(ProxyList)
@@ -101,16 +100,22 @@ func InitProxyPool(path string) error {
 	return nil
 }
 
-func (this *ProxyPoolt) GetOne() (*Proxy, error) {
+func (this *ProxyPoolt) GetOne() *Proxy {
 	this.proxyLock.Lock()
 	defer this.proxyLock.Unlock()
 
 	if this.proxysAvailable.Len() != 0 {
 		ret := this.proxysAvailable.Front().Value.(*Proxy)
 		this.proxysAvailable.Remove(this.proxysAvailable.Front())
-		return ret, nil
+		return ret
 	}
-	return nil, &tools.MakeMoneyError{"no available proxy", 0}
+	return nil
+}
+
+func (this *ProxyPoolt) Get(id string) *Proxy {
+	this.proxyLock.Lock()
+	defer this.proxyLock.Unlock()
+	return this.allProxys[id]
 }
 
 //func (this *ProxyPoolt) GetRepeOne() (*Proxy, error) {
@@ -130,7 +135,7 @@ func (this *ProxyPoolt) SetUsedProxy(proxy *Proxy) {
 }
 
 func (this *ProxyPoolt) Dumps() {
-	err := tools.Dumps(this.dumpsPath, this.allProxys)
+	err := Dumps(this.dumpsPath, this.allProxys)
 	if err != nil {
 		log.Error("dumps proxy pool error:%v", err)
 	}

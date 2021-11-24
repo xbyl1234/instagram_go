@@ -102,7 +102,6 @@ type AccountCookies struct {
 	IsLogin             bool              `json:"is_login"`
 	AndroidID           string            `json:"android_id"`
 	UUID                string            `json:"uuid"`
-	RankToken           string            `json:"rank_token"`
 	Token               string            `json:"token"`
 	FamilyID            string            `json:"family_id"`
 	Cookies             []*http.Cookie    `json:"cookies"`
@@ -122,12 +121,12 @@ func SaveNewAccount(account AccountCookies) error {
 }
 
 func LoadDBAllAccount() ([]AccountCookies, error) {
-	cursor, err := MogoHelper.account.Find(context.TODO(), nil, nil)
+	cursor, err := MogoHelper.account.Find(context.TODO(), bson.M{}, nil)
 	if err != nil {
 		return nil, err
 	}
 	var ret []AccountCookies
-	err = cursor.All(context.TODO(), ret)
+	err = cursor.All(context.TODO(), &ret)
 	if err != nil {
 		return nil, err
 	}

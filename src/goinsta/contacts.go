@@ -39,7 +39,7 @@ package goinsta
 //
 //func (c *Contacts) SyncContacts(contacts *[]Contact) (*SyncAnswer, error) {
 //	acquireContacts := &reqOptions{
-//		Endpoint: "address_book/acquire_owner_contacts/",
+//		ApiPath: "address_book/acquire_owner_contacts/",
 //		IsPost:   true,
 //		Login:    true,
 //		UseV2:    false,
@@ -59,7 +59,7 @@ package goinsta
 //	}
 //
 //	syncContacts := &reqOptions{
-//		Endpoint: `address_book/link/`,
+//		ApiPath: `address_book/link/`,
 //		IsPost:   true,
 //		Login:    true,
 //		UseV2:    false,
@@ -90,7 +90,7 @@ package goinsta
 //	bytesS, _ := json.Marshal(toSign)
 //
 //	unlinkBody := &reqOptions{
-//		Endpoint: "address_book/unlink/",
+//		ApiPath: "address_book/unlink/",
 //		IsPost:   true,
 //		Login:    true,
 //		UseV2:    false,

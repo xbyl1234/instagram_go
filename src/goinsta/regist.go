@@ -1,11 +1,10 @@
 package goinsta
 
 import (
+	"makemoney/common"
+	"makemoney/common/log"
+	"makemoney/common/phone"
 	"makemoney/goinsta/dbhelper"
-	"makemoney/log"
-	"makemoney/phone"
-	"makemoney/proxy"
-	"makemoney/tools"
 	"math/rand"
 	"strconv"
 	"time"
@@ -15,10 +14,10 @@ type Register struct {
 	inst   *Instagram
 	number string
 	phone  phone.PhoneVerificationCode
-	proxy  *proxy.Proxy
+	proxy  *common.Proxy
 }
 
-func NewRegister(_proxy *proxy.Proxy, _phone phone.PhoneVerificationCode) *Register {
+func NewRegister(_proxy *common.Proxy, _phone phone.PhoneVerificationCode) *Register {
 	register := &Register{}
 	register.phone = _phone
 	register.proxy = _proxy
@@ -29,7 +28,12 @@ func (this *Register) Do(username string, firstname string, password string) (*I
 	inst, err := this.do(username, firstname, password)
 	if err != nil {
 		log.Error("register ip %s, error %v", this.proxy.Rip, err)
+	} else {
+
 	}
+	inst.registerIpCountry = this.proxy.Country
+	inst.registerPhoneArea = this.phone.GetArea()
+	inst.registerPhoneNumber = this.number
 	return inst, err
 }
 
@@ -84,7 +88,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	if err != nil {
 		return nil, err
 	}
-	this.inst.User = username
+	this.inst.User = realUsername
 
 	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion)
 	err = createValidated.CheckError(err)
@@ -117,7 +121,7 @@ func (this *Register) genUsername(username string) (string, error) {
 		}
 	}
 
-	return "", &tools.MakeMoneyError{ErrStr: "not find available username!", ErrType: tools.ApiError}
+	return "", &common.MakeMoneyError{ErrStr: "not find available username!", ErrType: common.ApiError}
 }
 
 func (this *Register) checkPhoneNumber() error {
@@ -131,10 +135,10 @@ func (this *Register) checkPhoneNumber() error {
 	}
 
 	_, err := this.inst.HttpRequest(&reqOptions{
-		Endpoint: urlCheckPhoneNumber,
-		IsPost:   true,
-		Signed:   true,
-		Query:    params,
+		ApiPath: urlCheckPhoneNumber,
+		IsPost:  true,
+		Signed:  true,
+		Query:   params,
 	})
 	return err
 }
@@ -157,10 +161,10 @@ func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	resp := &RespSendSignupSmsCode{}
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlSendSignupSmsCode,
-			IsPost:   true,
-			Signed:   true,
-			Query:    params,
+			ApiPath: urlSendSignupSmsCode,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
 		}, resp)
 
 	return resp, err
@@ -192,10 +196,10 @@ func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSms
 
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlValidateSignupSmsCode,
-			IsPost:   true,
-			Signed:   true,
-			Query:    params,
+			ApiPath: urlValidateSignupSmsCode,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
 		}, resp)
 
 	return resp, err
@@ -224,10 +228,10 @@ func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggest
 
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlUsernameSuggestions,
-			IsPost:   true,
-			Signed:   true,
-			Query:    params,
+			ApiPath: urlUsernameSuggestions,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
 		}, resp)
 
 	return resp, err
@@ -269,10 +273,10 @@ func (this *Register) checkUsername(username string) (*RespCheckUsername, error)
 
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlCheckUsername,
-			IsPost:   true,
-			Signed:   true,
-			Query:    params,
+			ApiPath: urlCheckUsername,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
 		}, resp)
 
 	return resp, err
@@ -328,7 +332,7 @@ func (this *Register) createValidated(
 		"suggestedUsername":                      "",
 		"verification_code":                      code,
 		"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
-		"do_not_auto_login_if_credentials_match": "true",
+		"do_not_auto_login_if_credentials_match": "false",
 		"phone_id":                               this.inst.familyID,
 		"enc_password":                           encodePasswd,
 		"phone_number":                           this.phone.GetArea() + this.number,
@@ -352,10 +356,10 @@ func (this *Register) createValidated(
 
 	err = this.inst.HttpRequestJson(
 		&reqOptions{
-			Endpoint: urlCreateValidated,
-			IsPost:   true,
-			Signed:   true,
-			Query:    params,
+			ApiPath: urlCreateValidated,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
 		}, resp)
 
 	return resp, err

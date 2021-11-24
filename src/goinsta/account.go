@@ -1,5 +1,7 @@
 package goinsta
 
+import "fmt"
+
 //type accountResp struct {
 //	Status  string  `json:"status"`
 //	Account Account `json:"logged_in_user"`
@@ -74,9 +76,10 @@ func (this *Account) Sync() error {
 	var resp profResp
 	inst := this.inst
 	err := this.inst.HttpRequestJson(&reqOptions{
-		Endpoint: urlCurrentUser,
-		Query:    this.inst.prepareDataQuery(),
-		IsPost:   true},
+		ApiPath: fmt.Sprintf(urlUserInfo, this.ID),
+		Query: map[string]interface{}{
+			"edit": true,
+		}},
 		resp)
 
 	if err == nil {
@@ -98,8 +101,8 @@ func (this *Account) ChangeProfilePicture(path string) error {
 	}
 	var resp RespChangeProfilePicture
 	err = this.inst.HttpRequestJson(&reqOptions{
-		Endpoint: urlChangeProfilePicture,
-		Query: map[string]string{
+		ApiPath: urlChangeProfilePicture,
+		Query: map[string]interface{}{
 			"_uuid":          this.inst.uuid,
 			"upload_id":      upID,
 			"use_fbuploader": "true",
@@ -128,7 +131,7 @@ func (this *Account) ChangeProfilePicture(path string) error {
 //	if err == nil {
 //		_, err = insta.sendRequest(
 //			&reqOptions{
-//				Endpoint: urlChangePass,
+//				ApiPath: urlChangePass,
 //				Query:    generateSignature(data),
 //				IsPost:   true,
 //			},
@@ -157,7 +160,7 @@ type profResp struct {
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlRemoveProfPic,
+//			ApiPath: urlRemoveProfPic,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -187,7 +190,7 @@ type profResp struct {
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlSetPrivate,
+//			ApiPath: urlSetPrivate,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -217,7 +220,7 @@ type profResp struct {
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlSetPublic,
+//			ApiPath: urlSetPublic,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -305,7 +308,7 @@ type profResp struct {
 //	timestamp := tools.B2s(minTimestamp)
 //	body, err := account.inst.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserTags, account.ID),
+//			ApiPath: fmt.Sprintf(urlUserTags, account.ID),
 //			Query: map[string]string{
 //				"max_id":         "",
 //				"rank_token":     account.inst.rankToken,
@@ -347,7 +350,7 @@ type profResp struct {
 //	acResp := editResp{}
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlCurrentUser,
+//			ApiPath: urlCurrentUser,
 //			Query: map[string]string{
 //				"edit": "true",
 //			},
@@ -379,7 +382,7 @@ type profResp struct {
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlSetBiography,
+//			ApiPath: urlSetBiography,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -415,7 +418,7 @@ type profResp struct {
 //	insta := account.inst
 //	resp, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlFriendshipPending,
+//			ApiPath: urlFriendshipPending,
 //		},
 //	)
 //	if err != nil {

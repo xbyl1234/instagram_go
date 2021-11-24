@@ -53,7 +53,7 @@ package goinsta
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: challenge.insta.challengeURL,
+//			ApiPath: challenge.insta.challengeURL,
 //			Query:    generateSignature(data),
 //		},
 //	)
@@ -88,7 +88,7 @@ package goinsta
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: url,
+//			ApiPath: url,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -120,7 +120,7 @@ package goinsta
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: url,
+//			ApiPath: url,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},

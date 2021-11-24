@@ -215,13 +215,13 @@ func (item *Item) Comment(text string) error {
 		//)
 		//opt = &reqOptions{
 		//	Connection: "keep-alive",
-		//	Endpoint:   fmt.Sprintf("%s?media_type=%s", urlReplyStory, item.MediaToString()),
+		//	ApiPath:   fmt.Sprintf("%s?media_type=%s", urlReplyStory, item.MediaToString()),
 		//	Query:      query,
 		//	IsPost:     true,
 		//}
 	case *FeedMedia: // normal media
 		opt = &reqOptions{
-			Endpoint: fmt.Sprintf(urlCommentAdd, item.Pk),
+			ApiPath: fmt.Sprintf(urlCommentAdd, item.Pk),
 			Query: map[string]interface{}{
 				"comment_text": text,
 			},
@@ -377,7 +377,7 @@ func (item *Item) Delete() error {
 
 	_, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaDelete, item.ID),
+			ApiPath: fmt.Sprintf(urlMediaDelete, item.ID),
 			Query: map[string]interface{}{
 				"media_id": item.ID,
 			},
@@ -412,7 +412,7 @@ func (item *Item) Unlike() error {
 
 	_, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaUnlike, item.ID),
+			ApiPath: fmt.Sprintf(urlMediaUnlike, item.ID),
 			Query: map[string]interface{}{
 				"media_id": item.ID,
 			},
@@ -430,7 +430,7 @@ func (item *Item) Like() error {
 
 	_, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaLike, item.ID),
+			ApiPath: fmt.Sprintf(urlMediaLike, item.ID),
 			Query: map[string]interface{}{
 				"media_id": item.ID,
 			},
@@ -448,7 +448,7 @@ func (item *Item) Save() error {
 
 	_, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaSave, item.ID),
+			ApiPath: fmt.Sprintf(urlMediaSave, item.ID),
 			Query: map[string]interface{}{
 				"media_id": item.ID,
 			},
@@ -464,7 +464,7 @@ func (item *Item) Unsave() error {
 
 	_, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaUnsave, item.ID),
+			ApiPath: fmt.Sprintf(urlMediaUnsave, item.ID),
 			Query: map[string]interface{}{
 				"media_id": item.ID,
 			},
@@ -654,7 +654,7 @@ func (media *StoryMedia) Delete() error {
 
 	_, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaDelete, media.ID()),
+			ApiPath: fmt.Sprintf(urlMediaDelete, media.ID()),
 			Query: map[string]interface{}{
 				"media_id": media.ID(),
 			},
@@ -708,7 +708,7 @@ func (media *StoryMedia) Seen() error {
 	if err == nil {
 		_, err = insta.sendRequest(
 			&reqOptions{
-				Endpoint: urlMediaSeen, // reel=1&live_vod=0
+				ApiPath: urlMediaSeen, // reel=1&live_vod=0
 				Query:    generateSignature(data),
 				IsPost:   true,
 				UseV2:    true,
@@ -748,7 +748,7 @@ type trayRequest struct {
 //
 //	body, err := insta.HttpRequest(
 //		&reqOptions{
-//			Endpoint: urlReelMedia,
+//			ApiPath: urlReelMedia,
 //			Query:  	map[string]interface{}{
 //				"user_ids":                   []string{id},
 //				"supported_capabilities_new": tools.B2s(qjson),
@@ -859,7 +859,7 @@ func (media *FeedMedia) Sync() error {
 
 	body, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(urlMediaInfo, id),
+			ApiPath: fmt.Sprintf(urlMediaInfo, id),
 			Query: map[string]interface{}{
 				"media_id": id,
 			},
@@ -936,10 +936,10 @@ func (media *FeedMedia) Next(params ...interface{}) bool {
 	}
 	body, err := insta.HttpRequest(
 		&reqOptions{
-			Endpoint: endpoint,
+			ApiPath: endpoint,
 			Query: map[string]interface{}{
-				"max_id":         next,
-				"rank_token":     insta.rankToken,
+				"max_id": next,
+				//"rank_token":     insta.rankToken,
 				"min_timestamp":  media.timestamp,
 				"ranked_content": ranked,
 			},
@@ -1000,7 +1000,7 @@ func (media *SavedMedia) Next(params ...interface{}) bool {
 	next := media.ID()
 
 	opts := &reqOptions{
-		Endpoint: endpoint,
+		ApiPath: endpoint,
 		Query: map[string]interface{}{
 			"max_id": next,
 		},
@@ -1080,9 +1080,9 @@ func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, qualit
 	}
 
 	body, err := insta.HttpRequest(&reqOptions{
-		Endpoint: "media/configure/?",
-		Query:    config,
-		IsPost:   true,
+		ApiPath: "media/configure/?",
+		Query:   config,
+		IsPost:  true,
 	})
 	if err != nil {
 		return out, err
@@ -1217,9 +1217,9 @@ func (insta *Instagram) UploadAlbum(photos []io.Reader, photoCaption string, qua
 	}
 
 	body, err := insta.HttpRequest(&reqOptions{
-		Endpoint: "media/configure_sidecar/?",
-		Query:    config,
-		IsPost:   true,
+		ApiPath: "media/configure_sidecar/?",
+		Query:   config,
+		IsPost:  true,
 	})
 	if err != nil {
 		return out, err

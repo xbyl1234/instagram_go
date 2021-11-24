@@ -6,7 +6,7 @@ import (
 )
 
 func a(e error) {
-	e = &tools.MakeMoneyError{}
+	e = &common.MakeMoneyError{}
 }
 
 type name struct {

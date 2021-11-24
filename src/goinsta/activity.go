@@ -66,7 +66,7 @@ package goinsta
 //	insta := act.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlActivityFollowing,
+//			ApiPath: urlActivityFollowing,
 //			Query: map[string]string{
 //				"max_id": strconv.FormatInt(act.NextID, 10),
 //			},
@@ -167,7 +167,7 @@ package goinsta
 //	insta := act.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: urlActivityRecent,
+//			ApiPath: urlActivityRecent,
 //			Query: map[string]string{
 //				"max_id": strconv.FormatInt(act.NextID, 10),
 //			},

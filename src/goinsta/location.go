@@ -45,7 +45,7 @@ type Section struct {
 //	insta := l.inst
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlFeedLocations, locationID),
+//			ApiPath: fmt.Sprintf(urlFeedLocations, locationID),
 //			Query: map[string]string{
 //				"rank_token":     insta.rankToken,
 //				"ranked_content": "true",

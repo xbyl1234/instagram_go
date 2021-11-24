@@ -1,13 +1,12 @@
 package goinsta
 
 import (
+	"makemoney/common"
+	"makemoney/common/log"
 	"makemoney/goinsta/dbhelper"
-	"makemoney/log"
-	"makemoney/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
-	"strconv"
 )
 
 func SaveInstToDB(inst *Instagram) error {
@@ -20,7 +19,6 @@ func SaveInstToDB(inst *Instagram) error {
 		Passwd:              inst.Pass,
 		AndroidID:           inst.androidID,
 		UUID:                inst.uuid,
-		RankToken:           inst.rankToken,
 		Token:               inst.token,
 		FamilyID:            inst.familyID,
 		Cookies:             inst.c.Jar.Cookies(url),
@@ -28,7 +26,7 @@ func SaveInstToDB(inst *Instagram) error {
 		Adid:                inst.adid,
 		Wid:                 inst.wid,
 		HttpHeader:          inst.httpHeader,
-		ProxyID:             inst.proxy.Id,
+		ProxyID:             inst.Proxy.ID,
 		IsLogin:             inst.IsLogin,
 		RegisterPhoneNumber: inst.registerPhoneNumber,
 		RegisterPhoneArea:   inst.registerPhoneArea,
@@ -64,13 +62,19 @@ func ConvConfig(config *dbhelper.AccountCookies) (*Instagram, error) {
 		return nil, err
 	}
 
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, err
+	}
+	jar.SetCookies(url, config.Cookies)
+	jar.SetCookies(urlb, config.CookiesB)
+
 	inst := &Instagram{
 		id:                  config.ID,
 		User:                config.Username,
 		Pass:                config.Passwd,
 		androidID:           config.AndroidID,
 		uuid:                config.UUID,
-		rankToken:           config.RankToken,
 		token:               config.Token,
 		familyID:            config.FamilyID,
 		adid:                config.Adid,
@@ -80,23 +84,14 @@ func ConvConfig(config *dbhelper.AccountCookies) (*Instagram, error) {
 		registerPhoneNumber: config.RegisterPhoneNumber,
 		registerPhoneArea:   config.RegisterPhoneArea,
 		registerIpCountry:   config.RegisterIpCountry,
-		c:                   &http.Client{},
+		c: &http.Client{
+			Jar: jar,
+		},
 	}
-	inst.proxy = &proxy.Proxy{Id: config.ProxyID}
 
-	inst.c.Jar, err = cookiejar.New(nil)
-	if err != nil {
-		return inst, err
-	}
-	inst.c.Jar.SetCookies(url, config.Cookies)
-	inst.c.Jar.SetCookies(urlb, config.CookiesB)
+	inst.Proxy = &common.Proxy{ID: config.ProxyID}
 
 	inst.init()
-	id, err := strconv.ParseInt(config.ID, 10, 64)
-	if err != nil {
-		return nil, err
-	}
 
-	inst.Account = &Account{inst: inst, ID: id}
 	return inst, nil
 }

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"makemoney/common"
+	"makemoney/common/log"
 	"makemoney/config"
-	"makemoney/log"
-	"makemoney/tools"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -18,7 +18,7 @@ import (
 
 type reqOptions struct {
 	Login     bool
-	Endpoint  string
+	ApiPath   string
 	IsPost    bool
 	IsApiB    bool
 	Signed    bool
@@ -49,10 +49,10 @@ func (this *BaseApiResp) CheckError(err error) error {
 		return err
 	}
 	if this == nil {
-		return &tools.MakeMoneyError{ErrStr: this.Message, ErrType: tools.OtherError}
+		return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.OtherError}
 	}
 	if this.Status != "ok" {
-		return &tools.MakeMoneyError{ErrStr: this.Message, ErrType: tools.ApiError}
+		return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
 	}
 	return nil
 }
@@ -73,7 +73,7 @@ var (
 func (insta *Instagram) sendSimpleRequest(uri string, a ...interface{}) (body []byte, err error) {
 	return insta.HttpRequest(
 		&reqOptions{
-			Endpoint: fmt.Sprintf(uri, a...),
+			ApiPath: fmt.Sprintf(uri, a...),
 		},
 	)
 }
@@ -86,6 +86,12 @@ func (insta *Instagram) setBaseHeader(req *http.Request) {
 	req.Header.Set("x-ig-app-id", fbAnalytics)
 	req.Header.Set("x-ig-capabilities", igCapabilities)
 	req.Header.Set("x-ig-connection-type", connType)
+	req.Header.Set("x-fb-client-ip", "True")
+	req.Header.Set("x-fb-http-engine", "Liger")
+	req.Header.Set("x-fb-server-cluster", "True")
+	req.Header.Set("accept-encoding", "deflate")
+	req.Header.Set("x-ig-family-device-id", insta.familyID)
+
 	if insta.ReadHeader(IGHeader_Authorization) != "" {
 		req.Header.Set(IGHeader_Authorization, insta.ReadHeader(IGHeader_Authorization))
 	}
@@ -109,12 +115,11 @@ func (insta *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 	req.Header.Set("x-cm-latency", "-1.000")
 	req.Header.Set("x-ig-app-locale", "en_US")
 	req.Header.Set("x-ig-device-locale", "en_US")
-	req.Header.Set("x-pigeon-session-id", tools.GenerateUUID())
+	req.Header.Set("x-pigeon-session-id", common.GenerateUUID())
 	req.Header.Set("x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10))
 	req.Header.Set("x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")
 	req.Header.Set("x-ig-device-id", insta.uuid)
 	req.Header.Set("x-ig-android-id", insta.androidID)
-	req.Header.Set("x-fb-http-engine", "Liger")
 
 	for index := range reqOpt.HeaderKey {
 		key := reqOpt.HeaderKey[index]
@@ -155,7 +160,7 @@ func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		baseUrl = goInstaAPIUrl
 	}
 
-	_url, err := url.Parse(baseUrl + reqOpt.Endpoint)
+	_url, err := url.Parse(baseUrl + reqOpt.ApiPath)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +172,7 @@ func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	query = tools.B2s(_query)
+	query = common.B2s(_query)
 
 	if reqOpt.Signed {
 		query = "signed_body=SIGNATURE." + url.QueryEscape(query)
@@ -205,7 +210,7 @@ func (insta *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	return body, err
 }
 
-func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, body []byte, err error) {
+func (insta *Instagram) CheckInstReqError(url string, body []byte, err error) {
 	var hadLog = false
 	defer func() {
 		if !hadLog {
@@ -213,12 +218,12 @@ func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, body []byte, err e
 		}
 
 		if config.IsDebug && !hadLog {
-			log.Info("account: %s, url: %s, api resp %s", insta.User, reqOpt.Endpoint, body)
+			log.Info("account: %s, url: %s, api resp %s", insta.User, url, body)
 		}
 	}()
 
 	if err != nil {
-		log.Warn("account: %s, url: %s, request error: %v", insta.User, reqOpt.Endpoint, err)
+		log.Warn("account: %s, url: %s, request error: %v", insta.User, url, err)
 		insta.ReqErrorCount += 1
 		hadLog = true
 		return
@@ -227,12 +232,12 @@ func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, body []byte, err e
 	resp := &BaseApiResp{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
-		log.Warn("account: %s, url: %s, Unmarshal error %s", insta.User, reqOpt.Endpoint, body)
+		log.Warn("account: %s, url: %s, Unmarshal error %s", insta.User, url, body)
 		insta.ReqApiErrorCount += 1
 		hadLog = true
 	} else {
 		if resp.isError() {
-			log.Warn("account: %s, url: %s, api error: %s", insta.User, reqOpt.Endpoint, body)
+			log.Warn("account: %s, url: %s, api error: %s", insta.User, url, body)
 			insta.ReqApiErrorCount += 1
 			hadLog = true
 		}
@@ -241,13 +246,13 @@ func (insta *Instagram) CheckInstReqError(reqOpt *reqOptions, body []byte, err e
 
 func (insta *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 	body, err := insta.httpDo(reqOpt)
-	insta.CheckInstReqError(reqOpt, body, err)
+	insta.CheckInstReqError(reqOpt.ApiPath, body, err)
 	return body, err
 }
 
 func (insta *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
 	body, err := insta.httpDo(reqOpt)
-	insta.CheckInstReqError(reqOpt, body, err)
+	insta.CheckInstReqError(reqOpt.ApiPath, body, err)
 
 	err = json.Unmarshal(body, &response)
 	return err
@@ -291,10 +296,11 @@ func (insta *Instagram) HttpSend(sendOpt *sendOptions, response interface{}) ([]
 	if err != nil {
 		return nil, err
 	}
-
+	insta.afterRequest(_url, resp)
 	if response != nil {
 		err = json.Unmarshal(respBody, response)
 	}
+	insta.CheckInstReqError(sendOpt.Url, respBody, err)
 	return respBody, err
 }
 
@@ -347,13 +353,13 @@ func (insta *Instagram) prepareData(other ...map[string]interface{}) (string, er
 	}
 	b, err := json.Marshal(data)
 	if err == nil {
-		return tools.B2s(b), err
+		return common.B2s(b), err
 	}
 	return "", err
 }
 
-func (insta *Instagram) prepareDataQuery(other ...map[string]interface{}) map[string]string {
-	data := map[string]string{
+func (insta *Instagram) prepareDataQuery(other ...map[string]interface{}) map[string]interface{} {
+	data := map[string]interface{}{
 		"_uuid":      insta.uuid,
 		"_csrftoken": insta.token,
 	}

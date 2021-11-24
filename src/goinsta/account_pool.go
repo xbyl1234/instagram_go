@@ -26,6 +26,9 @@ func (this *AccountPoolt) GetOne() *Instagram {
 	defer this._lock.Unlock()
 
 	ret := this.Available.Front()
+	if ret == nil {
+		return nil
+	}
 	this.Available.Remove(ret)
 	return ret.Value.(*Instagram)
 }

@@ -99,7 +99,7 @@ type RespTagsInfo struct {
 func (this *Hashtag) Sync() error {
 	resp := &RespTagsInfo{}
 	err := this.inst.HttpRequestJson(&reqOptions{
-		Endpoint: fmt.Sprintf(urlTagSync, this.name),
+		ApiPath: fmt.Sprintf(urlTagSync, this.name),
 	}, resp)
 
 	return err
@@ -113,7 +113,7 @@ func (this *Hashtag) Stories() (*StoryMedia, error) {
 	}
 
 	err := this.inst.HttpRequestJson(&reqOptions{
-		Endpoint: fmt.Sprintf(urlTagStories, this.name),
+		ApiPath: fmt.Sprintf(urlTagStories, this.name),
 	}, &resp)
 
 	return nil, err
@@ -150,8 +150,8 @@ func (this *Hashtag) Next() (*Hashtag, error) {
 				"rank_token": "",
 				"page":       fmt.Sprintf("%d", this.NextPage),
 			},
-			Endpoint: fmt.Sprintf(urlTagContent, this.name),
-			IsPost:   false,
+			ApiPath: fmt.Sprintf(urlTagContent, this.name),
+			IsPost:  false,
 		}, ht,
 	)
 

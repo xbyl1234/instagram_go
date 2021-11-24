@@ -54,7 +54,7 @@ var ErrNoMore = errors.New("List end have been reached")
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: endpoint,
+//			ApiPath: endpoint,
 //			Query: map[string]string{
 //				"max_id":             users.NextID,
 //				"ig_sig_key_version": goInstaSigKeyVersion,
@@ -260,7 +260,7 @@ type User struct {
 //	}
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserBlock, user.ID),
+//			ApiPath: fmt.Sprintf(urlUserBlock, user.ID),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -295,7 +295,7 @@ type User struct {
 //	}
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserUnblock, user.ID),
+//			ApiPath: fmt.Sprintf(urlUserUnblock, user.ID),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -341,7 +341,7 @@ type User struct {
 //	}
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: endpoint,
+//			ApiPath: endpoint,
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -397,7 +397,7 @@ type User struct {
 //	}
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserFollow, user.ID),
+//			ApiPath: fmt.Sprintf(urlUserFollow, user.ID),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -432,7 +432,7 @@ type User struct {
 //	}
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserUnfollow, user.ID),
+//			ApiPath: fmt.Sprintf(urlUserUnfollow, user.ID),
 //			Query:    generateSignature(data),
 //			IsPost:   true,
 //		},
@@ -466,7 +466,7 @@ type User struct {
 //
 //	body, err := insta.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlFriendship, user.ID),
+//			ApiPath: fmt.Sprintf(urlFriendship, user.ID),
 //			Query:    generateSignature(data),
 //		},
 //	)
@@ -531,7 +531,7 @@ type User struct {
 //	}
 //	body, err := user.inst.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserHighlights, user.ID),
+//			ApiPath: fmt.Sprintf(urlUserHighlights, user.ID),
 //			Query:    generateSignature(tools.B2s(data)),
 //		},
 //	)
@@ -563,7 +563,7 @@ type User struct {
 //	timestamp := tools.B2s(minTimestamp)
 //	body, err := user.inst.sendRequest(
 //		&reqOptions{
-//			Endpoint: fmt.Sprintf(urlUserTags, user.ID),
+//			ApiPath: fmt.Sprintf(urlUserTags, user.ID),
 //			Query: map[string]string{
 //				"max_id":         "",
 //				"rank_token":     user.inst.rankToken,

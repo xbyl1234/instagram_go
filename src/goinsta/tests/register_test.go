@@ -1,11 +1,11 @@
 package tests
 
 import (
+	"makemoney/common"
+	"makemoney/common/log"
+	"makemoney/common/phone"
 	"makemoney/goinsta"
 	"makemoney/goinsta/dbhelper"
-	"makemoney/log"
-	"makemoney/phone"
-	"makemoney/proxy"
 	"os"
 	"path/filepath"
 	"testing"
@@ -18,11 +18,12 @@ func SetCurrPath() {
 func InitAll() {
 	log.InitLogger()
 	dbhelper.InitMogoDB()
-	err := proxy.InitProxyPool("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\zone2_ips_us.txt")
+	err := common.InitProxyPool("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\zone2_ips_us.txt")
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)
 		panic(err)
 	}
+	common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
 func TestRegister(t *testing.T) {
@@ -41,10 +42,10 @@ func TestRegister(t *testing.T) {
 	//	log.Error("provider login error!")
 	//	os.Exit(0)
 	//}
-	_proxy, err := proxy.ProxyPool.GetOne()
-	_proxy, err = proxy.ProxyPool.GetOne()
-	_proxy, err = proxy.ProxyPool.GetOne()
-	if err != nil {
+	_proxy := common.ProxyPool.GetOne()
+	_proxy = common.ProxyPool.GetOne()
+	_proxy = common.ProxyPool.GetOne()
+	if _proxy == nil {
 		log.Error("get proxy error: %v", _proxy)
 	}
 	regisert := goinsta.NewRegister(_proxy, provider)
@@ -54,5 +55,7 @@ func TestRegister(t *testing.T) {
 	} else {
 		log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
 		goinsta.SaveInstToDB(inst)
+		err := inst.Account.ChangeProfilePicture(common.Resource.ChoiceIco())
+		log.Info("ch ico %v", err)
 	}
 }

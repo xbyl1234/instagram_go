@@ -1,4 +1,4 @@
-package tools
+package common
 
 import (
 	"io/ioutil"
@@ -8,12 +8,8 @@ import (
 	"time"
 )
 
-type Picture struct {
-	filename string
-}
-
 type Resourcet struct {
-	ico      []Picture
+	ico      []string
 	username []string
 }
 
@@ -44,7 +40,7 @@ func InitResource(icoPath string, usernamePath string) error {
 		if fi.IsDir() {
 			continue
 		}
-		Resource.ico = append(Resource.ico, Picture{icoPath + PthSep + fi.Name()})
+		Resource.ico = append(Resource.ico, icoPath+PthSep+fi.Name())
 	}
 	return nil
 }
@@ -54,7 +50,7 @@ func (this *Resourcet) ChoiceUsername() string {
 	return this.username[math_rand.Intn(len(this.username))]
 }
 
-func (this *Resourcet) ChoiceIco() Picture {
+func (this *Resourcet) ChoiceIco() string {
 	math_rand.Seed(time.Now().UnixNano())
 	return this.ico[math_rand.Intn(len(this.ico))]
 }

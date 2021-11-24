@@ -1,4 +1,4 @@
-package tools
+package common
 
 type MakeMoneyError struct {
 	ErrStr  string

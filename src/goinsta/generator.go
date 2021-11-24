@@ -2,7 +2,7 @@ package goinsta
 
 import (
 	"encoding/base64"
-	"makemoney/tools"
+	"makemoney/common"
 	"strconv"
 	"time"
 )
@@ -13,7 +13,7 @@ import (
 //}
 
 func generateDeviceID() string {
-	return "android-" + tools.GenString(tools.CharSet_16_Num, 16)
+	return "android-" + common.GenString(common.CharSet_16_Num, 16)
 }
 
 func generateSignature(data string) string {
@@ -31,5 +31,5 @@ func genJazoest(pid string) string {
 func genSnNonce(str string) string {
 	return base64.StdEncoding.EncodeToString([]byte(
 		str + "|" + strconv.Itoa(int(time.Now().Unix())) + "|" +
-			tools.GenString(tools.CharSet_123+tools.CharSet_abc, 24)))
+			common.GenString(common.CharSet_123+common.CharSet_abc, 24)))
 }

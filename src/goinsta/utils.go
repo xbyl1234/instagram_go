@@ -12,7 +12,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"image"
-	"makemoney/tools"
+	"makemoney/common"
 	"time"
 
 	// Required for getImageDimensionFromReader in jpg and png format
@@ -53,7 +53,7 @@ func toString(i interface{}) string {
 	case uint8:
 		return strconv.FormatInt(int64(s), 10)
 	case []byte:
-		return tools.B2s(s)
+		return common.B2s(s)
 	case error:
 		return s.Error()
 	}
@@ -123,8 +123,8 @@ func AesGcmEncrypt(key []byte, iv []byte, plainText []byte, add []byte) ([]byte,
 func encryptPassword(password string, encId string, encPubKey string) (string, error) {
 	//byte[] rand_key = new byte[32], iv = new byte[12];
 	_time := strconv.FormatInt(time.Now().Unix(), 10)
-	randKey := tools.GenString(tools.CharSet_All, 32)
-	iv := tools.GenString(tools.CharSet_All, 12)
+	randKey := common.GenString(common.CharSet_All, 32)
+	iv := common.GenString(common.CharSet_All, 12)
 	decodedPubKey, err := base64.StdEncoding.DecodeString(encPubKey)
 	if err != nil {
 		return "", err
