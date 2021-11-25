@@ -201,7 +201,7 @@ func (comments *Comments) Sync() {
 //		)
 //		opt = &reqOptions{
 //			Connection: "keep-alive",
-//			ApiPath:   fmt.Sprintf("%s?media_type=%s", urlReplyStory, item.MediaToString()),
+//			ApiPath:   fmt.Sprintf("%s?media_type=%s", urlReplyStory, item.GetMediaType()),
 //			Query:      query,
 //			IsPost:     true,
 //		}

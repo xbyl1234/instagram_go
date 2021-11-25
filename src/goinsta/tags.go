@@ -64,7 +64,31 @@ type RespHashtag struct {
 	AutoLoadMoreEnabled bool    `json:"auto_load_more_enabled"`
 }
 
-func (this *RespHashtag) GetAllMedias() {
+func (this *RespHashtag) GetAllMedias() []*Item {
+	var allCount int = 0
+	for sectionIndex := range this.Sections {
+		allCount += this.Sections[sectionIndex].ExploreItemInfo.TotalNumColumns
+	}
+	ret := make([]*Item, allCount)
+
+	var index = 0
+	for sectionIndex := range this.Sections {
+		allCount += this.Sections[sectionIndex].ExploreItemInfo.TotalNumColumns
+		section := this.Sections[sectionIndex]
+		if section.LayoutType == "two_by_two_right" {
+			ret[index] = &section.LayoutContent.TwoByTwoItem.Channel.Media
+			index++
+			for itemIndex := range section.LayoutContent.FillItems {
+				ret[index] = &section.LayoutContent.FillItems[itemIndex].Media
+				index++
+			}
+		} else if section.LayoutType == "media_grid" {
+			for itemIndex := range section.LayoutContent.Medias {
+				ret[index] = &section.LayoutContent.Medias[itemIndex].Item
+				index++
+			}
+		}
+	}
 
 }
 
