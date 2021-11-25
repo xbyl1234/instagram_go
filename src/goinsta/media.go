@@ -347,10 +347,10 @@ var rxpTags = regexp.MustCompile(`#\w+`)
 // Item media parent must be FeedMedia.
 //
 // See example: examples/media/hashtags.go
-func (item *Item) Hashtags() []Hashtag {
+func (item *Item) Hashtags() []Tags {
 	tags := rxpTags.FindAllString(item.Caption.Text, -1)
 
-	hsh := make([]Hashtag, len(tags))
+	hsh := make([]Tags, len(tags))
 
 	i := 0
 	for _, tag := range tags {
@@ -362,7 +362,7 @@ func (item *Item) Hashtags() []Hashtag {
 		tags := rxpTags.FindAllString(comment.Text, -1)
 
 		for _, tag := range tags {
-			hsh = append(hsh, Hashtag{name: tag[1:]})
+			hsh = append(hsh, Tags{name: tag[1:]})
 		}
 	}
 
@@ -1071,15 +1071,15 @@ func (media *SavedMedia) setValues() {
 }
 
 // UploadPhoto post image from io.Reader to instagram.
-func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, quality int, filterType int) (Item, error) {
+func (this *Instagram) UploadPhoto(photo io.Reader, photoCaption string, quality int, filterType int) (Item, error) {
 	out := Item{}
 
-	config, err := insta.postPhoto(photo, photoCaption, quality, filterType, false)
+	config, err := this.postPhoto(photo, photoCaption, quality, filterType, false)
 	if err != nil {
 		return out, err
 	}
 
-	body, err := insta.HttpRequest(&reqOptions{
+	body, err := this.HttpRequest(&reqOptions{
 		ApiPath: "media/configure/?",
 		Query:   config,
 		IsPost:  true,
@@ -1104,14 +1104,14 @@ func (insta *Instagram) UploadPhoto(photo io.Reader, photoCaption string, qualit
 	return uploadResult.Media, nil
 }
 
-func (insta *Instagram) postPhoto(photo io.Reader, photoCaption string, quality int, filterType int, isSidecar bool) (map[string]interface{}, error) {
+func (this *Instagram) postPhoto(photo io.Reader, photoCaption string, quality int, filterType int, isSidecar bool) (map[string]interface{}, error) {
 	uploadID := time.Now().Unix()
 	photoName := fmt.Sprintf("pending_media_%d.jpg", uploadID)
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	w.WriteField("upload_id", strconv.FormatInt(uploadID, 10))
-	w.WriteField("_uuid", insta.uuid)
-	w.WriteField("_csrftoken", insta.token)
+	w.WriteField("_uuid", this.uuid)
+	w.WriteField("_csrftoken", this.token)
 	var compression = map[string]interface{}{
 		"lib_name":    "jt",
 		"lib_version": "1.3.0",
@@ -1147,7 +1147,7 @@ func (insta *Instagram) postPhoto(photo io.Reader, photoCaption string, quality 
 	req.Header.Set("Connection", "close")
 	req.Header.Set("User-Agent", goInstaUserAgent)
 
-	resp, err := insta.c.Do(req)
+	resp, err := this.c.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -1196,12 +1196,12 @@ func (insta *Instagram) postPhoto(photo io.Reader, photoCaption string, quality 
 }
 
 // UploadAlbum post image from io.Reader to instagram.
-func (insta *Instagram) UploadAlbum(photos []io.Reader, photoCaption string, quality int, filterType int) (Item, error) {
+func (this *Instagram) UploadAlbum(photos []io.Reader, photoCaption string, quality int, filterType int) (Item, error) {
 	out := Item{}
 
 	var childrenMetadata []map[string]interface{}
 	for _, photo := range photos {
-		config, err := insta.postPhoto(photo, photoCaption, quality, filterType, true)
+		config, err := this.postPhoto(photo, photoCaption, quality, filterType, true)
 		if err != nil {
 			return out, err
 		}
@@ -1216,7 +1216,7 @@ func (insta *Instagram) UploadAlbum(photos []io.Reader, photoCaption string, qua
 		"children_metadata": childrenMetadata,
 	}
 
-	body, err := insta.HttpRequest(&reqOptions{
+	body, err := this.HttpRequest(&reqOptions{
 		ApiPath: "media/configure_sidecar/?",
 		Query:   config,
 		IsPost:  true,

@@ -2,13 +2,11 @@ package goinsta
 
 import (
 	"makemoney/common"
-	"makemoney/common/log"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Instagram struct {
@@ -36,26 +34,25 @@ type Instagram struct {
 
 	//Challenge *Challenge
 	//Profiles *Profiles
-	Account *Account
+	//Account *Account
 	//Timeline *Timeline
 	//Activity *Activity
 	//Inbox *Inbox
 	//Feed *Feed
 	//Locations *LocationInstance
-	Upload *Upload
 
 	c *http.Client
 }
 
-func (inst *Instagram) SetCookieJar(jar http.CookieJar) error {
+func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 	url, err := neturl.Parse(goInstaAPIUrl)
 	if err != nil {
 		return err
 	}
 	// First grab the cookies from the existing jar and we'll put it in the new jar.
-	cookies := inst.c.Jar.Cookies(url)
-	inst.c.Jar = jar
-	inst.c.Jar.SetCookies(url, cookies)
+	cookies := this.c.Jar.Cookies(url)
+	this.c.Jar = jar
+	this.c.Jar.SetCookies(url, cookies)
 	return nil
 }
 
@@ -66,10 +63,10 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 		User:      username,
 		Pass:      password,
 		androidID: generateDeviceID(),
-		uuid:      common.GenerateUUID(), // both uuid must be differents
-		familyID:  common.GenerateUUID(),
-		wid:       common.GenerateUUID(),
-		adid:      common.GenerateUUID(),
+		uuid:      common.GenUUID(), // both uuid must be differents
+		familyID:  common.GenUUID(),
+		wid:       common.GenUUID(),
+		adid:      common.GenUUID(),
 		c: &http.Client{
 			Jar:       jar,
 			Transport: _proxy.GetProxy(),
@@ -79,51 +76,48 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 	inst.httpHeader = make(map[string]string)
 	common.DebugHttpClient(inst.c)
 
-	inst.init()
-
 	return inst
 }
 
-func (inst *Instagram) init() {
-	id, err := strconv.ParseInt(inst.id, 10, 64)
-	if err != nil {
-		log.Warn("account id is null!")
+func (this *Instagram) GetSearch(q string) *Search {
+	if !this.IsLogin {
+		return nil
 	}
-	inst.Account = &Account{inst: inst, ID: id}
-	inst.Upload = NewUpload(inst)
-
-	//inst.Challenge = newChallenge(inst)
-	//inst.Profiles = newProfiles(inst)
-	//inst.Activity = newActivity(inst)
-	//inst.Timeline = newTimeline(inst)
-	//inst.Inbox = newInbox(inst)
-	//inst.Feed = newFeed(inst)
-	//inst.Contacts = newContacts(inst)
-	//inst.Locations = newLocation(inst)
+	return newSearch(this, q)
 }
 
-func (inst *Instagram) GetSearch(q string) *Search {
-	return newSearch(inst, q)
+func (this *Instagram) GetUpload() *Upload {
+	if !this.IsLogin {
+		return nil
+	}
+	return newUpload(this)
+}
+
+func (this *Instagram) GetAccount() *Account {
+	if !this.IsLogin {
+		return nil
+	}
+	return newAccount(this)
 }
 
 // SetProxy sets proxy for connection.
-func (inst *Instagram) SetProxy(_proxy *common.Proxy) {
-	inst.Proxy = _proxy
-	inst.c.Transport = _proxy.GetProxy()
-	common.DebugHttpClient(inst.c)
+func (this *Instagram) SetProxy(_proxy *common.Proxy) {
+	this.Proxy = _proxy
+	this.c.Transport = _proxy.GetProxy()
+	common.DebugHttpClient(this.c)
 }
 
-func (inst *Instagram) ReadHeader(key string) string {
-	return inst.httpHeader[key]
+func (this *Instagram) ReadHeader(key string) string {
+	return this.httpHeader[key]
 }
 
-func (inst *Instagram) readMsisdnHeader() error {
-	_, err := inst.HttpRequest(
+func (this *Instagram) readMsisdnHeader() error {
+	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlMsisdnHeader,
 			IsPost:  true,
 			Query: map[string]interface{}{
-				"device_id": inst.uuid,
+				"device_id": this.uuid,
 			},
 		},
 	)
@@ -131,24 +125,24 @@ func (inst *Instagram) readMsisdnHeader() error {
 }
 
 //注册成功后触发
-func (inst *Instagram) contactPrefill() error {
+func (this *Instagram) contactPrefill() error {
 	var query map[string]interface{}
 
-	if inst.IsLogin {
+	if this.IsLogin {
 		query = map[string]interface{}{
-			"_uid":      inst.id,
-			"device_id": inst.uuid,
-			"_uuid":     inst.uuid,
+			"_uid":      this.id,
+			"device_id": this.uuid,
+			"_uuid":     this.uuid,
 			"usage":     "auto_confirmation",
 		}
 	} else {
 		query = map[string]interface{}{
-			"phone_id": inst.familyID,
+			"phone_id": this.familyID,
 			"usage":    "prefill",
 		}
 	}
 
-	_, err := inst.HttpRequest(
+	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlContactPrefill,
 			IsPost:  true,
@@ -160,24 +154,24 @@ func (inst *Instagram) contactPrefill() error {
 	return err
 }
 
-func (inst *Instagram) launcherSync() error {
+func (this *Instagram) launcherSync() error {
 	var query map[string]interface{}
 
-	if inst.IsLogin {
+	if this.IsLogin {
 		query = map[string]interface{}{
-			"id":                      inst.id,
-			"_uid":                    inst.id,
-			"_uuid":                   inst.uuid,
+			"id":                      this.id,
+			"_uid":                    this.id,
+			"_uuid":                   this.uuid,
 			"server_config_retrieval": "1",
 		}
 	} else {
 		query = map[string]interface{}{
-			"id":                      inst.uuid,
+			"id":                      this.uuid,
 			"server_config_retrieval": "1",
 		}
 	}
 
-	_, err := inst.HttpRequest(
+	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlLauncherSync,
 			IsPost:  true,
@@ -189,16 +183,16 @@ func (inst *Instagram) launcherSync() error {
 	return err
 }
 
-func (inst *Instagram) zrToken() error {
-	_, err := inst.HttpRequest(
+func (this *Instagram) zrToken() error {
+	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlZrToken,
 			IsPost:  false,
 			IsApiB:  true,
 			Query: map[string]interface{}{
-				"device_id":        inst.androidID,
+				"device_id":        this.androidID,
 				"token_hash":       "",
-				"custom_device_id": inst.uuid,
+				"custom_device_id": this.uuid,
 				"fetch_reason":     "token_expired",
 			},
 			HeaderKey: []string{IGHeader_Authorization},
@@ -208,53 +202,29 @@ func (inst *Instagram) zrToken() error {
 }
 
 //早于注册登录?
-func (inst *Instagram) sendAdID() error {
-	_, err := inst.HttpRequest(
+func (this *Instagram) sendAdID() error {
+	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlLogAttribution,
 			IsPost:  true,
 			IsApiB:  true,
 			Signed:  true,
 			Query: map[string]interface{}{
-				"adid": inst.adid,
+				"adid": this.adid,
 			},
 		},
 	)
 	return err
 }
 
-//is_register bool
-func (inst *Instagram) Prepare() error {
-	err := inst.readMsisdnHeader()
-	if err != nil {
-		return err
-	}
-
-	err = inst.syncFeatures()
-	if err != nil {
-		return err
-	}
-
-	err = inst.zrToken()
-	if err != nil {
-		return err
-	}
-
-	err = inst.sendAdID()
-	if err != nil {
-		return err
-	}
-
-	err = inst.contactPrefill()
-	//if err != nil {
-	//	return err
-	//}
-	return nil
+func (this *Instagram) PrepareNewClient() {
+	_ = this.readMsisdnHeader()
+	_ = this.syncFeatures()
+	_ = this.zrToken()
+	_ = this.contactPrefill()
+	_ = this.sendAdID()
+	_ = this.launcherSync()
 }
-
-// Login performs instagram login.
-//
-// Password will be deleted after login
 
 type RespLogin struct {
 	BaseApiResp
@@ -285,7 +255,7 @@ type RespLogin struct {
 			Mode          int    `json:"mode"`
 			SelfieSticker int    `json:"selfie_sticker"`
 		} `json:"nametag"`
-		NationalNumber                             string `json:"national_number"`
+		NationalNumber                             int64  `json:"national_number"`
 		PhoneNumber                                string `json:"phone_number"`
 		Pk                                         int64  `json:"pk"`
 		ProfessionalConversionSuggestedAccountType int    `json:"professional_conversion_suggested_account_type"`
@@ -300,22 +270,22 @@ type RespLogin struct {
 	SessionFlushNonce interface{} `json:"session_flush_nonce"`
 }
 
-func (inst *Instagram) Login() error {
-	encodePasswd, _ := encryptPassword(inst.Pass, inst.ReadHeader(IGHeader_EncryptionId), inst.ReadHeader(IGHeader_EncryptionKey))
+func (this *Instagram) Login() error {
+	encodePasswd, _ := encryptPassword(this.Pass, this.ReadHeader(IGHeader_EncryptionId), this.ReadHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
-		"jazoest":             genJazoest(inst.familyID),
-		"country_codes":       "[{\"country_code\":\"" + strings.ReplaceAll(inst.registerPhoneArea, "+", "") + "\",\"source\":[\"default\"]}]",
-		"phone_id":            inst.familyID,
+		"jazoest":             genJazoest(this.familyID),
+		"country_codes":       "[{\"country_code\":\"" + strings.ReplaceAll(this.registerPhoneArea, "+", "") + "\",\"source\":[\"default\"]}]",
+		"phone_id":            this.familyID,
 		"enc_password":        encodePasswd,
-		"username":            inst.User,
-		"adid":                inst.adid,
-		"guid":                inst.uuid,
-		"device_id":           inst.androidID,
+		"username":            this.User,
+		"adid":                this.adid,
+		"guid":                this.uuid,
+		"device_id":           this.androidID,
 		"google_tokens":       "[]",
 		"login_attempt_count": "0",
 	}
 	resp := &RespLogin{}
-	err := inst.HttpRequestJson(&reqOptions{
+	err := this.HttpRequestJson(&reqOptions{
 		Login:   false,
 		ApiPath: urlLogin,
 		IsPost:  true,
@@ -324,33 +294,37 @@ func (inst *Instagram) Login() error {
 	}, resp)
 
 	err = resp.CheckError(err)
+	if err != nil && this.ReadHeader(IGHeader_Authorization) != "" {
+		this.IsLogin = true
+		this.id = strconv.FormatInt(resp.LoggedInUser.Pk, 10)
+	}
 	return err
 }
 
 // Logout closes current session
-func (inst *Instagram) Logout() error {
-	_, err := inst.sendSimpleRequest(urlLogout)
-	inst.c.Jar = nil
-	inst.c = nil
+func (this *Instagram) Logout() error {
+	_, err := this.sendSimpleRequest(urlLogout)
+	this.c.Jar = nil
+	this.c = nil
 	return err
 }
 
-func (inst *Instagram) syncFeatures() error {
+func (this *Instagram) syncFeatures() error {
 	var params map[string]interface{}
-	if inst.IsLogin {
+	if this.IsLogin {
 		params = map[string]interface{}{
-			"id":          inst.id,
-			"_uid":        inst.id,
-			"_uuid":       inst.uuid,
+			"id":          this.id,
+			"_uid":        this.id,
+			"_uuid":       this.uuid,
 			"experiments": goInstaExperiments,
 		}
 	} else {
 		params = map[string]interface{}{
-			"id":          inst.uuid,
+			"id":          this.uuid,
 			"experiments": goInstaExperiments,
 		}
 	}
-	_, err := inst.HttpRequest(
+	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlQeSync,
 			Query:   params,
@@ -362,24 +336,24 @@ func (inst *Instagram) syncFeatures() error {
 	return err
 }
 
-func (inst *Instagram) megaphoneLog() error {
-	_, err := inst.HttpRequest(
-		&reqOptions{
-			ApiPath: urlMegaphoneLog,
-			Query: map[string]interface{}{
-				"id":        strconv.FormatInt(inst.Account.ID, 10),
-				"type":      "feed_aysf",
-				"action":    "seen",
-				"reason":    "",
-				"device_id": inst.androidID,
-				"uuid":      common.GenerateMD5Hash(string(time.Now().Unix())),
-			},
-			IsPost: true,
-			Login:  true,
-		},
-	)
-	return err
-}
+//func (this *Instagram) megaphoneLog() error {
+//	_, err := this.HttpRequest(
+//		&reqOptions{
+//			ApiPath: urlMegaphoneLog,
+//			Query: map[string]interface{}{
+//				"id":        strconv.FormatInt(this.Account.ID, 10),
+//				"type":      "feed_aysf",
+//				"action":    "seen",
+//				"reason":    "",
+//				"device_id": this.androidID,
+//				"uuid":      common.GenerateMD5Hash(string(time.Now().Unix())),
+//			},
+//			IsPost: true,
+//			Login:  true,
+//		},
+//	)
+//	return err
+//}
 
 //func (inst *Instagram) expose() error {
 //	data, err := inst.prepareData(

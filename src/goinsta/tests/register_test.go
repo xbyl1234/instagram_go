@@ -55,7 +55,7 @@ func TestRegister(t *testing.T) {
 	} else {
 		log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
 		goinsta.SaveInstToDB(inst)
-		err := inst.Account.ChangeProfilePicture(common.Resource.ChoiceIco())
+		err := inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
 		log.Info("ch ico %v", err)
 	}
 }

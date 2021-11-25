@@ -2,14 +2,30 @@ package goinsta
 
 import (
 	"fmt"
+	"makemoney/common"
 )
 
-//// Hashtag is used for getting the media that matches a hashtag on instagram.
-type Hashtag struct {
+// Tags is used for getting the media that matches a hashtag on instagram.
+type Tags struct {
 	inst      *Instagram
-	rankToken string
 	name      string
+	rankToken string
 
+	moreAvailable bool
+	nextID        string
+	nextPage      int
+	nextMediaIds  []int64
+}
+
+func newTags(name string, inst *Instagram) *Tags {
+	return &Tags{
+		inst:      inst,
+		name:      name,
+		rankToken: common.GenUUID(),
+	}
+}
+
+type RespHashtag struct {
 	BaseApiResp
 	Sections []struct {
 		LayoutType    string `json:"layout_type"`
@@ -48,24 +64,8 @@ type Hashtag struct {
 	AutoLoadMoreEnabled bool    `json:"auto_load_more_enabled"`
 }
 
-func (this *Hashtag) setValues() {
-	for i := range this.Sections {
-		for j := range this.Sections[i].LayoutContent.Medias {
-			m := &FeedMedia{
-				inst: this.inst,
-			}
-			setToItem(&this.Sections[i].LayoutContent.Medias[j].Item, m)
-		}
-	}
-}
+func (this *RespHashtag) GetAllMedias() {
 
-// NewHashtag returns initialised hashtag structure
-// Name parameter is hashtag name
-func (inst *Instagram) NewHashtag(name string) *Hashtag {
-	return &Hashtag{
-		inst: inst,
-		name: name,
-	}
 }
 
 type RespTagsInfo struct {
@@ -95,8 +95,8 @@ type RespTagsInfo struct {
 	Subtitle                   string        `json:"subtitle"`
 }
 
-// Sync updates Hashtag information preparing it to Next call.
-func (this *Hashtag) Sync() error {
+// Sync updates Tags information preparing it to Next call.
+func (this *Tags) Sync() error {
 	resp := &RespTagsInfo{}
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlTagSync, this.name),
@@ -106,7 +106,7 @@ func (this *Hashtag) Sync() error {
 }
 
 // Stories returns hashtag stories.
-func (this *Hashtag) Stories() (*StoryMedia, error) {
+func (this *Tags) Stories() (*StoryMedia, error) {
 	var resp struct {
 		Story  StoryMedia `json:"story"`
 		Status string     `json:"status"`
@@ -116,44 +116,52 @@ func (this *Hashtag) Stories() (*StoryMedia, error) {
 		ApiPath: fmt.Sprintf(urlTagStories, this.name),
 	}, &resp)
 
-	return nil, err
+	return &resp.Story, err
 }
 
 // Next paginates over hashtag pages (xd).
-func (this *Hashtag) Next() (*Hashtag, error) {
+func (this *Tags) Next() (*RespHashtag, error) {
+	if !this.moreAvailable {
+		return nil, common.MakeMoneyError_NoMore
+	}
+
 	var params = map[string]interface{}{
 		"_uuid":      this.inst.uuid,
 		"rank_token": this.rankToken,
 	}
 
-	if this.NextID == "" {
+	if this.nextID == "" {
 		params["supported_tabs"] = []string{"top", "recent"}
 		params["include_persistent"] = true
 		params["rank_token"] = this.rankToken
 	} else {
-		params["max_id"] = this.NextID
+		params["max_id"] = this.nextID
 		params["tab"] = "top"
-		params["page"] = this.NextPage
+		params["page"] = this.nextPage
 		params["include_persistent"] = false
-		params["next_media_ids"] = this.NextMediaIds
+		params["next_media_ids"] = this.nextMediaIds
 	}
 
-	ht := &Hashtag{
-		inst:      this.inst,
-		name:      this.name,
-		rankToken: this.rankToken,
-	}
+	ht := &RespHashtag{}
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
 			Query: map[string]interface{}{
-				"max_id":     this.NextID,
+				"max_id":     this.nextID,
 				"rank_token": "",
-				"page":       fmt.Sprintf("%d", this.NextPage),
+				"page":       fmt.Sprintf("%d", this.nextPage),
 			},
 			ApiPath: fmt.Sprintf(urlTagContent, this.name),
 			IsPost:  false,
 		}, ht,
 	)
+
+	err = ht.CheckError(err)
+	if err == nil {
+		this.nextID = ht.NextID
+		this.nextPage = ht.NextPage
+		this.nextMediaIds = ht.NextMediaIds
+		this.moreAvailable = ht.MoreAvailable
+	}
 
 	return ht, err
 }

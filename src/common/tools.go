@@ -101,7 +101,7 @@ func GenString(charSet string, length int) string {
 	}
 	return B2s(by)
 }
-func GenerateUUID() string {
+func GenUUID() string {
 	uuid, err := NewUUID()
 	if err != nil {
 		return "cb479ee7-a50d-49e7-8b7b-60cc1a105e22" // default value when error occurred
@@ -131,4 +131,9 @@ func Json2String(params map[string]string) (string, error) {
 		return "", err
 	}
 	return B2s(data), nil
+}
+
+func GenNumber(min, max int) int {
+	math_rand.Seed(time.Now().Unix())
+	return math_rand.Intn(max-min) + min
 }

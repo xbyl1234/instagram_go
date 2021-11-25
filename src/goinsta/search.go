@@ -1,46 +1,56 @@
 package goinsta
 
 import (
-	"fmt"
 	"makemoney/common"
 )
 
-// Search is the object for all searches like Facebook, Location or Tag search.
+type SearchType int
+
+var (
+	SearchType_User     SearchType
+	SearchType_Tags     SearchType
+	SearchType_Location SearchType
+	SearchType_Top      SearchType
+)
+
 type Search struct {
 	inst      *Instagram
 	q         string
 	rankToken string
 	pageToken string
 	hasMore   bool
+	Type      SearchType
 }
 
-// SearchResult handles the data for the results given by each type of Search.
+func newSearch(inst *Instagram, q string) *Search {
+	search := &Search{
+		inst:    inst,
+		q:       q,
+		hasMore: true,
+	}
+	return search
+}
+
 type SearchResult struct {
+	search *Search
+
 	BaseApiResp
-	HasMore    bool   `json:"has_more"`
-	RankToken  string `json:"rank_token"`
-	PageToken  string `json:"page_token"`
-	Status     string `json:"status"`
-	NumResults int64  `json:"num_results"`
+	HasMore   bool   `json:"has_more"`
+	RankToken string `json:"rank_token"`
+	PageToken string `json:"page_token"`
+
+	Tags []struct {
+		ID         int64  `json:"id"`
+		Name       string `json:"name"`
+		MediaCount int    `json:"media_count"`
+	} `json:"results"`
+
+	NumResults int64 `json:"num_results"`
 	// User search results
 	Users []User `json:"users"`
 
 	// Tag search results
 	InformModule interface{} `json:"inform_module"`
-	Tags         []struct {
-		ID               int64       `json:"id"`
-		Name             string      `json:"name"`
-		MediaCount       int         `json:"media_count"`
-		FollowStatus     interface{} `json:"follow_status"`
-		Following        interface{} `json:"following"`
-		AllowFollowing   interface{} `json:"allow_following"`
-		AllowMutingStory interface{} `json:"allow_muting_story"`
-		ProfilePicURL    interface{} `json:"profile_pic_url"`
-		NonViolating     interface{} `json:"non_violating"`
-		RelatedTags      interface{} `json:"related_tags"`
-		DebugInfo        interface{} `json:"debug_info"`
-	} `json:"results"`
-
 	// Location search result
 	RequestID string `json:"request_id"`
 	Venues    []struct {
@@ -63,54 +73,54 @@ type SearchResult struct {
 			MediaCount int    `json:"media_count"`
 		} `json:"hashtag"`
 	} `json:"hashtags"`
-
 	ClearClientCache bool `json:"clear_client_cache"`
 }
 
-// newSearch creates new Search structure
-func newSearch(inst *Instagram, q string) *Search {
-	search := &Search{
-		inst:    inst,
-		q:       q,
-		hasMore: true,
+func (this *SearchResult) GetTags() []*Tags {
+	if this.Tags == nil {
+		return nil
 	}
-	return search
+	ret := make([]*Tags, len(this.Tags))
+	for index := range this.Tags {
+		ret[index] = newTags(this.Tags[index].Name, this.search.inst)
+	}
+	return ret
 }
 
 // User search by username, you can use count optional parameter to get more than 50 items.
-func (this *Search) User(user string, countParam ...int) (*SearchResult, error) {
-	count := 50
-	if len(countParam) > 0 {
-		count = countParam[0]
-	}
-	insta := this.inst
-	res := &SearchResult{}
+//func (this *Search) User(user string, countParam ...int) (*SearchResult, error) {
+//	count := 50
+//	if len(countParam) > 0 {
+//		count = countParam[0]
+//	}
+//	insta := this.inst
+//	res := &SearchResult{}
+//
+//	err := insta.HttpRequestJson(
+//		&reqOptions{
+//			ApiPath: urlSearchUser,
+//			Query: map[string]interface{}{
+//				"ig_sig_key_version": goInstaSigKeyVersion,
+//				"is_typeahead":       "true",
+//				"q":                  user,
+//				"count":              fmt.Sprintf("%d", count),
+//				//"rank_token":         insta.rankToken,
+//			}}, res)
+//
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	for id := range res.Users {
+//		res.Users[id].inst = insta
+//	}
+//	return res, err
+//}
 
-	err := insta.HttpRequestJson(
-		&reqOptions{
-			ApiPath: urlSearchUser,
-			Query: map[string]interface{}{
-				"ig_sig_key_version": goInstaSigKeyVersion,
-				"is_typeahead":       "true",
-				"q":                  user,
-				"count":              fmt.Sprintf("%d", count),
-				//"rank_token":         insta.rankToken,
-			}}, res)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for id := range res.Users {
-		res.Users[id].inst = insta
-	}
-	return res, err
-}
-
-// Tags search by tag
 func (this *Search) NextTags() (*SearchResult, error) {
+	this.Type = SearchType_Tags
 	if !this.hasMore {
-		return nil, &common.MakeMoneyError{"no more", 0}
+		return nil, common.MakeMoneyError_NoMore
 	}
 
 	res := &SearchResult{}
@@ -132,7 +142,7 @@ func (this *Search) NextTags() (*SearchResult, error) {
 			Query:   params,
 		}, res)
 
-	if err != nil {
+	if err == nil {
 		this.rankToken = res.RankToken
 		this.pageToken = res.PageToken
 	}
@@ -141,6 +151,7 @@ func (this *Search) NextTags() (*SearchResult, error) {
 }
 
 func (this *Search) NextLocation() (*SearchResult, error) {
+	this.Type = SearchType_Location
 	if !this.hasMore {
 		return nil, &common.MakeMoneyError{"no more", 0}
 	}
@@ -166,29 +177,10 @@ func (this *Search) NextLocation() (*SearchResult, error) {
 			Query:   params,
 		}, res)
 
-	if err != nil {
+	if err == nil {
 		this.rankToken = res.RankToken
 		this.pageToken = res.PageToken
 	}
 	this.hasMore = res.HasMore
 	return res, err
 }
-
-//// Facebook search by facebook user.
-//func (this *Search) Facebook(user string) (*SearchResult, error) {
-//	insta := this.inst
-//
-//	res := &SearchResult{}
-//	err := insta.HttpRequestJson(
-//		&reqOptions{
-//			ApiPath: urlSearchFacebook,
-//			Query: map[string]interface{}{
-//				"query":      user,
-//				"rank_token": insta.rankToken,
-//			},
-//		}, res)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return res, err
-//}

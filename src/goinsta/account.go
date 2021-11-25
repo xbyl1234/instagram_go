@@ -1,6 +1,9 @@
 package goinsta
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 //type accountResp struct {
 //	Status  string  `json:"status"`
@@ -72,6 +75,11 @@ type Account struct {
 	CanBoostPost               bool         `json:"can_boost_post"`
 }
 
+func newAccount(insta *Instagram) *Account {
+	id, _ := strconv.ParseInt(insta.id, 10, 64)
+	return &Account{ID: id, inst: insta}
+}
+
 func (this *Account) Sync() error {
 	var resp profResp
 	inst := this.inst
@@ -95,7 +103,7 @@ type RespChangeProfilePicture struct {
 }
 
 func (this *Account) ChangeProfilePicture(path string) error {
-	upID, err := this.inst.Upload.RuploadIgPhoto(path)
+	upID, err := this.inst.GetUpload().RuploadIgPhoto(path)
 	if err != nil {
 		return err
 	}
@@ -107,6 +115,7 @@ func (this *Account) ChangeProfilePicture(path string) error {
 			"upload_id":      upID,
 			"use_fbuploader": "true",
 		},
+		Signed: true,
 		IsPost: true},
 		&resp)
 	err = resp.CheckError(err)

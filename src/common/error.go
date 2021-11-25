@@ -13,7 +13,12 @@ func (this *MakeMoneyError) Error() string {
 type ErrType int
 
 var (
-	ApiError   ErrType = 0
-	PorxyError ErrType = 1
-	OtherError ErrType = 2
+	ApiError    ErrType = 0
+	PorxyError  ErrType = 1
+	NoMoreError ErrType = 2
+	OtherError  ErrType = 3
+)
+
+var (
+	MakeMoneyError_NoMore = &MakeMoneyError{"no more", NoMoreError}
 )

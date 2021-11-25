@@ -91,7 +91,5 @@ func ConvConfig(config *dbhelper.AccountCookies) (*Instagram, error) {
 
 	inst.Proxy = &common.Proxy{ID: config.ProxyID}
 
-	inst.init()
-
 	return inst, nil
 }

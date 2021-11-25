@@ -37,18 +37,9 @@ func (this *Register) Do(username string, firstname string, password string) (*I
 	return inst, err
 }
 
-func (this *Register) Prepare() {
-	_ = this.inst.readMsisdnHeader()
-	_ = this.inst.syncFeatures()
-	_ = this.inst.zrToken()
-	_ = this.inst.contactPrefill()
-	_ = this.inst.launcherSync()
-	_ = this.inst.sendAdID()
-}
-
 func (this *Register) do(username string, firstname string, password string) (*Instagram, error) {
 	this.inst = New(username, password, this.proxy)
-	this.Prepare()
+	this.inst.PrepareNewClient()
 
 	number, err := this.phone.RequirePhoneNumber()
 	if err != nil {
