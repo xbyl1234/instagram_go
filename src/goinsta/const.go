@@ -132,7 +132,7 @@ const (
 	// comments
 	urlCommentAdd     = "media/%d/comment/"
 	urlCommentDelete  = "media/%s/comment/%s/delete/"
-	urlCommentSync    = "media/%s/comments/"
+	urlComment        = "media/%s/comments/"
 	urlCommentDisable = "media/%s/disable_comments/"
 	urlCommentEnable  = "media/%s/enable_comments/"
 	urlCommentLike    = "media/%s/comment_like/"
@@ -153,9 +153,10 @@ const (
 	urlInboxUnmute   = "direct_v2/threads/%s/unmute/"
 
 	// tags
-	urlTagSync    = "tags/%s/info/"
-	urlTagStories = "tags/%s/story/"
-	urlTagContent = "tags/%s/ranked_sections/"
+	urlTagSync     = "tags/%s/info/"
+	urlTagStories  = "tags/%s/story/"
+	urlTagContent  = "tags/%s/ranked_sections/"
+	urlTagSections = "tags/%s/sections/"
 
 	// upload
 	urlUploadStory = "rupload_igphoto/"

@@ -26,12 +26,37 @@ func TestSearch(t *testing.T) {
 
 	search := inst.GetSearch("china")
 	for true {
-		tag, err := search.NextTags()
+		searchResult, err := search.NextTags()
 		if err != nil {
 			log.Error("search next error: %v", err)
 			break
 		}
-		log.Info("%v", tag)
+		log.Info("%v", searchResult)
 
+		tags := searchResult.GetTags()
+		for index := range tags {
+			tag := tags[index]
+			tag.Sync()
+			tag.Stories()
+			tagResult, err := tag.Next()
+			if err != nil {
+				log.Error("next media error: %v", err)
+				break
+			}
+			medias := tagResult.GetAllMedias()
+			for mindex := range medias {
+				media := medias[mindex]
+				comments := media.GetComments()
+				commResp, err := comments.NextComments()
+				if err != nil {
+					log.Error("next comm error: %v", err)
+					break
+				}
+
+				for cindex := range commResp.Comments {
+					log.Info("comment user id: %v", commResp.Comments[cindex].User.ID)
+				}
+			}
+		}
 	}
 }

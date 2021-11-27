@@ -1,11 +1,12 @@
 package goinsta
 
 import (
+	"container/list"
 	"fmt"
 	"makemoney/common"
+	"makemoney/common/log"
 )
 
-// Tags is used for getting the media that matches a hashtag on instagram.
 type Tags struct {
 	inst      *Instagram
 	name      string
@@ -19,13 +20,15 @@ type Tags struct {
 
 func newTags(name string, inst *Instagram) *Tags {
 	return &Tags{
-		inst:      inst,
-		name:      name,
-		rankToken: common.GenUUID(),
+		inst:          inst,
+		name:          name,
+		moreAvailable: true,
+		rankToken:     common.GenUUID(),
 	}
 }
 
 type RespHashtag struct {
+	inst *Instagram
 	BaseApiResp
 	Sections []struct {
 		LayoutType    string `json:"layout_type"`
@@ -33,6 +36,19 @@ type RespHashtag struct {
 			FillItems []struct {
 				Media Item `json:"media"`
 			} `json:"fill_items"`
+			OneByTwoItem struct {
+				Clips struct {
+					Items []struct {
+						Media Item `json:"media"`
+					} `json:"items"`
+					Id            string `json:"id"`
+					Tag           string `json:"tag"`
+					MaxId         string `json:"max_id"`
+					MoreAvailable bool   `json:"more_available"`
+					Design        string `json:"design"`
+					Label         string `json:"label"`
+				} `json:"clips"`
+			} `json:"one_by_two_item"`
 			TwoByTwoItem struct {
 				Channel struct {
 					Media       Item   `json:"media"`
@@ -65,31 +81,39 @@ type RespHashtag struct {
 }
 
 func (this *RespHashtag) GetAllMedias() []*Item {
-	var allCount int = 0
-	for sectionIndex := range this.Sections {
-		allCount += this.Sections[sectionIndex].ExploreItemInfo.TotalNumColumns
-	}
-	ret := make([]*Item, allCount)
+	buff := list.New()
 
-	var index = 0
 	for sectionIndex := range this.Sections {
-		allCount += this.Sections[sectionIndex].ExploreItemInfo.TotalNumColumns
 		section := this.Sections[sectionIndex]
 		if section.LayoutType == "two_by_two_right" {
-			ret[index] = &section.LayoutContent.TwoByTwoItem.Channel.Media
-			index++
+			buff.PushBack(&section.LayoutContent.TwoByTwoItem.Channel.Media)
 			for itemIndex := range section.LayoutContent.FillItems {
-				ret[index] = &section.LayoutContent.FillItems[itemIndex].Media
-				index++
+				buff.PushBack(&section.LayoutContent.FillItems[itemIndex].Media)
 			}
 		} else if section.LayoutType == "media_grid" {
 			for itemIndex := range section.LayoutContent.Medias {
-				ret[index] = &section.LayoutContent.Medias[itemIndex].Item
-				index++
+				buff.PushBack(&section.LayoutContent.Medias[itemIndex].Item)
 			}
+		} else if section.LayoutType == "one_by_two_item" || section.LayoutType == "one_by_two_left" {
+			for itemIndex := range section.LayoutContent.OneByTwoItem.Clips.Items {
+				buff.PushBack(&section.LayoutContent.OneByTwoItem.Clips.Items[itemIndex].Media)
+			}
+			for itemIndex := range section.LayoutContent.FillItems {
+				buff.PushBack(&section.LayoutContent.FillItems[itemIndex].Media)
+			}
+		} else {
+			log.Error("unknow LayoutType: %s", section.LayoutType)
 		}
 	}
 
+	ret := make([]*Item, buff.Len())
+	var index = 0
+	for item := buff.Front(); item != nil; item = item.Next() {
+		ret[index] = item.Value.(*Item)
+		ret[index].inst = this.inst
+		index++
+	}
+	return ret
 }
 
 type RespTagsInfo struct {
@@ -174,8 +198,8 @@ func (this *Tags) Next() (*RespHashtag, error) {
 				"rank_token": "",
 				"page":       fmt.Sprintf("%d", this.nextPage),
 			},
-			ApiPath: fmt.Sprintf(urlTagContent, this.name),
-			IsPost:  false,
+			ApiPath: fmt.Sprintf(urlTagSections, this.name),
+			IsPost:  true,
 		}, ht,
 	)
 
@@ -185,6 +209,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 		this.nextPage = ht.NextPage
 		this.nextMediaIds = ht.NextMediaIds
 		this.moreAvailable = ht.MoreAvailable
+		ht.inst = this.inst
 	}
 
 	return ht, err

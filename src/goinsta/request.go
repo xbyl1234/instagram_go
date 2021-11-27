@@ -16,7 +16,6 @@ import (
 )
 
 type reqOptions struct {
-	Login     bool
 	ApiPath   string
 	IsPost    bool
 	IsApiB    bool
@@ -219,6 +218,13 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	return body, err
 }
 
+func truncation(body []byte) []byte {
+	if len(body) > 100 {
+		return body[:100]
+	}
+	return body
+}
+
 func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 	var hadLog = false
 	defer func() {
@@ -227,7 +233,7 @@ func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 		}
 
 		if config.IsDebug && !hadLog {
-			log.Info("account: %s, url: %s, api resp %s", this.User, url, body)
+			log.Info("account: %s, url: %s, api resp %s", this.User, url, truncation(body))
 		}
 	}()
 
@@ -241,12 +247,12 @@ func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 	resp := &BaseApiResp{}
 	err = json.Unmarshal(body, &resp)
 	if err != nil {
-		log.Warn("account: %s, url: %s, Unmarshal error %s", this.User, url, body)
+		log.Warn("account: %s, url: %s, Unmarshal error %s", this.User, url, truncation(body))
 		this.ReqApiErrorCount += 1
 		hadLog = true
 	} else {
 		if resp.isError() {
-			log.Warn("account: %s, url: %s, api error: %s", this.User, url, body)
+			log.Warn("account: %s, url: %s, api error: %s", this.User, url, truncation(body))
 			this.ReqApiErrorCount += 1
 			hadLog = true
 		}

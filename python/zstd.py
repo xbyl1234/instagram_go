@@ -6,7 +6,7 @@ import pathlib
 import shutil
 
 path = "C:/Users/Administrator/Desktop/project/github/instagram_project/抓包/"
-file_name = "story"
+file_name = "comment"
 input_file = pathlib.Path(path + file_name)
 
 file_object = open(input_file, 'rb')

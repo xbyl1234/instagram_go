@@ -145,6 +145,7 @@ func (this *Search) NextTags() (*SearchResult, error) {
 	if err == nil {
 		this.rankToken = res.RankToken
 		this.pageToken = res.PageToken
+		res.search = this
 	}
 	this.hasMore = res.HasMore
 	return res, err
@@ -180,6 +181,7 @@ func (this *Search) NextLocation() (*SearchResult, error) {
 	if err == nil {
 		this.rankToken = res.RankToken
 		this.pageToken = res.PageToken
+		res.search = this
 	}
 	this.hasMore = res.HasMore
 	return res, err

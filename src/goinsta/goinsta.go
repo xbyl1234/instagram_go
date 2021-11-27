@@ -286,7 +286,6 @@ func (this *Instagram) Login() error {
 	}
 	resp := &RespLogin{}
 	err := this.HttpRequestJson(&reqOptions{
-		Login:   false,
 		ApiPath: urlLogin,
 		IsPost:  true,
 		Signed:  true,
@@ -329,7 +328,6 @@ func (this *Instagram) syncFeatures() error {
 			ApiPath: urlQeSync,
 			Query:   params,
 			IsPost:  true,
-			Login:   true,
 			Signed:  true,
 		},
 	)
