@@ -7,11 +7,14 @@ import (
 	"makemoney/common/log"
 )
 
-type Tags struct {
-	inst      *Instagram
-	name      string
-	rankToken string
+var TabRecent = "recent"
+var TabTop = "top"
 
+type Tags struct {
+	inst          *Instagram
+	name          string
+	rankToken     string
+	tab           string
 	moreAvailable bool
 	nextID        string
 	nextPage      int
@@ -144,7 +147,9 @@ type RespTagsInfo struct {
 }
 
 // Sync updates Tags information preparing it to Next call.
-func (this *Tags) Sync() error {
+func (this *Tags) Sync(tab string) error {
+	this.tab = tab
+
 	resp := &RespTagsInfo{}
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlTagSync, this.name),
@@ -184,7 +189,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 		params["rank_token"] = this.rankToken
 	} else {
 		params["max_id"] = this.nextID
-		params["tab"] = "top"
+		params["tab"] = this.tab
 		params["page"] = this.nextPage
 		params["include_persistent"] = false
 		params["next_media_ids"] = this.nextMediaIds

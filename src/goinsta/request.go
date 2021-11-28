@@ -68,14 +68,6 @@ var (
 	IGHeader_XMid                   string = "x-mid"
 )
 
-func (this *Instagram) sendSimpleRequest(uri string, a ...interface{}) (body []byte, err error) {
-	return this.HttpRequest(
-		&reqOptions{
-			ApiPath: fmt.Sprintf(uri, a...),
-		},
-	)
-}
-
 func (this *Instagram) setBaseHeader(req *http.Request) {
 	req.Header.Set("connection", "keep-alive")
 	req.Header.Set("accept-language", "en-US")
@@ -103,8 +95,8 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	//}
 
 	if this.IsLogin {
-		req.Header.Set("ig-intended-user-id", this.id)
-		req.Header.Set("ig-u-ds-user-id", this.id)
+		req.Header.Set("ig-intended-user-id", strconv.FormatInt(this.id, 10))
+		req.Header.Set("ig-u-ds-user-id", strconv.FormatInt(this.id, 10))
 	}
 }
 
@@ -145,7 +137,7 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 			this.httpHeader[setting[len("ig-set-"):]] = resp.Header.Get(key)
 
 			if IGHeader_udsUserID == setting[len("ig-set-"):] {
-				this.id = resp.Header.Get(key)
+				this.id, _ = strconv.ParseInt(resp.Header.Get(key), 10, 64)
 			}
 		}
 	}
@@ -203,18 +195,18 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	this.setHeader(reqOpt, req)
 
 	resp, err := this.c.Do(req)
-
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
+	defer resp.Body.Close()
 	this.afterRequest(_url, resp)
 
 	body, err := ioutil.ReadAll(resp.Body)
-	if err == nil {
-		err = isError(resp.StatusCode, body)
+	if err != nil {
+		return nil, err
 	}
+
 	return body, err
 }
 
@@ -317,37 +309,4 @@ func (this *Instagram) HttpSend(sendOpt *sendOptions, response interface{}) ([]b
 	}
 	this.CheckInstReqError(sendOpt.Url, respBody, err)
 	return respBody, err
-}
-
-//{"message":"Please wait a few minutes before you try again.","status":"fail"}
-func isError(code int, body []byte) (err error) {
-	switch code {
-	case 200:
-	case 503:
-		return Error503{
-			Message: "Instagram API error. Try it later.",
-		}
-	case 400:
-		ierr := Error400{}
-		err = json.Unmarshal(body, &ierr)
-		if err != nil {
-			return err
-		}
-
-		if ierr.Message == "challenge_required" {
-			return ierr.ChallengeError
-		}
-
-		if err == nil && ierr.Message != "" {
-			return ierr
-		}
-	default:
-		ierr := ErrorN{}
-		err = json.Unmarshal(body, &ierr)
-		if err != nil {
-			return err
-		}
-		return ierr
-	}
-	return nil
 }

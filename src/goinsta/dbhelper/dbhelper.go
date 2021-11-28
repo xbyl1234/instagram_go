@@ -92,7 +92,7 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 }
 
 type AccountCookies struct {
-	ID                  string            `json:"id"`
+	ID                  int64             `json:"id"`
 	Username            string            `json:"username"`
 	Passwd              string            `json:"passwd"`
 	Adid                string            `json:"adid"`

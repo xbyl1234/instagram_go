@@ -36,7 +36,7 @@ func TestSearch(t *testing.T) {
 		tags := searchResult.GetTags()
 		for index := range tags {
 			tag := tags[index]
-			tag.Sync()
+			tag.Sync(goinsta.TabRecent)
 			tag.Stories()
 			tagResult, err := tag.Next()
 			if err != nil {

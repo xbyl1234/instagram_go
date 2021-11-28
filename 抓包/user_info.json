@@ -1,0 +1,121 @@
+{
+    "status": "ok",
+    "user": {
+        "account_badges": [],
+        "account_type": 1,
+        "auto_expand_chaining": false,
+        "biography": "\u2022 Support @afifahifah23\n\u2022 Official @afifahlovaofficial\n\u2022 Hari Ini Kenapa Naira? @trueid.id\n\u2022 My Sweet Doctor & Filokopisofi @genflix\n\u2022 Film Ayo Putus",
+        "biography_product_mentions": [],
+        "biography_with_entities": {
+            "entities": [
+                {
+                    "user": {
+                        "id": 49133563477,
+                        "username": "afifahlovaofficial"
+                    }
+                },
+                {
+                    "user": {
+                        "id": 28395677936,
+                        "username": "trueid.id"
+                    }
+                },
+                {
+                    "user": {
+                        "id": 1659007675,
+                        "username": "genflix"
+                    }
+                },
+                {
+                    "user": {
+                        "id": 1307006155,
+                        "username": "afifahifah23"
+                    }
+                }
+            ],
+            "raw_text": "\u2022 Support @afifahifah23\n\u2022 Official @afifahlovaofficial\n\u2022 Hari Ini Kenapa Naira? @trueid.id\n\u2022 My Sweet Doctor & Filokopisofi @genflix\n\u2022 Film Ayo Putus"
+        },
+        "can_be_reported_as_fraud": false,
+        "creator_shopping_info": {
+            "linked_merchant_accounts": []
+        },
+        "external_lynx_url": "https://l.instagram.com/?u=https%3A%2F%2Fmsha.ke%2Fracunbareng_memet&e=ATNIbj_LriXinsW30YkZWsx6L-_Ina2msBrrdPWNlmOJpkZwylXxJcetjT5zXPM1mUvKXFZjBtGVtrul28qm9Sw&s=1",
+        "external_url": "https://msha.ke/racunbareng_memet",
+        "follow_friction_type": 0,
+        "follower_count": 9603,
+        "following_count": 26,
+        "following_tag_count": 0,
+        "full_name": "Afifah ifah'nda",
+        "geo_media_count": 0,
+        "has_anonymous_profile_picture": false,
+        "has_biography_translation": true,
+        "has_chaining": true,
+        "has_guides": false,
+        "has_highlight_reels": false,
+        "has_unseen_besties_media": false,
+        "has_videos": true,
+        "hd_profile_pic_url_info": {
+            "height": 442,
+            "url": "https://scontent-hkt1-2.cdninstagram.com/v/t51.2885-19/239992313_973250733520215_7237502974636277064_n.jpg?_nc_ht=scontent-hkt1-2.cdninstagram.com&_nc_cat=103&_nc_ohc=2VLvll2Zw54AX-W43Yo&edm=AEF8tYYBAAAA&ccb=7-4&oh=47ca20e791eb861e8c82cfaefce49922&oe=61AA263A&_nc_sid=a9513d",
+            "width": 442
+        },
+        "hd_profile_pic_versions": [
+            {
+                "height": 320,
+                "url": "https://scontent-hkt1-2.cdninstagram.com/v/t51.2885-19/s320x320/239992313_973250733520215_7237502974636277064_n.jpg?_nc_ht=scontent-hkt1-2.cdninstagram.com&_nc_cat=103&_nc_ohc=2VLvll2Zw54AX-W43Yo&edm=AEF8tYYBAAAA&ccb=7-4&oh=25f2033ae2d9d836ff348eaeb2b2c9f8&oe=61AACEFA&_nc_sid=a9513d",
+                "width": 320
+            }
+        ],
+        "highlight_reshare_disabled": false,
+        "include_direct_blacklist_status": true,
+        "interop_messaging_user_fbid": 113569390037843,
+        "is_bestie": false,
+        "is_business": false,
+        "is_call_to_action_enabled": null,
+        "is_favorite": false,
+        "is_favorite_for_clips": false,
+        "is_favorite_for_highlights": false,
+        "is_favorite_for_igtv": false,
+        "is_favorite_for_stories": false,
+        "is_interest_account": true,
+        "is_memorialized": false,
+        "is_potential_business": false,
+        "is_private": false,
+        "is_verified": false,
+        "live_subscription_status": "default",
+        "media_count": 27,
+        "mutual_followers_count": 0,
+        "open_external_url_with_in_app_browser": true,
+        "pk": 5452524506,
+        "primary_profile_link_type": 0,
+        "professional_conversion_suggested_account_type": 3,
+        "profile_pic_id": "2646224245157659472_5452524506",
+        "profile_pic_url": "https://scontent-hkt1-2.cdninstagram.com/v/t51.2885-19/s150x150/239992313_973250733520215_7237502974636277064_n.jpg?_nc_ht=scontent-hkt1-2.cdninstagram.com&_nc_cat=103&_nc_ohc=2VLvll2Zw54AX-W43Yo&edm=AEF8tYYBAAAA&ccb=7-4&oh=d898c19067cd2e98b6be3ebdd8512e69&oe=61AA9AC2&_nc_sid=a9513d",
+        "pronouns": [],
+        "request_contact_enabled": false,
+        "show_account_transparency_details": true,
+        "show_fb_link_on_profile": false,
+        "show_post_insights_entry_point": true,
+        "standalone_fundraiser_info": {
+            "beneficiary_name": null,
+            "beneficiary_type": null,
+            "beneficiary_username": null,
+            "can_viewer_share_to_feed": false,
+            "end_time": null,
+            "formatted_fundraiser_progress_info_text": null,
+            "formatted_goal_amount": null,
+            "fundraiser_id": null,
+            "fundraiser_title": null,
+            "fundraiser_type": null,
+            "has_active_fundraiser": false,
+            "owner_username": null,
+            "percent_raised": null,
+            "thumbnail_display_url": null,
+            "user_role": "NONE"
+        },
+        "total_ar_effects": 0,
+        "total_igtv_videos": 0,
+        "username": "afifahlova.daily",
+        "usertags_count": 0
+    }
+}

@@ -88,7 +88,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	}
 
 	this.inst.IsLogin = true
-	this.inst.id = strconv.FormatInt(createValidated.CreatedUser.ID, 10)
+	this.inst.id = createValidated.CreatedUser.ID
 	flag = true
 	return this.inst, err
 }
@@ -298,7 +298,7 @@ type RespCreateValidated struct {
 	BaseApiResp
 	RespCreateValidatedError
 	AccountCreated        bool        `json:"account_created"`
-	CreatedUser           Account     `json:"created_user"`
+	CreatedUser           UserDetail  `json:"created_user"`
 	ExistingUser          bool        `json:"existing_user"`
 	MultipleUsersOnDevice bool        `json:"multiple_users_on_device"`
 	SessionFlushNonce     interface{} `json:"session_flush_nonce"`

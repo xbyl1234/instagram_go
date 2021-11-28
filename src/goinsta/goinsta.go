@@ -19,7 +19,7 @@ type Instagram struct {
 	adid                string
 	wid                 string
 	challengeURL        string
-	id                  string
+	id                  int64
 	httpHeader          map[string]string
 	registerPhoneNumber string
 	registerPhoneArea   string
@@ -31,17 +31,7 @@ type Instagram struct {
 	ReqApiErrorCount int
 
 	Proxy *common.Proxy
-
-	//Challenge *Challenge
-	//Profiles *Profiles
-	//Account *Account
-	//Timeline *Timeline
-	//Activity *Activity
-	//Inbox *Inbox
-	//Feed *Feed
-	//Locations *LocationInstance
-
-	c *http.Client
+	c     *http.Client
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -97,7 +87,12 @@ func (this *Instagram) GetAccount() *Account {
 	if !this.IsLogin {
 		return nil
 	}
-	return newAccount(this)
+	return &Account{ID: this.id, inst: this}
+}
+
+func (this *Instagram) GetUser(id string) *User {
+	pk, _ := strconv.ParseInt(id, 10, 64)
+	return &User{ID: pk, inst: this}
 }
 
 func (this *Instagram) GetMessage(msgType MessageType) *Message {
@@ -302,16 +297,8 @@ func (this *Instagram) Login() error {
 	err = resp.CheckError(err)
 	if err != nil && this.ReadHeader(IGHeader_Authorization) != "" {
 		this.IsLogin = true
-		this.id = strconv.FormatInt(resp.LoggedInUser.Pk, 10)
+		this.id = resp.LoggedInUser.Pk
 	}
-	return err
-}
-
-// Logout closes current session
-func (this *Instagram) Logout() error {
-	_, err := this.sendSimpleRequest(urlLogout)
-	this.c.Jar = nil
-	this.c = nil
 	return err
 }
 
