@@ -31,10 +31,7 @@ const (
 
 type (
 	logType int
-
-	LogOption func(log *myLog)
-
-	myLog struct {
+	myLog   struct {
 		sync.Once
 		sync.Mutex
 		outs     map[logType]io.Writer //writer集合
@@ -137,31 +134,8 @@ func (m *myLog) write(level string, content string) {
 	}
 }
 
-func WithSize(size int64) LogOption {
-	return func(log *myLog) {
-		log.size = size
-	}
-}
-
-func WithLogDir(dir string) LogOption {
-	return func(log *myLog) {
-		log.dir = dir
-	}
-}
-
-func WithFileName(name string) LogOption {
-	return func(log *myLog) {
-		log.fileName = name
-	}
-}
-
-func InitLogger(args ...LogOption) {
-	defaultLogger.Do(func() {
-		for _, af := range args {
-			af(defaultLogger)
-		}
-		defaultLogger.init()
-	})
+func InitLogger() {
+	defaultLogger.init()
 }
 
 //Info

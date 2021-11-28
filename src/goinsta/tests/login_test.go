@@ -6,6 +6,7 @@ import (
 	"makemoney/common/log"
 	"makemoney/config"
 	"makemoney/goinsta"
+	"makemoney/routine"
 	"testing"
 )
 
@@ -24,7 +25,7 @@ func TestLogin(t *testing.T) {
 	//accounts.PushBack(&tmpAccount{"badrgirl6", "XBYLxbyl1234"})
 	//accounts.PushBack(&tmpAccount{"badrgirl67", "XBYLxbyl1234"})
 	config.UseCharles = false
-	InitTest()
+	main.InitTest()
 	for item := accounts.Front(); item != nil; item = item.Next() {
 		acc := item.Value.(*tmpAccount)
 		inst := goinsta.New(acc.username, acc.passwd, common.ProxyPool.GetOne())

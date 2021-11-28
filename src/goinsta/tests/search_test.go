@@ -4,12 +4,13 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/goinsta"
+	"makemoney/routine"
 	"os"
 	"testing"
 )
 
 func TestSearch(t *testing.T) {
-	InitTest()
+	main.InitTest()
 	inst := goinsta.AccountPool.GetOne()
 	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
 	if _proxy == nil {
