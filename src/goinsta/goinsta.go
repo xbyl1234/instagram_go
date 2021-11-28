@@ -100,6 +100,13 @@ func (this *Instagram) GetAccount() *Account {
 	return newAccount(this)
 }
 
+func (this *Instagram) GetMessage(msgType MessageType) *Message {
+	if !this.IsLogin {
+		return nil
+	}
+	return &Message{inst: this, msgType: msgType}
+}
+
 // SetProxy sets proxy for connection.
 func (this *Instagram) SetProxy(_proxy *common.Proxy) {
 	this.Proxy = _proxy
@@ -333,57 +340,3 @@ func (this *Instagram) syncFeatures() error {
 	)
 	return err
 }
-
-//func (this *Instagram) megaphoneLog() error {
-//	_, err := this.HttpRequest(
-//		&reqOptions{
-//			ApiPath: urlMegaphoneLog,
-//			Query: map[string]interface{}{
-//				"id":        strconv.FormatInt(this.Account.ID, 10),
-//				"type":      "feed_aysf",
-//				"action":    "seen",
-//				"reason":    "",
-//				"device_id": this.androidID,
-//				"uuid":      common.GenerateMD5Hash(string(time.Now().Unix())),
-//			},
-//			IsPost: true,
-//			Login:  true,
-//		},
-//	)
-//	return err
-//}
-
-//func (inst *Instagram) expose() error {
-//	data, err := inst.prepareData(
-//		map[string]interface{}{
-//			"id":         inst.Account.ID,
-//			"experiment": "ig_android_profile_contextual_feed",
-//		},
-//	)
-//	if err != nil {
-//		return err
-//	}
-//
-//	_, err = inst.sendRequest(
-//		&reqOptions{
-//			ApiPath: urlExpose,
-//			Query:    generateSignature(data),
-//			IsPost:   true,
-//		},
-//	)
-//
-//	return err
-//}
-
-// GetMedia returns media specified by id.
-//
-// The argument can be int64 or string
-//
-// See example: examples/media/like.go
-//func (inst *Instagram) GetMedia(o interface{}) (*FeedMedia, error) {
-//	media := &FeedMedia{
-//		inst:   inst,
-//		NextID: o,
-//	}
-//	return media, media.Sync()
-//}

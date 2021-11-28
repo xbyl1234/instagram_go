@@ -145,7 +145,6 @@ const (
 	// inbox
 	urlInbox         = "direct_v2/inbox/"
 	urlInboxPending  = "direct_v2/pending_inbox/"
-	urlInboxSend     = "direct_v2/threads/broadcast/text/"
 	urlInboxSendLike = "direct_v2/threads/broadcast/like/"
 	urlReplyStory    = "direct_v2/threads/broadcast/reel_share/"
 	urlInboxThread   = "direct_v2/threads/%s/"
@@ -159,5 +158,10 @@ const (
 	urlTagSections = "tags/%s/sections/"
 
 	// upload
-	urlUploadStory = "rupload_igphoto/"
+	urlUploadPhone = "rupload_igphoto/"
+	urlUploadVideo = "rupload_igvideo/"
+
+	// msg
+	urlSendText  = "direct_v2/threads/broadcast/text/"
+	urlSendImage = "direct_v2/threads/broadcast/configure_photo/"
 )
