@@ -1,7 +1,9 @@
 package main
 
 import (
+	"container/list"
 	"flag"
+	mapset "github.com/deckarep/golang-set"
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/goinsta"
@@ -21,8 +23,9 @@ type CrawConfig struct {
 var config CrawConfig
 var WorkPath string
 var PathSeparator = string(os.PathSeparator)
+var IsFirstRun bool
 
-func do() {
+func ReqAccount() *goinsta.Instagram {
 	inst := goinsta.AccountPool.GetOne()
 	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
 	if _proxy == nil {
@@ -30,17 +33,108 @@ func do() {
 		os.Exit(0)
 	}
 	inst.SetProxy(_proxy)
+	return inst
+}
 
-	search := inst.GetSearch("china")
+var TagList = list.New()
+var TagIDSet = mapset.NewSet()
+
+func preCrawTags() {
+	var err error
+	TagList, err = LoadTags()
+	if err != nil {
+		log.Error("preCrawTags LoadTags error:%v", err)
+		os.Exit(0)
+	}
+	for item := TagList.Front(); item != nil; item = item.Next() {
+		TagIDSet.Add(item.Value.(*goinsta.Tags).Id)
+	}
+}
+
+func doCrawTags(search *goinsta.Search) {
 	for true {
 		searchResult, err := search.NextTags()
 		if err != nil {
-			log.Error("search next error: %v", err)
+			if err.Error() == common.MakeMoneyError_NoMore.Error() {
+				log.Info("tags has craw finish!")
+			} else {
+				log.Error("search next error: %v", err)
+			}
 			break
 		}
-		log.Info("%v", searchResult)
 
+		log.Info("%v", searchResult)
 		tags := searchResult.GetTags()
+		for index := range tags {
+			if TagIDSet.Contains(tags[index].Id) {
+				log.Info("")
+				continue
+			}
+			TagIDSet.Add(tags[index].Id)
+			TagList.PushBack(tags[index])
+			err = SaveTags(&tags[index])
+			if err != nil {
+				log.Error("SaveTags error:%v", err)
+			}
+		}
+		_ = SaveSearch(search)
+	}
+}
+
+func CrawTags() {
+	var search *goinsta.Search
+	var err error
+	inst := ReqAccount()
+
+	if !IsFirstRun {
+		search, err = LoadSearch()
+		if err != nil {
+			log.Error("preCrawTags LoadTags error:%v", err)
+			os.Exit(0)
+		}
+		search.Inst = inst
+		preCrawTags()
+	} else {
+		search = inst.GetSearch("china")
+		_ = SaveSearch(search)
+	}
+	doCrawTags(search)
+	goinsta.AccountPool.ReleaseOne(inst)
+}
+
+func CrawMedias(tag *goinsta.Tags) {
+	inst := ReqAccount()
+	tag.SetAccount(inst)
+
+	err := tag.Sync(goinsta.TabRecent)
+	if err != nil {
+		log.Error("tag sync error: %v", err)
+	}
+	_, err = tag.Stories()
+	if err != nil {
+		log.Error("tag stories error: %v", err)
+	}
+
+	for true {
+		tagResult, err := tag.Next()
+		if err != nil {
+			if err.Error() == common.MakeMoneyError_NoMore.Error() {
+				log.Info("tags has craw finish!")
+			} else {
+				log.Error("next media error: %v", err)
+			}
+			break
+		}
+		medias := tagResult.GetAllMedias()
+
+	}
+
+	goinsta.AccountPool.ReleaseOne(inst)
+}
+
+func do() {
+	for true {
+
 		for index := range tags {
 			tag := tags[index]
 			tag.Sync(goinsta.TabRecent)
@@ -75,6 +169,7 @@ func initParams() {
 	var ConfigPath = flag.String("cp", "", "config path")
 	var CoroCount = flag.Int("coro", 0, "coro count")
 	var PorxyPath = flag.String("pp", 0, "proxy path")
+
 	flag.Parse()
 	if *ConfigPath != "" {
 		return

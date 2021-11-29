@@ -12,22 +12,17 @@ var TabTop = "top"
 
 type Tags struct {
 	inst          *Instagram
-	name          string
-	rankToken     string
-	tab           string
-	moreAvailable bool
-	nextID        string
-	nextPage      int
-	nextMediaIds  []int64
-}
+	Name          string `json:"name"`
+	Id            int64  `json:"id"`
+	MediaCount    int    `json:"media_count"`
+	ProfilePicUrl string `json:"profile_pic_url"`
 
-func newTags(name string, inst *Instagram) *Tags {
-	return &Tags{
-		inst:          inst,
-		name:          name,
-		moreAvailable: true,
-		rankToken:     common.GenUUID(),
-	}
+	RankToken     string  `json:"rank_token"`
+	Tab           string  `json:"tab"`
+	MoreAvailable bool    `json:"more_available"`
+	NextID        string  `json:"next_id"`
+	NextPage      int     `json:"next_page"`
+	NextMediaIds  []int64 `json:"next_media_ids"`
 }
 
 type RespHashtag struct {
@@ -146,13 +141,17 @@ type RespTagsInfo struct {
 	Subtitle                   string        `json:"subtitle"`
 }
 
+func (this *Tags) SetAccount(inst *Instagram) {
+	this.inst = inst
+}
+
 // Sync updates Tags information preparing it to Next call.
 func (this *Tags) Sync(tab string) error {
-	this.tab = tab
+	this.Tab = tab
 
 	resp := &RespTagsInfo{}
 	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: fmt.Sprintf(urlTagSync, this.name),
+		ApiPath: fmt.Sprintf(urlTagSync, this.Name),
 	}, resp)
 
 	return err
@@ -166,7 +165,7 @@ func (this *Tags) Stories() (*StoryMedia, error) {
 	}
 
 	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: fmt.Sprintf(urlTagStories, this.name),
+		ApiPath: fmt.Sprintf(urlTagStories, this.Name),
 	}, &resp)
 
 	return &resp.Story, err
@@ -174,46 +173,46 @@ func (this *Tags) Stories() (*StoryMedia, error) {
 
 // Next paginates over hashtag pages (xd).
 func (this *Tags) Next() (*RespHashtag, error) {
-	if !this.moreAvailable {
+	if !this.MoreAvailable {
 		return nil, common.MakeMoneyError_NoMore
 	}
 
 	var params = map[string]interface{}{
 		"_uuid":      this.inst.uuid,
-		"rank_token": this.rankToken,
+		"rank_token": this.RankToken,
 	}
 
-	if this.nextID == "" {
+	if this.NextID == "" {
 		params["supported_tabs"] = []string{"top", "recent"}
 		params["include_persistent"] = true
-		params["rank_token"] = this.rankToken
+		params["rank_token"] = this.RankToken
 	} else {
-		params["max_id"] = this.nextID
-		params["tab"] = this.tab
-		params["page"] = this.nextPage
+		params["max_id"] = this.NextID
+		params["tab"] = this.Tab
+		params["page"] = this.NextPage
 		params["include_persistent"] = false
-		params["next_media_ids"] = this.nextMediaIds
+		params["next_media_ids"] = this.NextMediaIds
 	}
 
 	ht := &RespHashtag{}
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
 			Query: map[string]interface{}{
-				"max_id":     this.nextID,
+				"max_id":     this.NextID,
 				"rank_token": "",
-				"page":       fmt.Sprintf("%d", this.nextPage),
+				"page":       fmt.Sprintf("%d", this.NextPage),
 			},
-			ApiPath: fmt.Sprintf(urlTagSections, this.name),
+			ApiPath: fmt.Sprintf(urlTagSections, this.Name),
 			IsPost:  true,
 		}, ht,
 	)
 
 	err = ht.CheckError(err)
 	if err == nil {
-		this.nextID = ht.NextID
-		this.nextPage = ht.NextPage
-		this.nextMediaIds = ht.NextMediaIds
-		this.moreAvailable = ht.MoreAvailable
+		this.NextID = ht.NextID
+		this.NextPage = ht.NextPage
+		this.NextMediaIds = ht.NextMediaIds
+		this.MoreAvailable = ht.MoreAvailable
 		ht.inst = this.inst
 	}
 

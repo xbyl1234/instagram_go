@@ -114,7 +114,7 @@ type Candidate struct {
 }
 
 // Tag is the information of an user being tagged on any media.
-type Tag struct {
+type UserTag struct {
 	In []struct {
 		User                  User        `json:"user"`
 		Position              []float64   `json:"position"`

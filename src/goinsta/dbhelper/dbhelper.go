@@ -3,55 +3,11 @@ package dbhelper
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
+	"makemoney/common"
 	"net/http"
 	"time"
 )
-
-type MogoDBHelper struct {
-	client  *mongo.Client
-	phone   *mongo.Collection
-	account *mongo.Collection
-}
-
-var MogoHelper *MogoDBHelper = nil
-
-func InitMogoDB() {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
-
-	var err error
-	MogoHelper = &MogoDBHelper{}
-
-	MogoHelper.client, err = mongo.Connect(context.TODO(), clientOptions)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = MogoHelper.client.Ping(context.TODO(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	MogoHelper.phone = MogoHelper.client.Database("inst").Collection("phone")
-	MogoHelper.account = MogoHelper.client.Database("inst").Collection("account")
-}
-
-func GetMogoHelper() *MogoDBHelper {
-	if MogoHelper == nil {
-		InitMogoDB()
-	}
-	return MogoHelper
-}
-
-func GetMogoPhoneConn() *mongo.Collection {
-	return MogoHelper.phone
-}
-
-func GetMogoAccountConn() *mongo.Collection {
-	return MogoHelper.account
-}
 
 type PhoneStorage struct {
 	Area          string        `bson:"area"`
@@ -63,7 +19,7 @@ type PhoneStorage struct {
 }
 
 func UpdatePhoneSendOnce(provider string, area string, number string) error {
-	_, err := MogoHelper.phone.UpdateOne(context.TODO(),
+	_, err := common.MogoHelper.Phone.UpdateOne(context.TODO(),
 		bson.D{
 			{"area", area},
 			{"phone", number},
@@ -80,7 +36,7 @@ func UpdatePhoneSendOnce(provider string, area string, number string) error {
 }
 
 func UpdatePhoneRegisterOnce(area string, number string) error {
-	_, err := MogoHelper.phone.UpdateOne(context.TODO(),
+	_, err := common.MogoHelper.Phone.UpdateOne(context.TODO(),
 		bson.D{
 			{"area", area},
 			{"phone", number},
@@ -112,7 +68,7 @@ type AccountCookies struct {
 }
 
 func SaveNewAccount(account AccountCookies) error {
-	_, err := MogoHelper.account.UpdateOne(
+	_, err := common.MogoHelper.Account.UpdateOne(
 		context.TODO(),
 		bson.M{"username": account.Username},
 		bson.M{"$set": account},
@@ -121,7 +77,7 @@ func SaveNewAccount(account AccountCookies) error {
 }
 
 func LoadDBAllAccount() ([]AccountCookies, error) {
-	cursor, err := MogoHelper.account.Find(context.TODO(), bson.M{}, nil)
+	cursor, err := common.MogoHelper.Account.Find(context.TODO(), bson.M{}, nil)
 	if err != nil {
 		return nil, err
 	}

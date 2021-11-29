@@ -66,11 +66,11 @@ type Item struct {
 	PhotoOfYou      bool        `json:"photo_of_you"`
 	// Tags are tagged people in photo
 	Tags struct {
-		In []Tag `json:"in"`
+		In []UserTag `json:"in"`
 	} `json:"usertags,omitempty"`
-	FbUserTags           Tag    `json:"fb_user_tags"`
-	CanViewerSave        bool   `json:"can_viewer_save"`
-	OrganicTrackingToken string `json:"organic_tracking_token"`
+	FbUserTags           UserTag `json:"fb_user_tags"`
+	CanViewerSave        bool    `json:"can_viewer_save"`
+	OrganicTrackingToken string  `json:"organic_tracking_token"`
 	// Images contains URL images in different versions.
 	// Version = quality.
 	Images          Images   `json:"image_versions2,omitempty"`
@@ -91,62 +91,62 @@ type Item struct {
 	NumberOfQualities int     `json:"number_of_qualities,omitempty"`
 
 	// Only for stories
-	StoryEvents              []interface{}      `json:"story_events"`
-	StoryHashtags            []interface{}      `json:"story_hashtags"`
-	StoryPolls               []interface{}      `json:"story_polls"`
-	StoryFeedMedia           []interface{}      `json:"story_feed_media"`
-	StorySoundOn             []interface{}      `json:"story_sound_on"`
-	CreativeConfig           interface{}        `json:"creative_config"`
-	StoryLocations           []interface{}      `json:"story_locations"`
-	StorySliders             []interface{}      `json:"story_sliders"`
-	StoryQuestions           []interface{}      `json:"story_questions"`
-	StoryProductItems        []interface{}      `json:"story_product_items"`
-	StoryCTA                 []StoryCTA         `json:"story_cta"`
-	ReelMentions             []StoryReelMention `json:"reel_mentions"`
-	SupportsReelReactions    bool               `json:"supports_reel_reactions"`
-	ShowOneTapFbShareTooltip bool               `json:"show_one_tap_fb_share_tooltip"`
-	HasSharedToFb            int64              `json:"has_shared_to_fb"`
-	Mentions                 []Mentions
-	Audience                 string `json:"audience,omitempty"`
-	StoryMusicStickers       []struct {
-		X              float64 `json:"x"`
-		Y              float64 `json:"y"`
-		Z              int     `json:"z"`
-		Width          float64 `json:"width"`
-		Height         float64 `json:"height"`
-		Rotation       float64 `json:"rotation"`
-		IsPinned       int     `json:"is_pinned"`
-		IsHidden       int     `json:"is_hidden"`
-		IsSticker      int     `json:"is_sticker"`
-		MusicAssetInfo struct {
-			ID                       string `json:"id"`
-			Title                    string `json:"title"`
-			Subtitle                 string `json:"subtitle"`
-			DisplayArtist            string `json:"display_artist"`
-			CoverArtworkURI          string `json:"cover_artwork_uri"`
-			CoverArtworkThumbnailURI string `json:"cover_artwork_thumbnail_uri"`
-			ProgressiveDownloadURL   string `json:"progressive_download_url"`
-			HighlightStartTimesInMs  []int  `json:"highlight_start_times_in_ms"`
-			IsExplicit               bool   `json:"is_explicit"`
-			DashManifest             string `json:"dash_manifest"`
-			HasLyrics                bool   `json:"has_lyrics"`
-			AudioAssetID             string `json:"audio_asset_id"`
-			IgArtist                 struct {
-				Pk            int    `json:"pk"`
-				Username      string `json:"username"`
-				FullName      string `json:"full_name"`
-				IsPrivate     bool   `json:"is_private"`
-				ProfilePicURL string `json:"profile_pic_url"`
-				ProfilePicID  string `json:"profile_pic_id"`
-				IsVerified    bool   `json:"is_verified"`
-			} `json:"ig_artist"`
-			PlaceholderProfilePicURL string `json:"placeholder_profile_pic_url"`
-			ShouldMuteAudio          bool   `json:"should_mute_audio"`
-			ShouldMuteAudioReason    string `json:"should_mute_audio_reason"`
-			OverlapDurationInMs      int    `json:"overlap_duration_in_ms"`
-			AudioAssetStartTimeInMs  int    `json:"audio_asset_start_time_in_ms"`
-		} `json:"music_asset_info"`
-	} `json:"story_music_stickers,omitempty"`
+	//StoryEvents              []interface{}      `json:"story_events"`
+	//StoryHashtags            []interface{}      `json:"story_hashtags"`
+	//StoryPolls               []interface{}      `json:"story_polls"`
+	//StoryFeedMedia           []interface{}      `json:"story_feed_media"`
+	//StorySoundOn             []interface{}      `json:"story_sound_on"`
+	//CreativeConfig           interface{}        `json:"creative_config"`
+	//StoryLocations           []interface{}      `json:"story_locations"`
+	//StorySliders             []interface{}      `json:"story_sliders"`
+	//StoryQuestions           []interface{}      `json:"story_questions"`
+	//StoryProductItems        []interface{}      `json:"story_product_items"`
+	//StoryCTA                 []StoryCTA         `json:"story_cta"`
+	//ReelMentions             []StoryReelMention `json:"reel_mentions"`
+	//SupportsReelReactions    bool               `json:"supports_reel_reactions"`
+	//ShowOneTapFbShareTooltip bool               `json:"show_one_tap_fb_share_tooltip"`
+	//HasSharedToFb            int64              `json:"has_shared_to_fb"`
+	//Mentions                 []Mentions
+	//Audience                 string `json:"audience,omitempty"`
+	//StoryMusicStickers       []struct {
+	//	X              float64 `json:"x"`
+	//	Y              float64 `json:"y"`
+	//	Z              int     `json:"z"`
+	//	Width          float64 `json:"width"`
+	//	Height         float64 `json:"height"`
+	//	Rotation       float64 `json:"rotation"`
+	//	IsPinned       int     `json:"is_pinned"`
+	//	IsHidden       int     `json:"is_hidden"`
+	//	IsSticker      int     `json:"is_sticker"`
+	//	MusicAssetInfo struct {
+	//		ID                       string `json:"id"`
+	//		Title                    string `json:"title"`
+	//		Subtitle                 string `json:"subtitle"`
+	//		DisplayArtist            string `json:"display_artist"`
+	//		CoverArtworkURI          string `json:"cover_artwork_uri"`
+	//		CoverArtworkThumbnailURI string `json:"cover_artwork_thumbnail_uri"`
+	//		ProgressiveDownloadURL   string `json:"progressive_download_url"`
+	//		HighlightStartTimesInMs  []int  `json:"highlight_start_times_in_ms"`
+	//		IsExplicit               bool   `json:"is_explicit"`
+	//		DashManifest             string `json:"dash_manifest"`
+	//		HasLyrics                bool   `json:"has_lyrics"`
+	//		AudioAssetID             string `json:"audio_asset_id"`
+	//		IgArtist                 struct {
+	//			Pk            int    `json:"pk"`
+	//			Username      string `json:"username"`
+	//			FullName      string `json:"full_name"`
+	//			IsPrivate     bool   `json:"is_private"`
+	//			ProfilePicURL string `json:"profile_pic_url"`
+	//			ProfilePicID  string `json:"profile_pic_id"`
+	//			IsVerified    bool   `json:"is_verified"`
+	//		} `json:"ig_artist"`
+	//		PlaceholderProfilePicURL string `json:"placeholder_profile_pic_url"`
+	//		ShouldMuteAudio          bool   `json:"should_mute_audio"`
+	//		ShouldMuteAudioReason    string `json:"should_mute_audio_reason"`
+	//		OverlapDurationInMs      int    `json:"overlap_duration_in_ms"`
+	//		AudioAssetStartTimeInMs  int    `json:"audio_asset_start_time_in_ms"`
+	//	} `json:"music_asset_info"`
+	//} `json:"story_music_stickers,omitempty"`
 }
 
 func (this *Item) GetMediaType() MediaType {
@@ -163,5 +163,5 @@ func (this *Item) GetMediaType() MediaType {
 }
 
 func (this *Item) GetComments() *Comments {
-	return &Comments{item: this, hasMore: true}
+	return &Comments{media: this, inst: this.inst, MediaID: this.ID, HasMore: true}
 }

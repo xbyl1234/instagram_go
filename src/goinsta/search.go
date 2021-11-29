@@ -14,19 +14,20 @@ var (
 )
 
 type Search struct {
-	inst      *Instagram
-	q         string
-	rankToken string
-	pageToken string
-	hasMore   bool
-	Type      SearchType
+	Inst *Instagram
+
+	Q         string     `json:"q"`
+	RankToken string     `json:"rank_token"`
+	PageToken string     `json:"page_token"`
+	HasMore   bool       `json:"has_more"`
+	Type      SearchType `json:"type"`
 }
 
 func newSearch(inst *Instagram, q string) *Search {
 	search := &Search{
-		inst:    inst,
-		q:       q,
-		hasMore: true,
+		Inst:    inst,
+		Q:       q,
+		HasMore: true,
 	}
 	return search
 }
@@ -39,11 +40,7 @@ type SearchResult struct {
 	RankToken string `json:"rank_token"`
 	PageToken string `json:"page_token"`
 
-	Tags []struct {
-		ID         int64  `json:"id"`
-		Name       string `json:"name"`
-		MediaCount int    `json:"media_count"`
-	} `json:"results"`
+	Tags []Tags `json:"results"`
 
 	NumResults int64 `json:"num_results"`
 	// User search results
@@ -76,15 +73,17 @@ type SearchResult struct {
 	ClearClientCache bool `json:"clear_client_cache"`
 }
 
-func (this *SearchResult) GetTags() []*Tags {
+func (this *SearchResult) GetTags() []Tags {
 	if this.Tags == nil {
 		return nil
 	}
-	ret := make([]*Tags, len(this.Tags))
+
 	for index := range this.Tags {
-		ret[index] = newTags(this.Tags[index].Name, this.search.inst)
+		this.Tags[index].inst = this.search.Inst
+		this.Tags[index].MoreAvailable = true
+		this.Tags[index].RankToken = common.GenUUID()
 	}
-	return ret
+	return this.Tags
 }
 
 // User search by username, you can use count optional parameter to get more than 50 items.
@@ -119,7 +118,7 @@ func (this *SearchResult) GetTags() []*Tags {
 
 func (this *Search) NextTags() (*SearchResult, error) {
 	this.Type = SearchType_Tags
-	if !this.hasMore {
+	if !this.HasMore {
 		return nil, common.MakeMoneyError_NoMore
 	}
 
@@ -128,47 +127,47 @@ func (this *Search) NextTags() (*SearchResult, error) {
 		"search_surface":  "hashtag_search_page",
 		"timezone_offset": -18000,
 		"count":           30,
-		"q":               this.q,
+		"q":               this.Q,
 	}
 
-	if this.pageToken != "" {
-		params["rank_token"] = this.rankToken
-		params["page_token"] = this.pageToken
+	if this.PageToken != "" {
+		params["rank_token"] = this.RankToken
+		params["page_token"] = this.PageToken
 	}
 
-	err := this.inst.HttpRequestJson(
+	err := this.Inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlSearchTag,
 			Query:   params,
 		}, res)
 
 	if err == nil {
-		this.rankToken = res.RankToken
-		this.pageToken = res.PageToken
+		this.RankToken = res.RankToken
+		this.PageToken = res.PageToken
 		res.search = this
 	}
-	this.hasMore = res.HasMore
+	this.HasMore = res.HasMore
 	return res, err
 }
 
 func (this *Search) NextLocation() (*SearchResult, error) {
 	this.Type = SearchType_Location
-	if !this.hasMore {
+	if !this.HasMore {
 		return nil, &common.MakeMoneyError{"no more", 0}
 	}
 
-	insta := this.inst
+	insta := this.Inst
 	params := map[string]interface{}{
 		"places_search_page": "places_search_page",
 		"timezone_offset":    -18000,
 		"lat":                nil,
 		"lng":                nil,
 		"count":              30,
-		"query":              this.q,
+		"query":              this.Q,
 	}
-	if this.pageToken != "" {
-		params["rank_token"] = this.rankToken
-		params["page_token"] = this.pageToken
+	if this.PageToken != "" {
+		params["rank_token"] = this.RankToken
+		params["page_token"] = this.PageToken
 	}
 
 	res := &SearchResult{}
@@ -179,10 +178,10 @@ func (this *Search) NextLocation() (*SearchResult, error) {
 		}, res)
 
 	if err == nil {
-		this.rankToken = res.RankToken
-		this.pageToken = res.PageToken
+		this.RankToken = res.RankToken
+		this.PageToken = res.PageToken
 		res.search = this
 	}
-	this.hasMore = res.HasMore
+	this.HasMore = res.HasMore
 	return res, err
 }

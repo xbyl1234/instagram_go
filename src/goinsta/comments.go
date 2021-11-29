@@ -8,12 +8,14 @@ import (
 )
 
 type Comments struct {
-	item *Item
-	next struct {
+	media   *Item
+	inst    *Instagram
+	MediaID string `json:"media_id"`
+	Next    struct {
 		CachedCommentsCursor string `json:"cached_comments_cursor"`
 		BifilterToken        string `json:"bifilter_token"`
-	}
-	hasMore bool
+	} `json:"next"`
+	HasMore bool `json:"has_more"`
 }
 
 type RespComments struct {
@@ -36,7 +38,7 @@ type RespComments struct {
 }
 
 func (this *Comments) NextComments() (*RespComments, error) {
-	if !this.hasMore {
+	if !this.HasMore {
 		return nil, common.MakeMoneyError_NoMore
 	}
 
@@ -48,24 +50,24 @@ func (this *Comments) NextComments() (*RespComments, error) {
 		"feed_position":           0,
 	}
 
-	if this.next.CachedCommentsCursor != "" {
-		minId, _ := json.Marshal(this.next)
+	if this.Next.CachedCommentsCursor != "" {
+		minId, _ := json.Marshal(this.Next)
 		params["min_id"] = minId
 	}
 
 	ret := &RespComments{}
-	err := this.item.inst.HttpRequestJson(&reqOptions{
+	err := this.inst.HttpRequestJson(&reqOptions{
 		IsPost:  false,
-		ApiPath: fmt.Sprintf(urlComment, this.item.ID),
+		ApiPath: fmt.Sprintf(urlComment, this.MediaID),
 		Query:   params,
 	}, ret)
 
 	err = ret.CheckError(err)
 	if err == nil {
-		this.hasMore = ret.HasMoreComments
-		if this.hasMore {
+		this.HasMore = ret.HasMoreComments
+		if this.HasMore {
 			next := strings.ReplaceAll(ret.NextMinId, "\\", "\"")
-			err = json.Unmarshal([]byte(next), &this.next)
+			err = json.Unmarshal([]byte(next), &this.Next)
 		}
 	}
 	return ret, err
