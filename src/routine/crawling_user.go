@@ -126,10 +126,46 @@ func CrawMedias(tag *goinsta.Tags) {
 			break
 		}
 		medias := tagResult.GetAllMedias()
-
+		for index := range medias {
+			err = SaveMedia(medias[index], nil)
+			if err != nil {
+				log.Error("SaveMedia error:%v", err)
+			}
+		}
+		err = SaveTags(tag)
+		if err != nil {
+			log.Error("SaveTags error:%v", err)
+		}
 	}
 
 	goinsta.AccountPool.ReleaseOne(inst)
+}
+
+func CrawCommonUser(mediaComb *MediaComb) {
+	if mediaComb.Media.CommentCount == 0 {
+		return
+	}
+	inst := ReqAccount()
+	mediaComb.Media.SetAccount(inst)
+
+	if mediaComb.Comments != nil {
+		mediaComb.Comments.SetAccount(inst)
+	} else {
+		mediaComb.Comments = mediaComb.Media.GetComments()
+	}
+
+	for true {
+		respComm, err := mediaComb.Comments.NextComments()
+		if err != nil {
+
+		}
+
+		comments := respComm.GetAllComments()
+		for index := range comments {
+
+		}
+	}
+
 }
 
 func do() {

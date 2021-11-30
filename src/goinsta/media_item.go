@@ -161,6 +161,9 @@ func (this *Item) GetMediaType() MediaType {
 	log.Error("GetMediaType error: %v", this.MediaType)
 	return MediaType_Photo
 }
+func (this *Item) SetAccount(inst *Instagram) {
+	this.inst = inst
+}
 
 func (this *Item) GetComments() *Comments {
 	return &Comments{media: this, inst: this.inst, MediaID: this.ID, HasMore: true}

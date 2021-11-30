@@ -109,3 +109,28 @@ func LoadMedia() ([]MediaComb, error) {
 
 	return result[:], err
 }
+
+func SaveUser(user *goinsta.User) error {
+	_, err := TagCollection.UpdateOne(context.TODO(),
+		bson.D{
+			{"q", search.Q},
+		}, bson.D{{"$set", search}}, options.Update().SetUpsert(true))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func LoadUser() (*goinsta.Search, error) {
+	cursor, err := TagCollection.Find(context.TODO(), bson.M{}, nil)
+	if err != nil {
+		return nil, err
+	}
+	var search *goinsta.Search
+	if cursor.Next(context.TODO()) {
+		err = cursor.Decode(&search)
+	} else {
+		err = common.MakeMoneyError_NoMore
+	}
+	return search, err
+}

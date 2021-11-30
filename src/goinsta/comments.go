@@ -18,6 +18,10 @@ type Comments struct {
 	HasMore bool `json:"has_more"`
 }
 
+func (this *Comments) SetAccount(inst *Instagram) {
+	this.inst = inst
+}
+
 type RespComments struct {
 	BaseApiResp
 	ScrollBehavior             int       `json:"scroll_behavior"`
@@ -35,6 +39,10 @@ type RespComments struct {
 	CommentLikesEnabled        bool      `json:"comment_likes_enabled"`
 	CanViewMorePreviewComments bool      `json:"can_view_more_preview_comments"`
 	Comments                   []Comment `json:"comments"`
+}
+
+func (this *RespComments) GetAllComments() []Comment {
+	return this.Comments
 }
 
 func (this *Comments) NextComments() (*RespComments, error) {
