@@ -29,13 +29,14 @@ type Instagram struct {
 	ReqSuccessCount  int
 	ReqErrorCount    int
 	ReqApiErrorCount int
+	ReqContError     int
 
 	Proxy *common.Proxy
 	c     *http.Client
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
-	url, err := neturl.Parse(goInstaAPIUrl)
+	url, err := neturl.Parse(goInstaHost)
 	if err != nil {
 		return err
 	}
@@ -107,6 +108,13 @@ func (this *Instagram) SetProxy(_proxy *common.Proxy) {
 	this.Proxy = _proxy
 	this.c.Transport = _proxy.GetProxy()
 	common.DebugHttpClient(this.c)
+}
+
+func (this *Instagram) NeedReplace() bool {
+	if this.ReqContError >= 3 {
+		return true
+	}
+	return false
 }
 
 func (this *Instagram) ReadHeader(key string) string {

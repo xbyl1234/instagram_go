@@ -10,6 +10,7 @@ import (
 	"makemoney/config"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -21,21 +22,23 @@ type reqOptions struct {
 	IsApiB    bool
 	Signed    bool
 	Query     map[string]interface{}
-	HeaderKey []string
-}
-
-type sendOptions struct {
-	Url       string
-	IsPost    bool
 	Body      *bytes.Buffer
 	HeaderKey []string
 	Header    map[string]string
 }
 
 type BaseApiResp struct {
+	url      string
+	username string
+
 	Status    string `json:"status"`
 	ErrorType string `json:"error_type"`
 	Message   string `json:"message"`
+}
+
+func (this *BaseApiResp) SetInfo(url string, username string) {
+	this.username = username
+	this.url = url
 }
 
 func (this *BaseApiResp) isError() bool {
@@ -50,6 +53,10 @@ func (this *BaseApiResp) CheckError(err error) error {
 		return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.OtherError}
 	}
 	if this.Status != "ok" {
+		log.Warn("account: %s, url: %s, api error: %s",
+			this.username,
+			this.url,
+			this.ErrorType+":"+this.Message)
 		return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
 	}
 	return nil
@@ -124,7 +131,7 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 }
 
 func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
-	_url, _ := url.Parse(goInstaAPIUrl)
+	_url, _ := url.Parse(goInstaHost)
 	for _, value := range this.c.Jar.Cookies(_url) {
 		if strings.Contains(value.Name, "csrftoken") {
 			this.token = value.Value
@@ -151,9 +158,9 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 
 	var baseUrl string
 	if reqOpt.IsApiB {
-		baseUrl = goInstaAPIUrl_B
+		baseUrl = goInstaHost_B
 	} else {
-		baseUrl = goInstaAPIUrl
+		baseUrl = goInstaHost
 	}
 
 	_url, err := url.Parse(baseUrl + reqOpt.ApiPath)
@@ -161,27 +168,34 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		return nil, err
 	}
 
-	bf := bytes.NewBuffer([]byte{})
-	var query string
-	if reqOpt.Signed {
-		_query, err := json.Marshal(reqOpt.Query)
-		if err != nil {
-			return nil, err
+	var bf *bytes.Buffer
+	if reqOpt.Query != nil {
+		bf = bytes.NewBuffer([]byte{})
+		var query string
+		if reqOpt.Signed {
+			_query, err := json.Marshal(reqOpt.Query)
+			if err != nil {
+				return nil, err
+			}
+			query = common.B2s(_query)
+			query = "signed_body=SIGNATURE." + url.QueryEscape(query)
+		} else {
+			vurl := url.Values{}
+			for key, vul := range reqOpt.Query {
+				vurl.Set(key, fmt.Sprintf("%v", vul))
+			}
+			query = vurl.Encode()
 		}
-		query = common.B2s(_query)
-		query = "signed_body=SIGNATURE." + url.QueryEscape(query)
-	} else {
-		vurl := url.Values{}
-		for key, vul := range reqOpt.Query {
-			vurl.Set(key, fmt.Sprintf("%v", vul))
-		}
-		query = vurl.Encode()
-	}
 
-	if reqOpt.IsPost {
-		bf.WriteString(query)
+		if reqOpt.IsPost {
+			bf.WriteString(query)
+		} else {
+			_url.RawQuery = query
+		}
+	} else if reqOpt.Body != nil {
+		bf = reqOpt.Body
 	} else {
-		_url.RawQuery = query
+		bf = bytes.NewBuffer([]byte{})
 	}
 
 	var req *http.Request
@@ -191,10 +205,16 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	}
 
 	this.setHeader(reqOpt, req)
+	for key, vul := range reqOpt.Header {
+		req.Header.Set(key, vul)
+	}
 
 	resp, err := this.c.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, &common.MakeMoneyError{
+			ErrType:   common.RequestError,
+			ExternErr: err,
+		}
 	}
 
 	defer resp.Body.Close()
@@ -202,13 +222,19 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, &common.MakeMoneyError{
+			ErrType:   common.RequestError,
+			ExternErr: err,
+		}
 	}
 
 	return body, err
 }
 
 func truncation(body []byte) []byte {
+	if body == nil {
+		return []byte("body is nil!")
+	}
 	if len(body) > 100 {
 		return body[:100]
 	}
@@ -216,36 +242,17 @@ func truncation(body []byte) []byte {
 }
 
 func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
-	var hadLog = false
-	defer func() {
-		if !hadLog {
-			this.ReqSuccessCount += 1
+	if err != nil {
+		log.Error("account: %s, url: %s, request error: %v, resp: %s", this.User, url, err, truncation(body))
+		this.ReqErrorCount += 1
+		if common.IsError(err, common.RequestError) {
+			this.ReqContError++
 		}
-
-		if config.IsDebug && !hadLog {
+	} else {
+		if config.IsDebug {
 			log.Info("account: %s, url: %s, api resp %s", this.User, url, truncation(body))
 		}
-	}()
-
-	if err != nil {
-		log.Warn("account: %s, url: %s, request error: %v", this.User, url, err)
-		this.ReqErrorCount += 1
-		hadLog = true
-		return
-	}
-
-	resp := &BaseApiResp{}
-	err = json.Unmarshal(body, &resp)
-	if err != nil {
-		log.Warn("account: %s, url: %s, Unmarshal error %s", this.User, url, truncation(body))
-		this.ReqApiErrorCount += 1
-		hadLog = true
-	} else {
-		if resp.isError() {
-			log.Warn("account: %s, url: %s, api error: %s", this.User, url, truncation(body))
-			this.ReqApiErrorCount += 1
-			hadLog = true
-		}
+		this.ReqContError = 0
 	}
 }
 
@@ -257,54 +264,23 @@ func (this *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 
 func (this *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
 	body, err := this.httpDo(reqOpt)
+	if err == nil {
+		err = json.Unmarshal(body, &response)
+	}
 	this.CheckInstReqError(reqOpt.ApiPath, body, err)
 
-	err = json.Unmarshal(body, &response)
-	return err
-}
-
-func (this *Instagram) HttpSend(sendOpt *sendOptions, response interface{}) ([]byte, error) {
-	var req *http.Request
-	_url, err := url.Parse(sendOpt.Url)
-	if err != nil {
-		return nil, err
-	}
-
-	var body *bytes.Buffer
-	var method string
-
-	if sendOpt.IsPost {
-		method = "POST"
-		body = sendOpt.Body
-	} else {
-		method = "GET"
-		body = bytes.NewBuffer([]byte{})
-	}
-
-	req, err = http.NewRequest(method, _url.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	this.setBaseHeader(req)
-	for key, vul := range sendOpt.Header {
-		req.Header.Set(key, vul)
-	}
-
-	resp, err := this.c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	this.afterRequest(_url, resp)
 	if response != nil {
-		err = json.Unmarshal(respBody, response)
+		value := reflect.ValueOf(response)
+		if value.CanInterface() {
+			setInfo := value.MethodByName("SetInfo")
+			if setInfo.Kind() == reflect.Func {
+				setInfo.Call([]reflect.Value{reflect.ValueOf(reqOpt.ApiPath), reflect.ValueOf(this.User)})
+			} else {
+				log.Warn("reflect SetInfo error! url: %s", reqOpt.ApiPath)
+			}
+		} else {
+			log.Warn("reflect SetInfo error! url: %s", reqOpt.ApiPath)
+		}
 	}
-	this.CheckInstReqError(sendOpt.Url, respBody, err)
-	return respBody, err
+	return err
 }

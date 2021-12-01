@@ -147,7 +147,9 @@ type RespNexFollowers struct {
 
 func (this *Followers) Next() ([]User, error) {
 	if !this.HasMore {
-		return nil, common.MakeMoneyError_NoMore
+		return nil, &common.MakeMoneyError{
+			ErrType: common.NoMoreError,
+		}
 	}
 
 	params := map[string]interface{}{

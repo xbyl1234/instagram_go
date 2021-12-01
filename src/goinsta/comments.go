@@ -1,7 +1,6 @@
 package goinsta
 
 import (
-	"encoding/json"
 	"fmt"
 	"makemoney/common"
 	"strings"
@@ -11,11 +10,12 @@ type Comments struct {
 	media   *Item
 	inst    *Instagram
 	MediaID string `json:"media_id"`
-	Next    struct {
-		CachedCommentsCursor string `json:"cached_comments_cursor"`
-		BifilterToken        string `json:"bifilter_token"`
-	} `json:"next"`
-	HasMore bool `json:"has_more"`
+	//Next    struct {
+	//	CachedCommentsCursor string `json:"cached_comments_cursor"`
+	//	BifilterToken        string `json:"bifilter_token"`
+	//} `json:"next"`
+	Next    string `json:"next"`
+	HasMore bool   `json:"has_more"`
 }
 
 func (this *Comments) SetAccount(inst *Instagram) {
@@ -47,7 +47,9 @@ func (this *RespComments) GetAllComments() []Comment {
 
 func (this *Comments) NextComments() (*RespComments, error) {
 	if !this.HasMore {
-		return nil, common.MakeMoneyError_NoMore
+		return nil, &common.MakeMoneyError{
+			ErrType: common.NoMoreError,
+		}
 	}
 
 	params := map[string]interface{}{
@@ -58,9 +60,10 @@ func (this *Comments) NextComments() (*RespComments, error) {
 		"feed_position":           0,
 	}
 
-	if this.Next.CachedCommentsCursor != "" {
-		minId, _ := json.Marshal(this.Next)
-		params["min_id"] = minId
+	if this.Next != "" {
+		//minId, _ := json.Marshal(this.Next)
+		//params["min_id"] = common.B2s(minId)
+		params["min_id"] = this.Next
 	}
 
 	ret := &RespComments{}
@@ -72,10 +75,10 @@ func (this *Comments) NextComments() (*RespComments, error) {
 
 	err = ret.CheckError(err)
 	if err == nil {
-		this.HasMore = ret.HasMoreComments
+		this.HasMore = ret.HasMoreHeadloadComments
 		if this.HasMore {
-			next := strings.ReplaceAll(ret.NextMinId, "\\", "\"")
-			err = json.Unmarshal([]byte(next), &this.Next)
+			this.Next = strings.ReplaceAll(ret.NextMinId, "\\", "\"")
+			//err = json.Unmarshal([]byte(next), &this.Next)
 		}
 	}
 	return ret, err

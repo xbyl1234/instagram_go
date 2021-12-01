@@ -48,9 +48,9 @@ func (this *Upload) RuploadPhoto(path string) (string, error) {
 	body := bytes.NewBuffer(data)
 
 	var resp = &RespRuploadIgPhoto{}
-	_, err = this.inst.HttpSend(&sendOptions{
-		Url:    goInstaHost + urlUploadPhone + entityName,
-		IsPost: true,
+	err = this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlUploadPhone + entityName,
+		IsPost:  true,
 		Header: map[string]string{
 			"x_fb_photo_waterfall_id":    this.inst.wid,
 			"x-instagram-rupload-params": paramsStr,
@@ -83,8 +83,8 @@ func (this *Upload) RuploadIgPhoto(path string) (string, error) {
 	})
 	paramsStr := string(params)
 	var resp = &RespRuploadIgPhoto{}
-	_, err := this.inst.HttpSend(&sendOptions{
-		Url: goInstaHost + urlUploadPhone + entityName,
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlUploadPhone + entityName,
 		Header: map[string]string{
 			"x_fb_photo_waterfall_id":    this.inst.wid,
 			"x-instagram-rupload-params": paramsStr,
@@ -101,9 +101,9 @@ func (this *Upload) RuploadIgPhoto(path string) (string, error) {
 	}
 	body := bytes.NewBuffer(data)
 
-	_, err = this.inst.HttpSend(&sendOptions{
-		Url:    goInstaHost + urlUploadPhone + entityName,
-		IsPost: true,
+	err = this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlUploadPhone + entityName,
+		IsPost:  true,
 		Header: map[string]string{
 			"x_fb_photo_waterfall_id":    this.inst.wid,
 			"x-instagram-rupload-params": paramsStr,
@@ -153,9 +153,9 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 	body := bytes.NewBuffer(data)
 
 	var resp = &RespRuploadIgPhoto{}
-	_, err = this.inst.HttpSend(&sendOptions{
-		Url:    goInstaHost + urlUploadVideo + entityName,
-		IsPost: true,
+	err = this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlUploadVideo + entityName,
+		IsPost:  true,
 		Header: map[string]string{
 			"x_fb_video_waterfall_id":    this.inst.wid,
 			"x-instagram-rupload-params": paramsStr,

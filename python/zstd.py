@@ -6,7 +6,7 @@ import pathlib
 import shutil
 
 path = "C:/Users/Administrator/Desktop/project/github/instagram_project/抓包/"
-file_name = "s1"
+file_name = "c2"
 input_file = pathlib.Path(path + file_name)
 
 file_object = open(input_file, 'rb')

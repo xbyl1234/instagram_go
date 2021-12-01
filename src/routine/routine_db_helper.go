@@ -42,6 +42,7 @@ func LoadTags() ([]goinsta.Tags, error) {
 	}
 	var tags []goinsta.Tags
 	err = cursor.All(context.TODO(), &tags)
+	_ = cursor.Close(context.TODO())
 	return tags, err
 }
 
@@ -64,9 +65,8 @@ func LoadSearch() (*goinsta.Search, error) {
 	var search *goinsta.Search
 	if cursor.Next(context.TODO()) {
 		err = cursor.Decode(&search)
-	} else {
-		return nil, nil
 	}
+	_ = cursor.Close(context.TODO())
 	return search, err
 }
 
@@ -90,24 +90,43 @@ func SaveMedia(mediaComb *MediaComb) error {
 	return nil
 }
 
-func LoadMedia() ([]MediaComb, error) {
+func SaveComments(mediaComb *MediaComb) error {
+	_, err := MediaCollection.UpdateOne(context.TODO(),
+		bson.D{
+			{"q", mediaComb.Media.ID},
+		}, bson.D{
+			{"$set", bson.M{"comments": mediaComb.Comments}}},
+		options.Update().SetUpsert(true))
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func LoadMedia(limit int) ([]MediaComb, error) {
 	cursor, err := MediaCollection.Find(context.TODO(),
-		bson.D{{"$or",
-			bson.D{{"comments", nil},
-				{"comments", bson.M{"hasmore": true}}}}},
+		bson.D{{"$or", []bson.M{bson.M{"comments": nil},
+			bson.M{"comments": bson.M{"hasmore": true}}}}},
 		nil)
-
+	//cursor, err := MediaCollection.Find(context.TODO(),
+	//	bson.M{},
+	//	nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []MediaComb
-	err = cursor.All(context.TODO(), &result)
-	if err != nil {
-		return nil, err
+	var result []MediaComb = make([]MediaComb, limit)
+	index := 0
+	for cursor.Next(context.TODO()) && index < limit {
+		err = cursor.Decode(&result[index])
+		if err != nil {
+			break
+		}
+		index++
 	}
+	_ = cursor.Close(context.TODO())
 
-	return result[:], err
+	return result[:index], err
 }
 
 type UserComb struct {
@@ -138,20 +157,18 @@ func LoadUser(tag string, sendTaskName string, limit int) ([]UserComb, error) {
 		return nil, err
 	}
 
-	var userCombs = make([]UserComb, limit)
-	var index = 0
-	for index = range userCombs {
-		if cursor.Next(context.TODO()) {
-			err = cursor.Decode(&userCombs[index])
-			if err != nil {
-				break
-			}
-		} else {
+	var result = make([]UserComb, limit)
+	index := 0
+	for cursor.Next(context.TODO()) && index < limit {
+		err = cursor.Decode(&result[index])
+		if err != nil {
 			break
 		}
+		index++
 	}
+	_ = cursor.Close(context.TODO())
 
-	return userCombs[:index], err
+	return result[:index], err
 }
 
 //func MarkUser(userComb *UserComb, markName string) error {

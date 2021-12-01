@@ -93,8 +93,8 @@ func LoadDBAllAccount() ([]AccountCookies, error) {
 }
 
 func SaveInstToDB(inst *Instagram) error {
-	url, _ := neturl.Parse(goInstaAPIUrl)
-	urlb, _ := neturl.Parse(goInstaAPIUrl_B)
+	url, _ := neturl.Parse(goInstaHost)
+	urlb, _ := neturl.Parse(goInstaHost_B)
 
 	Cookies := AccountCookies{
 		ID:                  inst.id,
@@ -136,11 +136,11 @@ func LoadAllAccount() []*Instagram {
 }
 
 func ConvConfig(config *AccountCookies) (*Instagram, error) {
-	url, err := neturl.Parse(goInstaAPIUrl)
+	url, err := neturl.Parse(goInstaHost)
 	if err != nil {
 		return nil, err
 	}
-	urlb, err := neturl.Parse(goInstaAPIUrl_B)
+	urlb, err := neturl.Parse(goInstaHost_B)
 	if err != nil {
 		return nil, err
 	}

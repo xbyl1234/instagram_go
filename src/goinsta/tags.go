@@ -154,28 +154,31 @@ func (this *Tags) Sync(tab string) error {
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlTagSync, this.Name),
 	}, resp)
-
+	err = resp.CheckError(err)
 	return err
 }
 
 // Stories returns hashtag stories.
 func (this *Tags) Stories() (*StoryMedia, error) {
 	var resp struct {
-		Story  StoryMedia `json:"story"`
-		Status string     `json:"status"`
+		BaseApiResp
+		Story StoryMedia `json:"story"`
 	}
 
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlTagStories, this.Name),
 	}, &resp)
 
+	err = resp.CheckError(err)
 	return &resp.Story, err
 }
 
 // Next paginates over hashtag pages (xd).
 func (this *Tags) Next() (*RespHashtag, error) {
 	if !this.MoreAvailable {
-		return nil, common.MakeMoneyError_NoMore
+		return nil, &common.MakeMoneyError{
+			ErrType: common.NoMoreError,
+		}
 	}
 
 	var params = map[string]interface{}{

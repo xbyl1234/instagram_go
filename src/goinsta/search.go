@@ -32,6 +32,10 @@ func newSearch(inst *Instagram, q string) *Search {
 	return search
 }
 
+func (this *Search) SetAccount(inst *Instagram) {
+	this.Inst = inst
+}
+
 type SearchResult struct {
 	search *Search
 
@@ -119,7 +123,9 @@ func (this *SearchResult) GetTags() []Tags {
 func (this *Search) NextTags() (*SearchResult, error) {
 	this.Type = SearchType_Tags
 	if !this.HasMore {
-		return nil, common.MakeMoneyError_NoMore
+		return nil, &common.MakeMoneyError{
+			ErrType: common.NoMoreError,
+		}
 	}
 
 	res := &SearchResult{}
@@ -153,7 +159,9 @@ func (this *Search) NextTags() (*SearchResult, error) {
 func (this *Search) NextLocation() (*SearchResult, error) {
 	this.Type = SearchType_Location
 	if !this.HasMore {
-		return nil, &common.MakeMoneyError{"no more", 0}
+		return nil, &common.MakeMoneyError{
+			ErrType: common.NoMoreError,
+		}
 	}
 
 	insta := this.Inst

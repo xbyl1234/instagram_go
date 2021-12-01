@@ -1,10 +1,8 @@
 package main
 
-import "makemoney/common/log"
-
 func main() {
-	log.InitDefaultLog("test", true, true)
-	log.Info("sadasdadadasd")
-	log.Warn("sadasdadadasd")
-	log.Error("sadasdadadasd")
+	var m []int = make([]int, 10)
+
+	ss := m[:0]
+	print(ss)
 }

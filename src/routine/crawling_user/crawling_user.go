@@ -15,12 +15,15 @@ import (
 )
 
 type CrawConfig struct {
-	TaskName  string `json:"task_name"`
-	SearchTag string `json:"search_tag"`
-	LastTime  string `json:"last_time"`
-	CoroCount int    `json:"coro_count"`
-	ProxyPath string `json:"proxy_path"`
-	WorkPath  string `json:"config_path"`
+	TaskName              string `json:"task_name"`
+	SearchTag             string `json:"search_tag"`
+	LastTime              string `json:"last_time"`
+	CoroCount             int    `json:"coro_count"`
+	ProxyPath             string `json:"proxy_path"`
+	WorkPath              string `json:"config_path"`
+	CrawTagsStatus        bool   `json:"craw_tags_status"`
+	CrawMediasStatus      bool   `json:"craw_medias_status"`
+	CrawCommentUserStatus bool   `json:"craw_comment_user_status"`
 }
 
 var config CrawConfig
@@ -30,6 +33,9 @@ var LastTime time.Time
 
 func ReqAccount() *goinsta.Instagram {
 	inst := goinsta.AccountPool.GetOne()
+	if inst == nil {
+		return nil
+	}
 	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
 	if _proxy == nil {
 		log.Error("find insta proxy error!")
@@ -41,6 +47,7 @@ func ReqAccount() *goinsta.Instagram {
 
 var TagList = list.New()
 var TagIDSet = mapset.NewSet()
+var MediaChan = make(chan *routine.MediaComb, 1000)
 
 func LoadTags() {
 	retTagList, err := routine.LoadTags()
@@ -55,16 +62,55 @@ func LoadTags() {
 	}
 }
 
-func doCrawTags(search *goinsta.Search) {
+func CrawTags() {
+	var search *goinsta.Search
+	var err error
+	inst := ReqAccount()
+	defer goinsta.AccountPool.ReleaseOne(inst)
+
+	search, err = routine.LoadSearch()
+	if err != nil {
+		log.Error("preCrawTags LoadTags error:%v", err)
+		os.Exit(0)
+	}
+	if search != nil {
+		search.SetAccount(inst)
+	} else {
+		search = inst.GetSearch(config.SearchTag)
+		_ = routine.SaveSearch(search)
+	}
+	if !search.HasMore {
+		log.Info("pass search tag...")
+		return
+	}
+
+	LoadTags()
+
 	for true {
 		searchResult, err := search.NextTags()
 		if err != nil {
-			if err.Error() == common.MakeMoneyError_NoMore.Error() {
+			if common.IsNoMoreError(err) {
 				log.Info("tags has craw finish!")
+				break
+			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
+				if inst.NeedReplace() {
+					goinsta.AccountPool.BlackOne(inst)
+					_inst := ReqAccount()
+					if _inst == nil {
+						log.Error("CrawTags no more account!")
+						break
+					}
+					log.Warn("CrawTags replace account %s->%s", inst.User, _inst.User)
+					inst = _inst
+					search.SetAccount(_inst)
+				} else {
+					log.Warn("CrawMedias retrying...user: %s, err: %v", inst.User, err)
+				}
+				continue
 			} else {
 				log.Error("search next error: %v", err)
+				break
 			}
-			break
 		}
 
 		log.Info("%v", searchResult)
@@ -85,32 +131,6 @@ func doCrawTags(search *goinsta.Search) {
 	}
 }
 
-func CrawTags() {
-	var search *goinsta.Search
-	var err error
-	inst := ReqAccount()
-	defer goinsta.AccountPool.ReleaseOne(inst)
-
-	search, err = routine.LoadSearch()
-	if err != nil {
-		log.Error("preCrawTags LoadTags error:%v", err)
-		os.Exit(0)
-	}
-	if search != nil {
-		search.Inst = inst
-	} else {
-		search = inst.GetSearch(config.SearchTag)
-		_ = routine.SaveSearch(search)
-	}
-
-	LoadTags()
-	if !search.HasMore {
-		log.Info("pass search tag...")
-		return
-	}
-	doCrawTags(search)
-}
-
 func CrawMedias(tag *goinsta.Tags) {
 	inst := ReqAccount()
 	inst = ReqAccount()
@@ -128,12 +148,28 @@ func CrawMedias(tag *goinsta.Tags) {
 	for true {
 		tagResult, err := tag.Next()
 		if err != nil {
-			if err.Error() == common.MakeMoneyError_NoMore.Error() {
-				log.Info("tags has craw finish!")
+			if common.IsNoMoreError(err) {
+				log.Info("tags %s medias has craw finish!", tag.Name)
+				break
+			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
+				if inst.NeedReplace() {
+					goinsta.AccountPool.BlackOne(inst)
+					_inst := ReqAccount()
+					if _inst == nil {
+						log.Error("CrawMedias no more account!")
+						break
+					}
+					log.Warn("CrawMedias replace account %s->%s", inst.User, _inst.User)
+					inst = _inst
+					tag.SetAccount(_inst)
+				} else {
+					log.Warn("CrawMedias retrying...user: %s, err: %v", inst.User, err)
+				}
+				continue
 			} else {
 				log.Error("next media error: %v", err)
+				break
 			}
-			break
 		}
 		medias := tagResult.GetAllMedias()
 		var mediaComb routine.MediaComb
@@ -180,8 +216,29 @@ func CrawCommonUser(mediaComb *routine.MediaComb) {
 	for true {
 		respComm, err := mediaComb.Comments.NextComments()
 		if err != nil {
-			log.Error("NextComments error:%v", err)
-			break
+			if common.IsNoMoreError(err) {
+				log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
+				break
+			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
+				if inst.NeedReplace() {
+					goinsta.AccountPool.BlackOne(inst)
+					_inst := ReqAccount()
+					if _inst == nil {
+						log.Error("CrawCommonUser no more account!")
+						break
+					}
+					log.Warn("CrawCommonUser replace account %s->%s", inst.User, _inst.User)
+					inst = _inst
+					mediaComb.Media.SetAccount(_inst)
+					mediaComb.Comments.SetAccount(_inst)
+				} else {
+					log.Warn("CrawCommonUser retrying...user: %s, err: %v", inst.User, err)
+				}
+				continue
+			} else {
+				log.Error("NextComments error:%v", err)
+				break
+			}
 		}
 
 		comments := respComm.GetAllComments()
@@ -195,16 +252,40 @@ func CrawCommonUser(mediaComb *routine.MediaComb) {
 				break
 			}
 		}
+		err = routine.SaveComments(mediaComb)
+		if err != nil {
+			log.Error("SaveMedia error:%v", err)
+			break
+		}
 	}
 
 	goinsta.AccountPool.ReleaseOne(inst)
+}
+
+func SendMedias() {
+	for true {
+		medias, err := routine.LoadMedia(100)
+		if err != nil {
+			log.Error("load media error: %v", err)
+			return
+		}
+		if len(medias) == 0 && config.CrawTagsStatus && config.CrawMediasStatus {
+			config.CrawCommentUserStatus = true
+			log.Info("craw common user finish!")
+			return
+		}
+
+		for index := range medias {
+			MediaChan <- &medias[index]
+		}
+	}
 }
 
 func initParams() {
 	var err error
 	var TaskConfigPath = flag.String("task", "", "task")
 	//-tn test_craw  -tag game -coro 1 -pp C:\Users\Administrator\Desktop\project\github\instagram_project\data\zone2_ips_us.txt
-	log.InitLogger()
+	log.InitDefaultLog("craw_user", true, true)
 	flag.Parse()
 	if *TaskConfigPath == "" {
 		log.Error("task config path is null!")
@@ -253,10 +334,13 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitRoutineCrawDB(config.TaskName)
-	CrawTags()
-	CrawMedias(TagList.Front().Next().Next().Value.(*goinsta.Tags))
+
+	medias, _ := routine.LoadMedia(1)
+	CrawCommonUser(&medias[0])
+	//CrawTags()
+	//CrawMedias(TagList.Front().Next().Next().Value.(*goinsta.Tags))
 }
