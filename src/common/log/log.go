@@ -38,18 +38,29 @@ func (this *Log) printLog(lev int, data string) {
 		log = this.preFit + " "
 	}
 	log += time.Now().Format("2006-01-02 15:04:05") + " "
+	panding := 19
 	if ok {
 		short := file
 		for i := len(file) - 1; i > 0; i-- {
 			if file[i] == '/' {
-				short = file[i+1:]
+				short = strings.ReplaceAll(file[i+1:], ".go", "")
 				break
 			}
 		}
+		if len(short) >= 15 {
+			short = short[:15]
+			panding -= 15
+		} else {
+			panding -= len(short)
+		}
 		log += short
 		log += ":"
-		log += strconv.Itoa(line)
+		_line := strconv.Itoa(line)
+		log += _line
+		panding -= len(_line)
 	}
+
+	log += strings.Repeat(" ", panding)
 	log += "]\t"
 	switch lev {
 	case errorRed:
