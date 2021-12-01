@@ -4,7 +4,6 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/goinsta"
-	"makemoney/routine"
 	"os"
 	"testing"
 )

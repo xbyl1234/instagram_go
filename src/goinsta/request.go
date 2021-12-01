@@ -162,28 +162,26 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	}
 
 	bf := bytes.NewBuffer([]byte{})
-
-	if reqOpt.IsPost {
-		var query string
+	var query string
+	if reqOpt.Signed {
 		_query, err := json.Marshal(reqOpt.Query)
 		if err != nil {
 			return nil, err
 		}
 		query = common.B2s(_query)
-
-		if reqOpt.Signed {
-			query = "signed_body=SIGNATURE." + url.QueryEscape(query)
-		} else {
-			query = url.QueryEscape(query)
-		}
-		bf.WriteString(query)
-
+		query = "signed_body=SIGNATURE." + url.QueryEscape(query)
 	} else {
 		vurl := url.Values{}
 		for key, vul := range reqOpt.Query {
 			vurl.Set(key, fmt.Sprintf("%v", vul))
 		}
-		_url.RawQuery = vurl.Encode()
+		query = vurl.Encode()
+	}
+
+	if reqOpt.IsPost {
+		bf.WriteString(query)
+	} else {
+		_url.RawQuery = query
 	}
 
 	var req *http.Request

@@ -1,7 +1,6 @@
-package main
+package routine
 
 import (
-	"container/list"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,13 +10,18 @@ import (
 )
 
 var CrawlingDB *mongo.Database
+
+var SearchCollection *mongo.Collection
 var TagCollection *mongo.Collection
 var MediaCollection *mongo.Collection
+var UserCollection *mongo.Collection
 
-func InitCrawDB(taskName string) {
+func InitRoutineCrawDB(taskName string) {
 	CrawlingDB = common.GetDB(taskName)
 	TagCollection = CrawlingDB.Collection("tags")
 	MediaCollection = CrawlingDB.Collection("media")
+	UserCollection = CrawlingDB.Collection("users")
+	SearchCollection = CrawlingDB.Collection("search")
 }
 
 func SaveTags(tags *goinsta.Tags) error {
@@ -31,22 +35,18 @@ func SaveTags(tags *goinsta.Tags) error {
 	return nil
 }
 
-func LoadTags() (*list.List, error) {
-	var ret = list.New()
-	cursor, err := TagCollection.Find(context.TODO(), bson.M{"more_available": true}, nil)
+func LoadTags() ([]goinsta.Tags, error) {
+	cursor, err := TagCollection.Find(context.TODO(), bson.M{"moreavailable": true}, nil)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	var tags []goinsta.Tags
 	err = cursor.All(context.TODO(), &tags)
-	for index := range tags {
-		ret.PushBack(&tags[index])
-	}
-	return ret, err
+	return tags, err
 }
 
 func SaveSearch(search *goinsta.Search) error {
-	_, err := TagCollection.UpdateOne(context.TODO(),
+	_, err := SearchCollection.UpdateOne(context.TODO(),
 		bson.D{
 			{"q", search.Q},
 		}, bson.D{{"$set", search}}, options.Update().SetUpsert(true))
@@ -57,7 +57,7 @@ func SaveSearch(search *goinsta.Search) error {
 }
 
 func LoadSearch() (*goinsta.Search, error) {
-	cursor, err := TagCollection.Find(context.TODO(), bson.M{}, nil)
+	cursor, err := SearchCollection.Find(context.TODO(), bson.M{}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -65,18 +65,23 @@ func LoadSearch() (*goinsta.Search, error) {
 	if cursor.Next(context.TODO()) {
 		err = cursor.Decode(&search)
 	} else {
-		err = common.MakeMoneyError_NoMore
+		return nil, nil
 	}
 	return search, err
 }
 
-func SaveMedia(media *goinsta.Item, comments *goinsta.Comments) error {
+type MediaComb struct {
+	Media    *goinsta.Item     `json:"media"`
+	Comments *goinsta.Comments `json:"comments"`
+	Tag      string            `json:"tag"`
+}
+
+func SaveMedia(mediaComb *MediaComb) error {
 	_, err := MediaCollection.UpdateOne(context.TODO(),
 		bson.D{
-			{"q", media.ID},
+			{"q", mediaComb.Media.ID},
 		}, bson.D{
-			{"$set", bson.D{{"media", media},
-				{"comments", comments}}}},
+			{"$set", mediaComb}},
 		options.Update().SetUpsert(true))
 
 	if err != nil {
@@ -85,16 +90,11 @@ func SaveMedia(media *goinsta.Item, comments *goinsta.Comments) error {
 	return nil
 }
 
-type MediaComb struct {
-	Media    *goinsta.Item     `json:"media"`
-	Comments *goinsta.Comments `json:"comments"`
-}
-
 func LoadMedia() ([]MediaComb, error) {
 	cursor, err := MediaCollection.Find(context.TODO(),
 		bson.D{{"$or",
 			bson.D{{"comments", nil},
-				{"comments", bson.M{"has_more": true}}}}},
+				{"comments", bson.M{"hasmore": true}}}}},
 		nil)
 
 	if err != nil {
@@ -110,27 +110,50 @@ func LoadMedia() ([]MediaComb, error) {
 	return result[:], err
 }
 
-func SaveUser(user *goinsta.User) error {
-	_, err := TagCollection.UpdateOne(context.TODO(),
+type UserComb struct {
+	User   *goinsta.User `json:"user"`
+	Source string        `json:"source"`
+}
+
+func SaveUser(userComb *UserComb) error {
+	_, err := UserCollection.UpdateOne(context.TODO(),
 		bson.D{
-			{"q", search.Q},
-		}, bson.D{{"$set", search}}, options.Update().SetUpsert(true))
+			{"user", bson.M{"pk": userComb.User.ID}},
+		}, bson.D{{"$set", userComb}}, options.Update().SetUpsert(true))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func LoadUser() (*goinsta.Search, error) {
-	cursor, err := TagCollection.Find(context.TODO(), bson.M{}, nil)
+func LoadUser(tag string, sendTaskName string, limit int) ([]UserComb, error) {
+	cursor, err := UserCollection.Find(context.TODO(),
+		bson.D{{"$and",
+			bson.D{{"tag", tag},
+				{sendTaskName,
+					bson.M{"$exists": false}}}}},
+		nil)
+
 	if err != nil {
 		return nil, err
 	}
-	var search *goinsta.Search
-	if cursor.Next(context.TODO()) {
-		err = cursor.Decode(&search)
-	} else {
-		err = common.MakeMoneyError_NoMore
+
+	var userCombs = make([]UserComb, limit)
+	var index = 0
+	for index = range userCombs {
+		if cursor.Next(context.TODO()) {
+			err = cursor.Decode(&userCombs[index])
+			if err != nil {
+				break
+			}
+		} else {
+			break
+		}
 	}
-	return search, err
+
+	return userCombs[:index], err
 }
+
+//func MarkUser(userComb *UserComb, markName string) error {
+//
+//}

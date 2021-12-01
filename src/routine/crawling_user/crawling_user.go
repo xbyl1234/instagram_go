@@ -1,0 +1,262 @@
+package main
+
+import (
+	"container/list"
+	"flag"
+	mapset "github.com/deckarep/golang-set"
+	"makemoney/common"
+	"makemoney/common/log"
+	config2 "makemoney/config"
+	"makemoney/goinsta"
+	"makemoney/routine"
+	"os"
+	"runtime"
+	"time"
+)
+
+type CrawConfig struct {
+	TaskName  string `json:"task_name"`
+	SearchTag string `json:"search_tag"`
+	LastTime  string `json:"last_time"`
+	CoroCount int    `json:"coro_count"`
+	ProxyPath string `json:"proxy_path"`
+	WorkPath  string `json:"config_path"`
+}
+
+var config CrawConfig
+var WorkPath string
+var PathSeparator = string(os.PathSeparator)
+var LastTime time.Time
+
+func ReqAccount() *goinsta.Instagram {
+	inst := goinsta.AccountPool.GetOne()
+	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
+	if _proxy == nil {
+		log.Error("find insta proxy error!")
+		os.Exit(0)
+	}
+	inst.SetProxy(_proxy)
+	return inst
+}
+
+var TagList = list.New()
+var TagIDSet = mapset.NewSet()
+
+func LoadTags() {
+	retTagList, err := routine.LoadTags()
+	if err != nil {
+		log.Error("preCrawTags LoadTags error:%v", err)
+		os.Exit(0)
+	}
+
+	for index := range retTagList {
+		TagIDSet.Add(retTagList[index].Id)
+		TagList.PushBack(&retTagList[index])
+	}
+}
+
+func doCrawTags(search *goinsta.Search) {
+	for true {
+		searchResult, err := search.NextTags()
+		if err != nil {
+			if err.Error() == common.MakeMoneyError_NoMore.Error() {
+				log.Info("tags has craw finish!")
+			} else {
+				log.Error("search next error: %v", err)
+			}
+			break
+		}
+
+		log.Info("%v", searchResult)
+		tags := searchResult.GetTags()
+		for index := range tags {
+			if TagIDSet.Contains(tags[index].Id) {
+				log.Info("")
+				continue
+			}
+			TagIDSet.Add(tags[index].Id)
+			TagList.PushBack(&tags[index])
+			err = routine.SaveTags(&tags[index])
+			if err != nil {
+				log.Error("SaveTags error:%v", err)
+			}
+		}
+		_ = routine.SaveSearch(search)
+	}
+}
+
+func CrawTags() {
+	var search *goinsta.Search
+	var err error
+	inst := ReqAccount()
+	defer goinsta.AccountPool.ReleaseOne(inst)
+
+	search, err = routine.LoadSearch()
+	if err != nil {
+		log.Error("preCrawTags LoadTags error:%v", err)
+		os.Exit(0)
+	}
+	if search != nil {
+		search.Inst = inst
+	} else {
+		search = inst.GetSearch(config.SearchTag)
+		_ = routine.SaveSearch(search)
+	}
+
+	LoadTags()
+	if !search.HasMore {
+		log.Info("pass search tag...")
+		return
+	}
+	doCrawTags(search)
+}
+
+func CrawMedias(tag *goinsta.Tags) {
+	inst := ReqAccount()
+	inst = ReqAccount()
+	tag.SetAccount(inst)
+
+	err := tag.Sync(goinsta.TabRecent)
+	if err != nil {
+		log.Error("tag sync error: %v", err)
+	}
+	_, err = tag.Stories()
+	if err != nil {
+		log.Error("tag stories error: %v", err)
+	}
+
+	for true {
+		tagResult, err := tag.Next()
+		if err != nil {
+			if err.Error() == common.MakeMoneyError_NoMore.Error() {
+				log.Info("tags has craw finish!")
+			} else {
+				log.Error("next media error: %v", err)
+			}
+			break
+		}
+		medias := tagResult.GetAllMedias()
+		var mediaComb routine.MediaComb
+		for index := range medias {
+			mediaComb.Media = medias[index]
+			mediaComb.Tag = tag.Name
+			err = routine.SaveMedia(&mediaComb)
+			if err != nil {
+				log.Error("SaveMedia error:%v", err)
+			}
+
+			var userComb routine.UserComb
+			userComb.User = &medias[index].User
+			userComb.Source = "media"
+			err = routine.SaveUser(&userComb)
+			if err != nil {
+				log.Error("SaveUser error:%v", err)
+				break
+			}
+		}
+
+		err = routine.SaveTags(tag)
+		if err != nil {
+			log.Error("SaveTags error:%v", err)
+		}
+	}
+
+	goinsta.AccountPool.ReleaseOne(inst)
+}
+
+func CrawCommonUser(mediaComb *routine.MediaComb) {
+	if mediaComb.Media.CommentCount == 0 {
+		return
+	}
+	inst := ReqAccount()
+	mediaComb.Media.SetAccount(inst)
+
+	if mediaComb.Comments != nil {
+		mediaComb.Comments.SetAccount(inst)
+	} else {
+		mediaComb.Comments = mediaComb.Media.GetComments()
+	}
+
+	for true {
+		respComm, err := mediaComb.Comments.NextComments()
+		if err != nil {
+			log.Error("NextComments error:%v", err)
+			break
+		}
+
+		comments := respComm.GetAllComments()
+		var userComb routine.UserComb
+		for index := range comments {
+			userComb.User = &comments[index].User
+			userComb.Source = "comments"
+			err = routine.SaveUser(&userComb)
+			if err != nil {
+				log.Error("SaveUser error:%v", err)
+				break
+			}
+		}
+	}
+
+	goinsta.AccountPool.ReleaseOne(inst)
+}
+
+func initParams() {
+	var err error
+	var TaskConfigPath = flag.String("task", "", "task")
+	//-tn test_craw  -tag game -coro 1 -pp C:\Users\Administrator\Desktop\project\github\instagram_project\data\zone2_ips_us.txt
+	log.InitLogger()
+	flag.Parse()
+	if *TaskConfigPath == "" {
+		log.Error("task config path is null!")
+		os.Exit(0)
+	}
+
+	err = common.LoadJsonFile(*TaskConfigPath, &config)
+	if err != nil {
+		log.Error("lod task config error: %v", err)
+		os.Exit(0)
+	}
+
+	if config.LastTime != "" {
+		LastTime, err = time.Parse("2006-01-02", config.LastTime)
+		if err != nil {
+			log.Error("parse LastTime: %s, error: %v", config.LastTime, err)
+			os.Exit(0)
+		}
+	} else {
+		LastTime = time.Now().Add(0 - time.Hour*24*30)
+		config.LastTime = LastTime.Format("2006-01-02")
+		log.Info("last time is last month! time:%v", config.LastTime)
+	}
+
+	if config.CoroCount == 0 {
+		config.CoroCount = runtime.NumCPU()*2 + 1
+	}
+
+	WorkPath, _ = os.Getwd()
+	if config.WorkPath == "" {
+		config.WorkPath = WorkPath + PathSeparator + config.TaskName + PathSeparator
+	}
+
+	err = os.MkdirAll(config.WorkPath, 777)
+	if err != nil {
+		log.Error("make dir: %s error: %v", config.WorkPath, err)
+		os.Exit(0)
+	}
+
+	err = common.Dumps(*TaskConfigPath, &config)
+	if err != nil {
+		log.Error("Dumps config error: %v", err)
+		os.Exit(0)
+	}
+	log.Info("init config success!")
+}
+
+func main() {
+	config2.UseCharles = false
+	initParams()
+	routine.InitRoutine(config.ProxyPath)
+	routine.InitRoutineCrawDB(config.TaskName)
+	CrawTags()
+	CrawMedias(TagList.Front().Next().Next().Value.(*goinsta.Tags))
+}

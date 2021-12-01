@@ -31,11 +31,11 @@ func InitMogoDB() {
 		log.Fatal(err)
 	}
 
-	MogoHelper.Phone = MogoHelper.Client.Database("inst").Collection("Phone")
-	MogoHelper.Account = MogoHelper.Client.Database("inst").Collection("Account")
+	MogoHelper.Phone = MogoHelper.Client.Database("inst").Collection("phone")
+	MogoHelper.Account = MogoHelper.Client.Database("inst").Collection("account")
 }
 func GetDB(name string) *mongo.Database {
-	return MogoHelper.Client.Database("inst")
+	return MogoHelper.Client.Database(name)
 }
 
 func GetMogoHelper() *MogoDBHelper {

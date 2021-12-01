@@ -4,7 +4,6 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/common/phone"
-	"makemoney/goinsta/dbhelper"
 	"math/rand"
 	"strconv"
 	"time"
@@ -56,11 +55,11 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	if err != nil {
 		return nil, err
 	}
-	dbhelper.UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
+	UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
 	var flag = false
 	defer func() {
 		if flag {
-			dbhelper.UpdatePhoneRegisterOnce(this.phone.GetArea(), this.number)
+			UpdatePhoneRegisterOnce(this.phone.GetArea(), this.number)
 		}
 	}()
 

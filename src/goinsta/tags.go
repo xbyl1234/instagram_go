@@ -2,6 +2,7 @@ package goinsta
 
 import (
 	"container/list"
+	"encoding/json"
 	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
@@ -183,7 +184,11 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	if this.NextID == "" {
-		params["supported_tabs"] = []string{"top", "recent"}
+		if this.Tab == TabTop {
+			params["tab"] = TabTop
+		} else {
+			params["supported_tabs"] = "[\"top\", \"recent\"]"
+		}
 		params["include_persistent"] = true
 		params["rank_token"] = this.RankToken
 	} else {
@@ -191,17 +196,14 @@ func (this *Tags) Next() (*RespHashtag, error) {
 		params["tab"] = this.Tab
 		params["page"] = this.NextPage
 		params["include_persistent"] = false
-		params["next_media_ids"] = this.NextMediaIds
+		tmp, _ := json.Marshal(this.NextMediaIds)
+		params["next_media_ids"] = common.B2s(tmp)
 	}
 
 	ht := &RespHashtag{}
 	err := this.inst.HttpRequestJson(
 		&reqOptions{
-			Query: map[string]interface{}{
-				"max_id":     this.NextID,
-				"rank_token": "",
-				"page":       fmt.Sprintf("%d", this.NextPage),
-			},
+			Query:   params,
 			ApiPath: fmt.Sprintf(urlTagSections, this.Name),
 			IsPost:  true,
 		}, ht,
