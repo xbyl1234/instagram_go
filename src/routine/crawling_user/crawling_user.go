@@ -378,7 +378,7 @@ func main() {
 	config2.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
-	routine.InitRoutineCrawDB(config.TaskName)
+	routine.InitRoutineDB(config.TaskName)
 
 	CrawTags()
 	log.Info("tags count: %d", TagList.Len())

@@ -30,9 +30,9 @@ func (this *Register) Do(username string, firstname string, password string) (*I
 	} else {
 
 	}
-	inst.registerIpCountry = this.proxy.Country
-	inst.registerPhoneArea = this.phone.GetArea()
-	inst.registerPhoneNumber = this.number
+	inst.RegisterIpCountry = this.proxy.Country
+	inst.RegisterPhoneArea = this.phone.GetArea()
+	inst.RegisterPhoneNumber = this.number
 	return inst, err
 }
 
@@ -87,7 +87,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	}
 
 	this.inst.IsLogin = true
-	this.inst.id = createValidated.CreatedUser.ID
+	this.inst.ID = createValidated.CreatedUser.ID
 	flag = true
 	return this.inst, err
 }

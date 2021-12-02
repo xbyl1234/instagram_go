@@ -25,6 +25,7 @@ func (this *Account) Sync() error {
 		this.Detail = &resp.User
 		this.HadSync = true
 	}
+	err = resp.CheckError(err)
 	return err
 }
 

@@ -16,7 +16,7 @@ var TagCollection *mongo.Collection
 var MediaCollection *mongo.Collection
 var UserCollection *mongo.Collection
 
-func InitRoutineCrawDB(taskName string) {
+func InitRoutineDB(taskName string) {
 	CrawlingDB = common.GetDB(taskName)
 	TagCollection = CrawlingDB.Collection("tags")
 	MediaCollection = CrawlingDB.Collection("media")

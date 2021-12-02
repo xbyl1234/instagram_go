@@ -16,31 +16,36 @@ type Resourcet struct {
 var Resource Resourcet
 
 func InitResource(icoPath string, usernamePath string) error {
-	data, err := ioutil.ReadFile(usernamePath)
-	if err != nil {
-		return err
-	}
-	sp := strings.Split(string(data), "\n")
-	for idx := range sp {
-		username := sp[idx]
-		username = strings.ReplaceAll(username, " ", "")
-		username = strings.ReplaceAll(username, "\n", "")
-		username = strings.ReplaceAll(username, "\r", "")
-		if len(username) > 3 {
-			Resource.username = append(Resource.username, username)
+	if usernamePath != "" {
+		data, err := ioutil.ReadFile(usernamePath)
+		if err != nil {
+			return err
+		}
+		sp := strings.Split(string(data), "\n")
+		for idx := range sp {
+			username := sp[idx]
+			username = strings.ReplaceAll(username, " ", "")
+			username = strings.ReplaceAll(username, "\n", "")
+			username = strings.ReplaceAll(username, "\r", "")
+			if len(username) > 3 {
+				Resource.username = append(Resource.username, username)
+			}
 		}
 	}
-	//ico
-	dir, err := ioutil.ReadDir(icoPath)
-	if err != nil {
-		return err
-	}
-	PthSep := string(os.PathSeparator)
-	for _, fi := range dir {
-		if fi.IsDir() {
-			continue
+
+	if icoPath != "" {
+		//ico
+		dir, err := ioutil.ReadDir(icoPath)
+		if err != nil {
+			return err
 		}
-		Resource.ico = append(Resource.ico, icoPath+PthSep+fi.Name())
+		PthSep := string(os.PathSeparator)
+		for _, fi := range dir {
+			if fi.IsDir() {
+				continue
+			}
+			Resource.ico = append(Resource.ico, icoPath+PthSep+fi.Name())
+		}
 	}
 	return nil
 }

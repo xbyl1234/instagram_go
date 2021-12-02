@@ -97,7 +97,7 @@ func SaveInstToDB(inst *Instagram) error {
 	urlb, _ := neturl.Parse(goInstaHost_B)
 
 	Cookies := AccountCookies{
-		ID:                  inst.id,
+		ID:                  inst.ID,
 		Username:            inst.User,
 		Passwd:              inst.Pass,
 		AndroidID:           inst.androidID,
@@ -111,9 +111,9 @@ func SaveInstToDB(inst *Instagram) error {
 		HttpHeader:          inst.httpHeader,
 		ProxyID:             inst.Proxy.ID,
 		IsLogin:             inst.IsLogin,
-		RegisterPhoneNumber: inst.registerPhoneNumber,
-		RegisterPhoneArea:   inst.registerPhoneArea,
-		RegisterIpCountry:   inst.registerIpCountry,
+		RegisterPhoneNumber: inst.RegisterPhoneNumber,
+		RegisterPhoneArea:   inst.RegisterPhoneArea,
+		RegisterIpCountry:   inst.RegisterIpCountry,
 	}
 	return SaveNewAccount(Cookies)
 }
@@ -153,7 +153,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	jar.SetCookies(urlb, config.CookiesB)
 
 	inst := &Instagram{
-		id:                  config.ID,
+		ID:                  config.ID,
 		User:                config.Username,
 		Pass:                config.Passwd,
 		androidID:           config.AndroidID,
@@ -164,9 +164,9 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		wid:                 config.Wid,
 		httpHeader:          config.HttpHeader,
 		IsLogin:             config.IsLogin,
-		registerPhoneNumber: config.RegisterPhoneNumber,
-		registerPhoneArea:   config.RegisterPhoneArea,
-		registerIpCountry:   config.RegisterIpCountry,
+		RegisterPhoneNumber: config.RegisterPhoneNumber,
+		RegisterPhoneArea:   config.RegisterPhoneArea,
+		RegisterIpCountry:   config.RegisterIpCountry,
 		c: &http.Client{
 			Jar: jar,
 		},

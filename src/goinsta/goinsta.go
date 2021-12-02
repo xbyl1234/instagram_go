@@ -19,11 +19,11 @@ type Instagram struct {
 	adid                string
 	wid                 string
 	challengeURL        string
-	id                  int64
+	ID                  int64
 	httpHeader          map[string]string
-	registerPhoneNumber string
-	registerPhoneArea   string
-	registerIpCountry   string
+	RegisterPhoneNumber string
+	RegisterPhoneArea   string
+	RegisterIpCountry   string
 	IsLogin             bool
 
 	ReqSuccessCount  int
@@ -88,7 +88,7 @@ func (this *Instagram) GetAccount() *Account {
 	if !this.IsLogin {
 		return nil
 	}
-	return &Account{ID: this.id, inst: this}
+	return &Account{ID: this.ID, inst: this}
 }
 
 func (this *Instagram) GetUser(id string) *User {
@@ -140,7 +140,7 @@ func (this *Instagram) contactPrefill() error {
 
 	if this.IsLogin {
 		query = map[string]interface{}{
-			"_uid":      this.id,
+			"_uid":      this.ID,
 			"device_id": this.uuid,
 			"_uuid":     this.uuid,
 			"usage":     "auto_confirmation",
@@ -169,8 +169,8 @@ func (this *Instagram) launcherSync() error {
 
 	if this.IsLogin {
 		query = map[string]interface{}{
-			"id":                      this.id,
-			"_uid":                    this.id,
+			"id":                      this.ID,
+			"_uid":                    this.ID,
 			"_uuid":                   this.uuid,
 			"server_config_retrieval": "1",
 		}
@@ -284,7 +284,7 @@ func (this *Instagram) Login() error {
 	encodePasswd, _ := encryptPassword(this.Pass, this.ReadHeader(IGHeader_EncryptionId), this.ReadHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
 		"jazoest":             genJazoest(this.familyID),
-		"country_codes":       "[{\"country_code\":\"" + strings.ReplaceAll(this.registerPhoneArea, "+", "") + "\",\"source\":[\"default\"]}]",
+		"country_codes":       "[{\"country_code\":\"" + strings.ReplaceAll(this.RegisterPhoneArea, "+", "") + "\",\"source\":[\"default\"]}]",
 		"phone_id":            this.familyID,
 		"enc_password":        encodePasswd,
 		"username":            this.User,
@@ -305,7 +305,7 @@ func (this *Instagram) Login() error {
 	err = resp.CheckError(err)
 	if err != nil && this.ReadHeader(IGHeader_Authorization) != "" {
 		this.IsLogin = true
-		this.id = resp.LoggedInUser.Pk
+		this.ID = resp.LoggedInUser.Pk
 	}
 	return err
 }
@@ -314,8 +314,8 @@ func (this *Instagram) syncFeatures() error {
 	var params map[string]interface{}
 	if this.IsLogin {
 		params = map[string]interface{}{
-			"id":          this.id,
-			"_uid":        this.id,
+			"id":          this.ID,
+			"_uid":        this.ID,
 			"_uuid":       this.uuid,
 			"experiments": goInstaExperiments,
 		}

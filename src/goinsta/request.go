@@ -102,8 +102,8 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	//}
 
 	if this.IsLogin {
-		req.Header.Set("ig-intended-user-id", strconv.FormatInt(this.id, 10))
-		req.Header.Set("ig-u-ds-user-id", strconv.FormatInt(this.id, 10))
+		req.Header.Set("ig-intended-user-id", strconv.FormatInt(this.ID, 10))
+		req.Header.Set("ig-u-ds-user-id", strconv.FormatInt(this.ID, 10))
 	}
 }
 
@@ -144,7 +144,7 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 			this.httpHeader[setting[len("ig-set-"):]] = resp.Header.Get(key)
 
 			if IGHeader_udsUserID == setting[len("ig-set-"):] {
-				this.id, _ = strconv.ParseInt(resp.Header.Get(key), 10, 64)
+				this.ID, _ = strconv.ParseInt(resp.Header.Get(key), 10, 64)
 			}
 		}
 	}
