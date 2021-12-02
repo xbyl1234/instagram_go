@@ -117,7 +117,7 @@ func main() {
 	log.Info("--------------- proxy error --------------")
 	for index := range result {
 		if result[index].str == "no proxy" {
-			log.Error("username: %s, %s", result[index].inst.User, result[index].str)
+			log.Warn("username: %s, %s", result[index].inst.User, result[index].str)
 		}
 	}
 
@@ -128,6 +128,12 @@ func main() {
 		}
 	}
 
+	for index := range result {
+		if result[index].str == "no proxy" {
+			result[index].inst.IsLogin = result[index].IsLogin
+			goinsta.SaveInstToDB(result[index].inst)
+		}
+	}
 	//for item := accounts.Front(); item != nil; item = item.Next() {
 	//	acc := item.Value.(*tmpAccount)
 	//	inst := goinsta.New(acc.username, acc.passwd, common.ProxyPool.GetOne())

@@ -19,7 +19,7 @@ func (this *Account) Sync() error {
 		Query: map[string]interface{}{
 			"edit": true,
 		}},
-		resp)
+		&resp)
 
 	if err == nil {
 		this.Detail = &resp.User
