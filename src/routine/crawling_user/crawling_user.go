@@ -11,6 +11,8 @@ import (
 	"makemoney/routine"
 	"os"
 	"runtime"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -30,6 +32,7 @@ var config CrawConfig
 var WorkPath string
 var PathSeparator = string(os.PathSeparator)
 var LastTime time.Time
+var WaitAll sync.WaitGroup
 
 func ReqAccount() *goinsta.Instagram {
 	inst := goinsta.AccountPool.GetOne()
@@ -48,6 +51,7 @@ func ReqAccount() *goinsta.Instagram {
 var TagList = list.New()
 var TagIDSet = mapset.NewSet()
 var MediaChan = make(chan *routine.MediaComb, 1000)
+var NotFinishTags int32
 
 func LoadTags() {
 	retTagList, err := routine.LoadTags()
@@ -66,6 +70,11 @@ func CrawTags() {
 	var search *goinsta.Search
 	var err error
 	inst := ReqAccount()
+	if inst == nil {
+		log.Error("CrawTags no more account!")
+		return
+	}
+
 	defer goinsta.AccountPool.ReleaseOne(inst)
 
 	search, err = routine.LoadSearch()
@@ -81,6 +90,7 @@ func CrawTags() {
 	}
 	if !search.HasMore {
 		log.Info("pass search tag...")
+		config.CrawTagsStatus = true
 		return
 	}
 
@@ -90,6 +100,7 @@ func CrawTags() {
 		searchResult, err := search.NextTags()
 		if err != nil {
 			if common.IsNoMoreError(err) {
+				config.CrawTagsStatus = true
 				log.Info("tags has craw finish!")
 				break
 			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
@@ -132,8 +143,13 @@ func CrawTags() {
 }
 
 func CrawMedias(tag *goinsta.Tags) {
+	defer WaitAll.Done()
 	inst := ReqAccount()
-	inst = ReqAccount()
+	if inst == nil {
+		log.Error("CrawMedias no more account!")
+		return
+	}
+
 	tag.SetAccount(inst)
 
 	err := tag.Sync(goinsta.TabRecent)
@@ -149,6 +165,10 @@ func CrawMedias(tag *goinsta.Tags) {
 		tagResult, err := tag.Next()
 		if err != nil {
 			if common.IsNoMoreError(err) {
+				num := atomic.AddInt32(&NotFinishTags, -1)
+				if num == 0 {
+					config.CrawMediasStatus = true
+				}
 				log.Info("tags %s medias has craw finish!", tag.Name)
 				break
 			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
@@ -200,62 +220,80 @@ func CrawMedias(tag *goinsta.Tags) {
 	goinsta.AccountPool.ReleaseOne(inst)
 }
 
-func CrawCommonUser(mediaComb *routine.MediaComb) {
-	if mediaComb.Media.CommentCount == 0 {
+func CrawCommonUser() {
+	defer WaitAll.Done()
+	inst := ReqAccount()
+	if inst == nil {
+		log.Error("CrawCommonUser no more account!")
 		return
 	}
-	inst := ReqAccount()
-	mediaComb.Media.SetAccount(inst)
 
-	if mediaComb.Comments != nil {
-		mediaComb.Comments.SetAccount(inst)
-	} else {
-		mediaComb.Comments = mediaComb.Media.GetComments()
-	}
+	unknowErrorCount := 0
 
-	for true {
-		respComm, err := mediaComb.Comments.NextComments()
-		if err != nil {
-			if common.IsNoMoreError(err) {
-				log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
-				break
-			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
-				if inst.NeedReplace() {
-					goinsta.AccountPool.BlackOne(inst)
-					_inst := ReqAccount()
-					if _inst == nil {
-						log.Error("CrawCommonUser no more account!")
-						break
-					}
-					log.Warn("CrawCommonUser replace account %s->%s", inst.User, _inst.User)
-					inst = _inst
-					mediaComb.Media.SetAccount(_inst)
-					mediaComb.Comments.SetAccount(_inst)
-				} else {
-					log.Warn("CrawCommonUser retrying...user: %s, err: %v", inst.User, err)
-				}
-				continue
-			} else {
-				log.Error("NextComments error:%v", err)
-				break
-			}
+	for mediaComb := range MediaChan {
+		if mediaComb.Media.CommentCount == 0 {
+			continue
+		}
+		mediaComb.Media.SetAccount(inst)
+		if mediaComb.Comments != nil {
+			mediaComb.Comments.SetAccount(inst)
+		} else {
+			mediaComb.Comments = mediaComb.Media.GetComments()
 		}
 
-		comments := respComm.GetAllComments()
-		var userComb routine.UserComb
-		for index := range comments {
-			userComb.User = &comments[index].User
-			userComb.Source = "comments"
-			err = routine.SaveUser(&userComb)
+		for true {
+			respComm, err := mediaComb.Comments.NextComments()
 			if err != nil {
-				log.Error("SaveUser error:%v", err)
+				if common.IsNoMoreError(err) {
+					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
+					break
+				} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
+					if inst.NeedReplace() {
+						goinsta.AccountPool.BlackOne(inst)
+						_inst := ReqAccount()
+						if _inst == nil {
+							log.Error("CrawCommonUser no more account!")
+							break
+						}
+						log.Warn("CrawCommonUser replace account %s->%s", inst.User, _inst.User)
+						inst = _inst
+						mediaComb.Media.SetAccount(_inst)
+						mediaComb.Comments.SetAccount(_inst)
+					} else {
+						log.Warn("CrawCommonUser retrying...user: %s, err: %v", inst.User, err)
+					}
+					continue
+				} else {
+					unknowErrorCount++
+					log.Error("NextComments error:%v", err)
+					break
+				}
+			} else {
+				unknowErrorCount = 0
+			}
+
+			if unknowErrorCount > 3 {
+				return
+			} else if unknowErrorCount != 0 {
 				break
 			}
-		}
-		err = routine.SaveComments(mediaComb)
-		if err != nil {
-			log.Error("SaveMedia error:%v", err)
-			break
+
+			comments := respComm.GetAllComments()
+			var userComb routine.UserComb
+			for index := range comments {
+				userComb.User = &comments[index].User
+				userComb.Source = "comments"
+				err = routine.SaveUser(&userComb)
+				if err != nil {
+					log.Error("SaveUser error:%v", err)
+					break
+				}
+			}
+			err = routine.SaveComments(mediaComb)
+			if err != nil {
+				log.Error("SaveMedia error:%v", err)
+				break
+			}
 		}
 	}
 
@@ -263,22 +301,25 @@ func CrawCommonUser(mediaComb *routine.MediaComb) {
 }
 
 func SendMedias() {
+	defer WaitAll.Done()
 	for true {
 		medias, err := routine.LoadMedia(100)
 		if err != nil {
 			log.Error("load media error: %v", err)
-			return
+			break
 		}
 		if len(medias) == 0 && config.CrawTagsStatus && config.CrawMediasStatus {
 			config.CrawCommentUserStatus = true
 			log.Info("craw common user finish!")
-			return
+			break
 		}
 
 		for index := range medias {
 			MediaChan <- &medias[index]
 		}
 	}
+
+	close(MediaChan)
 }
 
 func initParams() {
@@ -334,13 +375,30 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitRoutineCrawDB(config.TaskName)
 
-	medias, _ := routine.LoadMedia(1)
-	CrawCommonUser(&medias[0])
-	//CrawTags()
-	//CrawMedias(TagList.Front().Next().Next().Value.(*goinsta.Tags))
+	CrawTags()
+	log.Info("tags count: %d", TagList.Len())
+
+	if TagList.Len() == 0 {
+		config.CrawMediasStatus = true
+		log.Info("pass craw medias...")
+	} else {
+		NotFinishTags = int32(TagList.Len())
+		WaitAll.Add(TagList.Len())
+		for item := TagList.Front(); item != nil; item = item.Next() {
+			go CrawMedias(item.Value.(*goinsta.Tags))
+		}
+	}
+
+	WaitAll.Add(1 + config.CoroCount)
+	go SendMedias()
+	for index := 0; index < config.CoroCount; index++ {
+		go CrawCommonUser()
+	}
+
+	WaitAll.Wait()
 }
