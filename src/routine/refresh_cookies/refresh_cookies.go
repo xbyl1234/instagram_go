@@ -8,16 +8,31 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
+	"runtime"
+	"sync"
 )
 
 type tmpAccount struct {
 	username string
 	passwd   string
 }
+type TestLoginResult struct {
+	inst    *goinsta.Instagram
+	IsLogin bool
+	err     error
+	str     string
+}
 
 var ProxyPath = flag.String("proxy", "", "")
 var ResIcoPath = flag.String("ico", "", "")
 var TestIsLogin = flag.Bool("test_login", false, "")
+var Coro = flag.Int("coro", runtime.NumCPU(), "")
+
+var TestAccount = make(chan *goinsta.Instagram, 1000)
+var TestResult = make(chan *TestLoginResult, 1000)
+var TestResultList []*TestLoginResult
+var WaitTask sync.WaitGroup
+var WaitExit sync.WaitGroup
 
 func initParams() {
 	flag.Parse()
@@ -32,14 +47,7 @@ func initParams() {
 	}
 }
 
-type TestLoginResult struct {
-	inst    *goinsta.Instagram
-	IsLogin bool
-	err     error
-	str     string
-}
-
-func InitAccount(inst *goinsta.Instagram) bool {
+func SetProxy(inst *goinsta.Instagram) bool {
 	if inst.Proxy.ID != "" {
 		_proxy := common.ProxyPool.Get(inst.Proxy.ID)
 		if _proxy == nil {
@@ -58,56 +66,78 @@ func InitAccount(inst *goinsta.Instagram) bool {
 	return true
 }
 
-func main() {
-	config.UseCharles = false
-
-	initParams()
-	common.InitMogoDB()
-	routine.InitRoutine(*ProxyPath)
-	err := common.InitResource(*ResIcoPath, "")
+func Login(inst *goinsta.Instagram) error {
+	err := inst.Login()
 	if err != nil {
-		log.Error("load res error: %v", err)
-		os.Exit(0)
+		log.Warn("username: %s, login error: %v", inst.User, err.Error())
+		return err
 	}
+	log.Info("username: %s, login success", inst.User)
+	return nil
+}
 
-	insts := goinsta.LoadAllAccount()
-	if len(insts) == 0 {
-		log.Error("there have no account!")
-		os.Exit(0)
-	}
-	log.Info("load account count: %d", len(insts))
-	result := make([]TestLoginResult, len(insts))
+func TestAndLogin() {
+	for inst := range TestAccount {
+		result := &TestLoginResult{}
+		result.inst = inst
 
-	if *TestIsLogin {
-		for index := range insts {
-			inst := insts[index]
-			result[index].inst = inst
-
-			if !InitAccount(inst) {
-				result[index].str = "no proxy"
-				result[index].IsLogin = false
-				continue
-			}
-
-			if inst.ID == 0 {
-				result[index].str = "id is 0,not login"
-				result[index].IsLogin = false
-				continue
-			}
+		if SetProxy(inst) {
 			acc := inst.GetAccount()
 			err := acc.Sync()
 			if err != nil {
-				result[index].str = "account sync error"
-				result[index].IsLogin = false
-				result[index].err = err
+				result.str = "account sync error"
+				result.IsLogin = false
+				result.err = err
 			} else {
-				result[index].IsLogin = true
+				result.IsLogin = true
 			}
+
+			if result.IsLogin == false {
+				err = Login(inst)
+				if err != nil {
+					result.str = "login error"
+					result.IsLogin = false
+					result.err = err
+				} else {
+					result.IsLogin = true
+				}
+			}
+		} else {
+			result.str = "no proxy"
+			result.IsLogin = false
 		}
+		TestResult <- result
+	}
+	WaitTask.Done()
+}
+
+func SendAccount(insts []*goinsta.Instagram) {
+	for index := range insts {
+		TestAccount <- insts[index]
 	}
 
-	log.Info("test finish")
+	close(TestAccount)
+	WaitTask.Wait()
+	close(TestResult)
+	WaitExit.Done()
+}
 
+func RecvAccount() {
+	index := 0
+	for result := range TestResult {
+		TestResultList[index] = result
+		index++
+
+		if result.str != "no proxy" {
+			result.inst.IsLogin = result.IsLogin
+			goinsta.SaveInstToDB(result.inst)
+		}
+	}
+	PrintResult(TestResultList)
+	WaitExit.Done()
+}
+
+func PrintResult(result []*TestLoginResult) {
 	log.Info("---------------login account---------------")
 	for index := range result {
 		if result[index].IsLogin {
@@ -127,23 +157,37 @@ func main() {
 			log.Error("username: %s, %s, err: %v", result[index].inst.User, result[index].str, result[index].err)
 		}
 	}
+}
+func main() {
+	config.UseCharles = false
 
-	for index := range result {
-		if result[index].str == "no proxy" {
-			result[index].inst.IsLogin = result[index].IsLogin
-			goinsta.SaveInstToDB(result[index].inst)
-		}
+	initParams()
+	common.InitMogoDB()
+	routine.InitRoutine(*ProxyPath)
+	err := common.InitResource(*ResIcoPath, "")
+	if err != nil {
+		log.Error("load res error: %v", err)
+		os.Exit(0)
 	}
-	//for item := accounts.Front(); item != nil; item = item.Next() {
-	//	acc := item.Value.(*tmpAccount)
-	//	inst := goinsta.New(acc.username, acc.passwd, common.ProxyPool.GetOne())
-	//	inst.PrepareNewClient()
-	//	err := inst.Login()
-	//	if err != nil {
-	//		log.Warn("username: %s, login error: %v", acc.username, err.Error())
-	//	} else {
-	//		log.Info("username: %s, login success", acc.username)
-	//	}
-	//	_ = goinsta.SaveInstToDB(inst)
-	//}
+
+	insts := goinsta.LoadAllAccount()
+	if len(insts) == 0 {
+		log.Error("there have no account!")
+		os.Exit(0)
+	}
+	log.Info("load account count: %d", len(insts))
+	TestResultList = make([]*TestLoginResult, len(insts))
+
+	WaitExit.Add(2)
+	WaitTask.Add(*Coro)
+	go SendAccount(insts)
+	go RecvAccount()
+
+	for i := 0; i < *Coro; i++ {
+		go TestAndLogin()
+	}
+
+	WaitExit.Wait()
+
+	log.Info("test finish")
 }

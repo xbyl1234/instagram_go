@@ -71,23 +71,14 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 }
 
 func (this *Instagram) GetSearch(q string) *Search {
-	if !this.IsLogin {
-		return nil
-	}
 	return newSearch(this, q)
 }
 
 func (this *Instagram) GetUpload() *Upload {
-	if !this.IsLogin {
-		return nil
-	}
 	return newUpload(this)
 }
 
 func (this *Instagram) GetAccount() *Account {
-	if !this.IsLogin {
-		return nil
-	}
 	return &Account{ID: this.ID, inst: this}
 }
 
@@ -97,9 +88,6 @@ func (this *Instagram) GetUser(id string) *User {
 }
 
 func (this *Instagram) GetMessage(msgType MessageType) *Message {
-	if !this.IsLogin {
-		return nil
-	}
 	return &Message{inst: this, msgType: msgType}
 }
 
