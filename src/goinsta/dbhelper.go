@@ -2,6 +2,7 @@ package goinsta
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"makemoney/common"
@@ -177,6 +178,9 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		c: &http.Client{
 			Jar: jar,
 		},
+	}
+	if inst.UserAgent == "" {
+		inst.UserAgent = fmt.Sprintf(goInstaUserAgent, common.GenString(common.CharSet_123, 9))
 	}
 
 	inst.Proxy = &common.Proxy{ID: config.ProxyID}

@@ -63,3 +63,11 @@ func IsError(err error, errType ErrType) bool {
 	}
 	return false
 }
+
+func GetErrorMsg(err error) string {
+	e, ok := err.(*MakeMoneyError)
+	if ok {
+		return e.ErrStr
+	}
+	return ""
+}

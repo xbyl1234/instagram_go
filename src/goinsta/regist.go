@@ -11,16 +11,20 @@ import (
 )
 
 type Register struct {
-	inst   *Instagram
-	number string
-	phone  phone.PhoneVerificationCode
-	proxy  *common.Proxy
+	inst       *Instagram
+	number     string
+	phone      phone.PhoneVerificationCode
+	proxy      *common.Proxy
+	HadSendSMS bool
+	HadRecvSMS bool
 }
 
 func NewRegister(_proxy *common.Proxy, _phone phone.PhoneVerificationCode) *Register {
 	register := &Register{}
 	register.phone = _phone
 	register.proxy = _proxy
+	register.HadSendSMS = false
+	register.HadRecvSMS = false
 	return register
 }
 
@@ -55,6 +59,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	if err != nil {
 		return nil, err
 	}
+	this.HadSendSMS = true
 
 	UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
 	var flag = false
@@ -68,6 +73,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	if err != nil {
 		return nil, err
 	}
+	this.HadRecvSMS = true
 
 	_, err = this.validateSignupSmsCode(code)
 	if err != nil {

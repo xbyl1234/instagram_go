@@ -117,6 +117,11 @@ func (this *Instagram) NeedReplace() bool {
 	return false
 }
 
+func (this *Instagram) CleanCookiesAndHeader() {
+	this.httpHeader = make(map[string]string)
+	this.c.Jar, _ = cookiejar.New(nil)
+}
+
 func (this *Instagram) ReadHeader(key string) string {
 	return this.httpHeader[key]
 }

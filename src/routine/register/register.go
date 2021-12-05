@@ -23,7 +23,11 @@ var RegisterCount = flag.Int("count", 0, "")
 
 var Count int32 = 0
 var SuccessCount = 0
-var ErrorCount = 0
+var ErrorCreateCount = 0
+var ErrorSendSMSCount = 0
+var ErrorRecvSMSCount = 0
+var ErrorOtherCount = 0
+
 var PhoneProvider phone.PhoneVerificationCode
 
 var WaitAll sync.WaitGroup
@@ -62,14 +66,25 @@ func Register() {
 			SuccessCount++
 		} else {
 			if common.IsError(err, common.ApiError) {
-				if strings.Index(err.Error(), "wait a few minutes") != -1 {
+				if strings.Index(err.Error(), "wait a few minutes") != -1 || strings.Index(err.Error(), "请稍等几分钟再试") != -1 {
+					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
+				} else if strings.Index(err.Error(), "feedback_required") != -1 {
 					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
 				}
+			}
+
+			if !regisert.HadSendSMS {
+				ErrorSendSMSCount++
+			} else if regisert.HadSendSMS && !regisert.HadRecvSMS {
+				ErrorRecvSMSCount++
+			} else if regisert.HadSendSMS && regisert.HadRecvSMS {
+				ErrorCreateCount++
+			} else {
+				ErrorOtherCount++
 			}
 			//challenge_required
 			//feedback_required
 			log.Warn("register error, %v", err)
-			ErrorCount++
 		}
 	}
 	WaitAll.Done()
@@ -123,4 +138,10 @@ func main() {
 		go Register()
 	}
 	WaitAll.Wait()
+	log.Info("success: %d, create err: %d, send msg err: %d, recv msg err: %d, other err: %d",
+		SuccessCount,
+		ErrorCreateCount,
+		ErrorSendSMSCount,
+		ErrorRecvSMSCount,
+		ErrorOtherCount)
 }
