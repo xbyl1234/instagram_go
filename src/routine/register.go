@@ -1,5 +1,0 @@
-package routine
-
-func main() {
-
-}

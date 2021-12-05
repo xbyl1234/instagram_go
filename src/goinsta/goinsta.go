@@ -1,12 +1,17 @@
 package goinsta
 
 import (
+	"fmt"
 	"makemoney/common"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
 	"strconv"
 	"strings"
+)
+
+var (
+	InsAccountError_ChallengeRequired = "challenge_required"
 )
 
 type Instagram struct {
@@ -26,6 +31,7 @@ type Instagram struct {
 	RegisterIpCountry   string
 	IsLogin             bool
 
+	Status           string
 	ReqSuccessCount  int
 	ReqErrorCount    int
 	ReqApiErrorCount int
@@ -67,6 +73,7 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 	inst.httpHeader = make(map[string]string)
 	common.DebugHttpClient(inst.c)
 
+	goInstaUserAgent = fmt.Sprintf(goInstaUserAgent, common.GenString(common.CharSet_123, 9))
 	return inst
 }
 

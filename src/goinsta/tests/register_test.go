@@ -42,9 +42,9 @@ func TestRegister(t *testing.T) {
 	//	log.Error("provider login error!")
 	//	os.Exit(0)
 	//}
-	_proxy := common.ProxyPool.GetOne()
-	_proxy = common.ProxyPool.GetOne()
-	_proxy = common.ProxyPool.GetOne()
+	_proxy := common.ProxyPool.GetNoRisk()
+	_proxy = common.ProxyPool.GetNoRisk()
+	_proxy = common.ProxyPool.GetNoRisk()
 	if _proxy == nil {
 		log.Error("get proxy error: %v", _proxy)
 	}

@@ -1,6 +1,7 @@
 package goinsta
 
 import (
+	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/common/phone"
@@ -26,10 +27,9 @@ func NewRegister(_proxy *common.Proxy, _phone phone.PhoneVerificationCode) *Regi
 func (this *Register) Do(username string, firstname string, password string) (*Instagram, error) {
 	inst, err := this.do(username, firstname, password)
 	if err != nil {
-		log.Error("register ip %s, error %v", this.proxy.Rip, err)
-	} else {
-
+		return nil, err
 	}
+
 	inst.RegisterIpCountry = this.proxy.Country
 	inst.RegisterPhoneArea = this.phone.GetArea()
 	inst.RegisterPhoneNumber = this.number
@@ -45,16 +45,17 @@ func (this *Register) do(username string, firstname string, password string) (*I
 		return nil, err
 	}
 
+	log.Info("get phone number: %s", number)
 	this.number = number
 	err = this.checkPhoneNumber()
 	//if err != nil {
 	//	return nil, err
 	//}
 	respSendSignupSmsCode, err := this.sendSignupSmsCode()
-	err = respSendSignupSmsCode.CheckError(err)
 	if err != nil {
 		return nil, err
 	}
+
 	UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
 	var flag = false
 	defer func() {
@@ -68,8 +69,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 		return nil, err
 	}
 
-	validateSignupSmsCode, err := this.validateSignupSmsCode(code)
-	err = validateSignupSmsCode.CheckError(err)
+	_, err = this.validateSignupSmsCode(code)
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +81,11 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	this.inst.User = realUsername
 
 	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion)
-	err = createValidated.CheckError(err)
 	if err != nil {
 		return nil, err
 	}
 
-	this.inst.IsLogin = true
+	this.inst.IsLogin = false
 	this.inst.ID = createValidated.CreatedUser.ID
 	flag = true
 	return this.inst, err
@@ -110,8 +109,10 @@ func (this *Register) genUsername(username string) (string, error) {
 			}
 		}
 	}
-
-	return "", &common.MakeMoneyError{ErrStr: "not find available username!", ErrType: common.ApiError}
+	return username + fmt.Sprintf("%d%d%d",
+		common.GenNumber(1990, 2020),
+		common.GenNumber(1, 12),
+		common.GenNumber(1, 27)), nil
 }
 
 func (this *Register) checkPhoneNumber() error {
@@ -157,6 +158,7 @@ func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 			Query:   params,
 		}, resp)
 
+	err = resp.CheckError(err)
 	return resp, err
 }
 
@@ -192,6 +194,7 @@ func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSms
 			Query:   params,
 		}, resp)
 
+	err = resp.CheckError(err)
 	return resp, err
 }
 
@@ -316,13 +319,14 @@ func (this *Register) createValidated(
 
 	rand.Seed(time.Now().UnixNano())
 	params := map[string]interface{}{
-		"is_secondary_account_creation":          "false",
-		"jazoest":                                genJazoest(this.inst.familyID),
-		"tos_version":                            tosVersion,
-		"suggestedUsername":                      "",
-		"verification_code":                      code,
-		"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
-		"do_not_auto_login_if_credentials_match": "false",
+		"is_secondary_account_creation": "false",
+		"jazoest":                       genJazoest(this.inst.familyID),
+		"tos_version":                   tosVersion,
+		"suggestedUsername":             "",
+		"verification_code":             code,
+		//"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
+		"sn_result":                              "API_ERROR: class X.9ob:7: ",
+		"do_not_auto_login_if_credentials_match": "true",
 		"phone_id":                               this.inst.familyID,
 		"enc_password":                           encodePasswd,
 		"phone_number":                           this.phone.GetArea() + this.number,
@@ -352,5 +356,6 @@ func (this *Register) createValidated(
 			Query:   params,
 		}, resp)
 
+	err = resp.CheckError(err)
 	return resp, err
 }

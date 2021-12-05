@@ -61,7 +61,9 @@ func (this *PhoneDo889) RequirePhoneNumber() (string, error) {
 	this.reqLock.Lock()
 	defer this.reqLock.Unlock()
 
-	if this.RemainCount <= 10 && time.Since(this.lastReqPhoneTime).Minutes() < 1 {
+	if this.RemainCount <= 10 && this.RemainCount != -1 &&
+		time.Since(this.lastReqPhoneTime).Minutes() < 1 && !this.lastReqPhoneTime.IsZero() {
+		log.Warn("phone sleep this.RemainCount %d last %v since %d", this.RemainCount, this.lastReqPhoneTime, time.Since(this.lastReqPhoneTime).Minutes())
 		time.Sleep(time.Minute - time.Since(this.lastReqPhoneTime))
 	}
 
@@ -79,7 +81,12 @@ func (this *PhoneDo889) RequirePhoneNumber() (string, error) {
 	if respJson.Message != "ok" {
 		return "", &common.MakeMoneyError{ErrStr: respJson.Message}
 	}
-	this.RemainCount, _ = strconv.Atoi(respJson.RemainCount)
+
+	var errTmp error
+	this.RemainCount, errTmp = strconv.Atoi(respJson.RemainCount)
+	if errTmp != nil {
+		this.RemainCount = -1
+	}
 	return respJson.Mobile, err
 }
 

@@ -8,7 +8,6 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
-	"runtime"
 	"sync"
 )
 
@@ -26,7 +25,7 @@ type TestLoginResult struct {
 var ProxyPath = flag.String("proxy", "", "")
 var ResIcoPath = flag.String("ico", "", "")
 var TestIsLogin = flag.Bool("test_login", false, "")
-var Coro = flag.Int("coro", runtime.NumCPU(), "")
+var Coro = flag.Int("coro", 8, "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
 var TestResult = make(chan *TestLoginResult, 1000)
@@ -48,19 +47,22 @@ func initParams() {
 }
 
 func SetProxy(inst *goinsta.Instagram) bool {
+	var _proxy *common.Proxy
 	if inst.Proxy.ID != "" {
-		_proxy := common.ProxyPool.Get(inst.Proxy.ID)
+		_proxy = common.ProxyPool.Get(inst.Proxy.ID)
 		if _proxy == nil {
-			log.Error("find insta proxy error!")
-			return false
+			log.Warn("find insta proxy %s error!", inst.Proxy.ID)
 		}
-		inst.SetProxy(_proxy)
-	} else {
-		_proxy := common.ProxyPool.GetOne()
+	}
+
+	if _proxy == nil {
+		_proxy = common.ProxyPool.GetNoRisk(false, false)
 		if _proxy == nil {
-			log.Error("find insta proxy error!")
-			return false
+			log.Error("get insta proxy error!")
 		}
+	}
+
+	if _proxy != nil {
 		inst.SetProxy(_proxy)
 	}
 	return true
@@ -80,33 +82,34 @@ func TestAndLogin() {
 	for inst := range TestAccount {
 		result := &TestLoginResult{}
 		result.inst = inst
+		if !inst.IsLogin && inst.Status != goinsta.InsAccountError_ChallengeRequired {
+			if SetProxy(inst) {
+				//acc := inst.GetAccount()
+				//err := acc.Sync()
+				//if err != nil {
+				//	result.str = "account sync error"
+				//	result.IsLogin = false
+				//	result.err = err
+				//} else {
+				//	result.IsLogin = true
+				//}
 
-		if SetProxy(inst) {
-			acc := inst.GetAccount()
-			err := acc.Sync()
-			if err != nil {
-				result.str = "account sync error"
-				result.IsLogin = false
-				result.err = err
-			} else {
-				result.IsLogin = true
-			}
-
-			if result.IsLogin == false {
-				err = Login(inst)
-				if err != nil {
-					result.str = "login error"
-					result.IsLogin = false
-					result.err = err
-				} else {
-					result.IsLogin = true
+				if result.IsLogin == false {
+					err := Login(inst)
+					if err != nil {
+						result.str = "login error"
+						result.IsLogin = false
+						result.err = err
+					} else {
+						result.IsLogin = true
+					}
 				}
+			} else {
+				result.str = "no proxy"
+				result.IsLogin = false
 			}
-		} else {
-			result.str = "no proxy"
-			result.IsLogin = false
+			TestResult <- result
 		}
-		TestResult <- result
 	}
 	WaitTask.Done()
 }
@@ -129,11 +132,14 @@ func RecvAccount() {
 		index++
 
 		if result.str != "no proxy" {
+			if common.IsError(result.err, common.ChallengeRequiredError) {
+				result.inst.Status = goinsta.InsAccountError_ChallengeRequired
+			}
 			result.inst.IsLogin = result.IsLogin
 			goinsta.SaveInstToDB(result.inst)
 		}
 	}
-	PrintResult(TestResultList)
+	PrintResult(TestResultList[:index])
 	WaitExit.Done()
 }
 
@@ -158,6 +164,7 @@ func PrintResult(result []*TestLoginResult) {
 		}
 	}
 }
+
 func main() {
 	config.UseCharles = false
 

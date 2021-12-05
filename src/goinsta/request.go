@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/klauspost/compress/gzip"
+	"github.com/klauspost/compress/zstd"
+	"io"
 	"io/ioutil"
 	"makemoney/common"
 	"makemoney/common/log"
@@ -57,7 +60,11 @@ func (this *BaseApiResp) CheckError(err error) error {
 			this.username,
 			this.url,
 			this.ErrorType+":"+this.Message)
-		return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
+		if this.Message == InsAccountError_ChallengeRequired {
+			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ChallengeRequiredError}
+		} else {
+			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
+		}
 	}
 	return nil
 }
@@ -85,7 +92,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	req.Header.Set("x-fb-client-ip", "True")
 	req.Header.Set("x-fb-http-engine", "Liger")
 	req.Header.Set("x-fb-server-cluster", "True")
-	req.Header.Set("accept-encoding", "deflate")
+	req.Header.Set("accept-encoding", "zstd, gzip, deflate")
 	req.Header.Set("x-ig-family-device-id", this.familyID)
 
 	if req.Header.Get("content-type") == "" {
@@ -97,9 +104,9 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	if this.ReadHeader(IGHeader_iguRur) != "" {
 		req.Header.Set(IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
 	}
-	//if this.ReadHeader(IGHeader_XMid) != "" {
-	//	req.Header.Set(IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
-	//}
+	if this.ReadHeader(IGHeader_XMid) != "" {
+		req.Header.Set(IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
+	}
 
 	if this.IsLogin {
 		req.Header.Set("ig-intended-user-id", strconv.FormatInt(this.ID, 10))
@@ -220,7 +227,21 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	defer resp.Body.Close()
 	this.afterRequest(_url, resp)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	encoding := resp.Header.Get("Content-Encoding")
+
+	var body io.Reader
+	switch encoding {
+	case "gzip":
+		body, err = gzip.NewReader(resp.Body)
+		break
+	case "zstd":
+		body, err = zstd.NewReader(resp.Body)
+		break
+	case "deflate":
+		body = resp.Body
+		break
+	}
+
 	if err != nil {
 		return nil, &common.MakeMoneyError{
 			ErrType:   common.RequestError,
@@ -228,15 +249,25 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		}
 	}
 
-	return body, err
+	bodyData, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, &common.MakeMoneyError{
+			ErrType:   common.RequestError,
+			ExternErr: err,
+		}
+	}
+
+	return bodyData, err
 }
 
 func truncation(body []byte) []byte {
 	if body == nil {
 		return []byte("body is nil!")
 	}
-	if len(body) > 100 {
-		return body[:100]
+	if config.UseTruncation {
+		if len(body) > 100 {
+			return body[:100]
+		}
 	}
 	return body
 }

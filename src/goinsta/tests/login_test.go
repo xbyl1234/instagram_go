@@ -28,7 +28,7 @@ func TestLogin(t *testing.T) {
 	main.InitTest()
 	for item := accounts.Front(); item != nil; item = item.Next() {
 		acc := item.Value.(*tmpAccount)
-		inst := goinsta.New(acc.username, acc.passwd, common.ProxyPool.GetOne())
+		inst := goinsta.New(acc.username, acc.passwd, common.ProxyPool.GetNoRisk())
 		inst.PrepareNewClient()
 		err := inst.Login()
 		if err != nil {

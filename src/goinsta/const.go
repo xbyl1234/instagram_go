@@ -1,10 +1,10 @@
 package goinsta
 
-const (
-	goInstaHost        = "https://i.instagram.com/"
-	goInstaHost_B      = "https://b.i.instagram.com/"
-	goInstaUserAgent2  = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
-	goInstaUserAgent   = "Instagram 207.0.0.39.120 Android (27/8.1.0; 420dpi; 1080x1794; Google/google; Pixel; sailfish; sailfish; zh_CN_#Hans; 321039115)"
+var (
+	goInstaHost   = "https://i.instagram.com/"
+	goInstaHost_B = "https://b.i.instagram.com/"
+	//goInstaUserAgent   = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
+	goInstaUserAgent   = "Instagram 187.0.0.32.120 Android (27/8.1.0; 560dpi; 1440x2712; Google/google; Pixel 2 XL; taimen; taimen; zh_CN_#Hans; %s)"
 	fbAnalytics        = "567067343352427"
 	igCapabilities     = "3brTBw=="
 	connType           = "WIFI"

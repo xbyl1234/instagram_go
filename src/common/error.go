@@ -40,11 +40,12 @@ func (this *MakeMoneyError) Error() string {
 type ErrType int
 
 var (
-	ApiError     ErrType = 0
-	PorxyError   ErrType = 1
-	NoMoreError  ErrType = 2
-	OtherError   ErrType = 3
-	RequestError ErrType = 4
+	ApiError               ErrType = 0
+	PorxyError             ErrType = 1
+	NoMoreError            ErrType = 2
+	OtherError             ErrType = 3
+	RequestError           ErrType = 4
+	ChallengeRequiredError ErrType = 5
 )
 
 func IsNoMoreError(err error) bool {
