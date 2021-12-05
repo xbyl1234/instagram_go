@@ -1,6 +1,7 @@
 package goinsta
 
 import (
+	"encoding/json"
 	"fmt"
 	"makemoney/common"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	neturl "net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -30,8 +32,10 @@ type Instagram struct {
 	RegisterPhoneArea   string
 	RegisterIpCountry   string
 	IsLogin             bool
+	UserAgent           string
+	Status              string
+	sessionID           string
 
-	Status           string
 	ReqSuccessCount  int
 	ReqErrorCount    int
 	ReqApiErrorCount int
@@ -64,6 +68,8 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 		familyID:  common.GenUUID(),
 		wid:       common.GenUUID(),
 		adid:      common.GenUUID(),
+		UserAgent: fmt.Sprintf(goInstaUserAgent, common.GenString(common.CharSet_123, 9)),
+		sessionID: common.GenUUID(),
 		c: &http.Client{
 			Jar:       jar,
 			Transport: _proxy.GetProxy(),
@@ -73,7 +79,6 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 	inst.httpHeader = make(map[string]string)
 	common.DebugHttpClient(inst.c)
 
-	goInstaUserAgent = fmt.Sprintf(goInstaUserAgent, common.GenString(common.CharSet_123, 9))
 	return inst
 }
 
@@ -116,79 +121,31 @@ func (this *Instagram) ReadHeader(key string) string {
 	return this.httpHeader[key]
 }
 
-func (this *Instagram) readMsisdnHeader() error {
-	_, err := this.HttpRequest(
-		&reqOptions{
-			ApiPath: urlMsisdnHeader,
-			IsPost:  true,
-			Query: map[string]interface{}{
-				"device_id": this.uuid,
-			},
-		},
-	)
-	return err
+func (this *Instagram) PrepareNewClient() {
+	//facebook_dod
+	_ = this.ZrToken()
+	_ = this.ZrToken()
+	_ = this.LogAttribution()
+	_ = this.QeSync()
+	_ = this.launcherSync()
+	_ = this.PrefillCandidates()
+	_ = this.LoggingClientEvents()
 }
 
-//注册成功后触发
-func (this *Instagram) contactPrefill() error {
-	var query map[string]interface{}
+//func (this *Instagram) readMsisdnHeader() error {
+//	_, err := this.HttpRequest(
+//		&reqOptions{
+//			ApiPath: urlMsisdnHeader,
+//			IsPost:  true,
+//			Query: map[string]interface{}{
+//				"device_id": this.uuid,
+//			},
+//		},
+//	)
+//	return err
+//}
 
-	if this.IsLogin {
-		query = map[string]interface{}{
-			"_uid":      this.ID,
-			"device_id": this.uuid,
-			"_uuid":     this.uuid,
-			"usage":     "auto_confirmation",
-		}
-	} else {
-		query = map[string]interface{}{
-			"phone_id": this.familyID,
-			"usage":    "prefill",
-		}
-	}
-
-	_, err := this.HttpRequest(
-		&reqOptions{
-			ApiPath: urlContactPrefill,
-			IsPost:  true,
-			IsApiB:  true,
-			Signed:  true,
-			Query:   query,
-		},
-	)
-	return err
-}
-
-func (this *Instagram) launcherSync() error {
-	var query map[string]interface{}
-
-	if this.IsLogin {
-		query = map[string]interface{}{
-			"id":                      this.ID,
-			"_uid":                    this.ID,
-			"_uuid":                   this.uuid,
-			"server_config_retrieval": "1",
-		}
-	} else {
-		query = map[string]interface{}{
-			"id":                      this.uuid,
-			"server_config_retrieval": "1",
-		}
-	}
-
-	_, err := this.HttpRequest(
-		&reqOptions{
-			ApiPath: urlLauncherSync,
-			IsPost:  true,
-			IsApiB:  true,
-			Signed:  true,
-			Query:   query,
-		},
-	)
-	return err
-}
-
-func (this *Instagram) zrToken() error {
+func (this *Instagram) ZrToken() error {
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlZrToken,
@@ -200,14 +157,13 @@ func (this *Instagram) zrToken() error {
 				"custom_device_id": this.uuid,
 				"fetch_reason":     "token_expired",
 			},
-			HeaderKey: []string{IGHeader_Authorization},
 		},
 	)
 	return err
 }
 
 //早于注册登录?
-func (this *Instagram) sendAdID() error {
+func (this *Instagram) LogAttribution() error {
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlLogAttribution,
@@ -222,13 +178,137 @@ func (this *Instagram) sendAdID() error {
 	return err
 }
 
-func (this *Instagram) PrepareNewClient() {
-	_ = this.readMsisdnHeader()
-	_ = this.syncFeatures()
-	_ = this.zrToken()
-	_ = this.contactPrefill()
-	_ = this.sendAdID()
-	_ = this.launcherSync()
+func (this *Instagram) QeSync() error {
+	var params map[string]interface{}
+	if this.IsLogin {
+		params = map[string]interface{}{
+			"id":          this.ID,
+			"_uid":        this.ID,
+			"_uuid":       this.uuid,
+			"experiments": goInstaExperiments,
+		}
+	} else {
+		params = map[string]interface{}{
+			"id":                      this.uuid,
+			"experiments":             goInstaExperiments,
+			"server_config_retrieval": "1",
+		}
+	}
+	_, err := this.HttpRequest(
+		&reqOptions{
+			ApiPath: urlQeSync,
+			Query:   params,
+			IsPost:  true,
+			Signed:  true,
+			IsApiB:  true,
+		},
+	)
+	return err
+}
+
+func (this *Instagram) launcherSync() error {
+	var query map[string]interface{}
+	var isApiB bool
+	if this.IsLogin {
+		query = map[string]interface{}{
+			"id":                      this.ID,
+			"_uid":                    this.ID,
+			"_uuid":                   this.uuid,
+			"server_config_retrieval": "1",
+		}
+		isApiB = false
+	} else {
+		query = map[string]interface{}{
+			"id":                      this.uuid,
+			"server_config_retrieval": "1",
+		}
+		isApiB = true
+	}
+
+	_, err := this.HttpRequest(
+		&reqOptions{
+			ApiPath: urlLauncherSync,
+			IsPost:  true,
+			IsApiB:  isApiB,
+			Signed:  true,
+			Query:   query,
+		},
+	)
+	return err
+}
+
+func (this *Instagram) PrefillCandidates() error {
+	_, err := this.HttpRequest(
+		&reqOptions{
+			ApiPath: urlPrefillCandidates,
+			IsPost:  true,
+			IsApiB:  true,
+			Signed:  true,
+			Query: map[string]interface{}{
+				"android_device_id": this.androidID,
+				"phone_id":          this.familyID,
+				"usages":            "[\"account_recovery_omnibox\"]",
+				"device_id":         this.uuid,
+			},
+		},
+	)
+	return err
+}
+
+func (this *Instagram) LoggingClientEvents() error {
+	type DataItem struct {
+		Name         string `json:"name"`
+		Time         string `json:"time"`
+		SamplingRate int    `json:"sampling_rate"`
+		Extra        struct {
+			CurrentVersion int    `json:"current_version"`
+			Pk             string `json:"pk"`
+			ReleaseChannel string `json:"release_channel"`
+			RadioType      string `json:"radio_type"`
+		} `json:"extra"`
+	}
+	data := make([]DataItem, 2)
+	data[0].Name = "ig_emergency_push_did_set_initial_version"
+	data[0].Time = strconv.FormatInt(time.Now().Unix(), 10) + ".021"
+	data[0].SamplingRate = 1
+	data[0].Extra.Pk = "0"
+	data[0].Extra.CurrentVersion = 48
+	data[0].Extra.ReleaseChannel = "prod"
+	data[0].Extra.RadioType = "wifi-none"
+	data[1] = data[0]
+
+	params := map[string]interface{}{
+		"seq":              1,
+		"app_id":           "567067343352427",
+		"app_ver":          goInstaVersion,
+		"build_num":        goInstaBuildNum,
+		"device_id":        this.uuid,
+		"family_device_id": this.familyID,
+		"session_id":       this.sessionID,
+		"channel":          "zero_latency",
+		"app_uid":          "0",
+		"claims":           "[\"0\"]",
+		"config_version":   "v2",
+		"config_checksum":  "null",
+		"data":             data,
+		"log_type":         "client_event",
+	}
+	tmp, _ := json.Marshal(params)
+	_, err := this.HttpRequest(
+		&reqOptions{
+			ApiPath:    urlLoggingClientEvents,
+			IsPost:     true,
+			IsApiGraph: true,
+			Query: map[string]interface{}{
+				"access_token": "567067343352427|f249176f09e26ce54212b472dbab8fa8",
+				"format":       "json",
+				"compressed":   "0",
+				"sent_time":    strconv.FormatInt(time.Now().Unix(), 10) + ".021",
+				"message":      tmp,
+			},
+		},
+	)
+	return err
 }
 
 type RespLogin struct {
@@ -305,27 +385,31 @@ func (this *Instagram) Login() error {
 	return err
 }
 
-func (this *Instagram) syncFeatures() error {
-	var params map[string]interface{}
+//注册成功后触发
+func (this *Instagram) contactPrefill() error {
+	var query map[string]interface{}
+
 	if this.IsLogin {
-		params = map[string]interface{}{
-			"id":          this.ID,
-			"_uid":        this.ID,
-			"_uuid":       this.uuid,
-			"experiments": goInstaExperiments,
+		query = map[string]interface{}{
+			"_uid":      this.ID,
+			"device_id": this.uuid,
+			"_uuid":     this.uuid,
+			"usage":     "auto_confirmation",
 		}
 	} else {
-		params = map[string]interface{}{
-			"id":          this.uuid,
-			"experiments": goInstaExperiments,
+		query = map[string]interface{}{
+			"phone_id": this.familyID,
+			"usage":    "prefill",
 		}
 	}
+
 	_, err := this.HttpRequest(
 		&reqOptions{
-			ApiPath: urlQeSync,
-			Query:   params,
+			ApiPath: urlContactPrefill,
 			IsPost:  true,
+			IsApiB:  true,
 			Signed:  true,
+			Query:   query,
 		},
 	)
 	return err

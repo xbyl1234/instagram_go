@@ -1,0 +1,15 @@
+{
+    "resource": {
+        "build_number": 289692181,
+        "compression_format": "xz",
+        "dod_version_number": 1,
+        "download_url": "https://scontent.xx.fbcdn.net/v/t39.6072-6/182277648_1149525718855391_4696369777277467508_n.xz?_nc_cat=100&ccb=1-5&_nc_sid=2513a4&_nc_ohc=gcYrHm4guGQAX8zcu8d&_nc_ht=scontent.xx&oh=9efdb0a1b7beba992c1e041492e4a02f&oe=61B0B0B2",
+        "file_checksum": "f1f9e018410ddb865b5b95c36bcff510",
+        "file_size": 139856,
+        "resource_flavor": "zh_CN",
+        "resource_name": "fbt_language_pack.bin",
+        "uncompressed_file_sha256_checksum": "1cf11da0dc5474663dbc6d9c61b89fa83d0d5db2082be9597b1637bf62463460",
+        "uncompressed_file_size": 561632
+    },
+    "status": "ok"
+}

@@ -20,14 +20,15 @@ import (
 )
 
 type reqOptions struct {
-	ApiPath   string
-	IsPost    bool
-	IsApiB    bool
-	Signed    bool
-	Query     map[string]interface{}
-	Body      *bytes.Buffer
-	HeaderKey []string
-	Header    map[string]string
+	ApiPath       string
+	IsPost        bool
+	IsApiB        bool
+	IsApiGraph    bool
+	Signed        bool
+	Query         map[string]interface{}
+	Body          *bytes.Buffer
+	Header        map[string]string
+	DisAutoHeader bool
 }
 
 type BaseApiResp struct {
@@ -80,61 +81,77 @@ var (
 	IGHeader_iguRur                 string = "ig-u-rur"
 	IGHeader_UseAuthHeaderForSso    string = "use-auth-header-for-sso"
 	IGHeader_XMid                   string = "x-mid"
+	IGHeader_igwwwClaim             string = "x-ig-www-claim"
 )
 
+func SetHeader(req *http.Request, key string, vul string) {
+	req.Header[key] = []string{vul}
+}
+
 func (this *Instagram) setBaseHeader(req *http.Request) {
-	req.Header.Set("connection", "keep-alive")
-	req.Header.Set("accept-language", "en-US")
-	req.Header.Set("user-agent", goInstaUserAgent)
-	req.Header.Set("x-ig-app-id", fbAnalytics)
-	req.Header.Set("x-ig-capabilities", igCapabilities)
-	req.Header.Set("x-ig-connection-type", connType)
-	req.Header.Set("x-fb-client-ip", "True")
-	req.Header.Set("x-fb-http-engine", "Liger")
-	req.Header.Set("x-fb-server-cluster", "True")
-	req.Header.Set("accept-encoding", "zstd, gzip, deflate")
-	req.Header.Set("x-ig-family-device-id", this.familyID)
+	SetHeader(req, "connection", "keep-alive")
+	SetHeader(req, "accept-language", "zh-CN, en-US")
+	SetHeader(req, "user-agent", this.UserAgent)
+	SetHeader(req, "accept-encoding", "zstd, gzip, deflate")
+	SetHeader(req, "x-ig-family-device-id", this.familyID)
 
 	if req.Header.Get("content-type") == "" {
-		req.Header.Set("content-type", "application/x-www-form-urlencoded; charset=UTF-8")
-	}
-	if this.ReadHeader(IGHeader_Authorization) != "" {
-		req.Header.Set(IGHeader_Authorization, this.ReadHeader(IGHeader_Authorization))
-	}
-	if this.ReadHeader(IGHeader_iguRur) != "" {
-		req.Header.Set(IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
-	}
-	if this.ReadHeader(IGHeader_XMid) != "" {
-		req.Header.Set(IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
+		SetHeader(req, "content-type", "application/x-www-form-urlencoded; charset=UTF-8")
 	}
 
-	if this.IsLogin {
-		req.Header.Set("ig-intended-user-id", strconv.FormatInt(this.ID, 10))
-		req.Header.Set("ig-u-ds-user-id", strconv.FormatInt(this.ID, 10))
+	SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
+	SetHeader(req, "x-ig-app-id", "567067343352427")
+	SetHeader(req, "x-ig-capabilities", "3brTvx0=")
+	SetHeader(req, "x-ig-connection-type", "WIFI")
+	SetHeader(req, "x-ig-device-id", this.uuid)
+	SetHeader(req, "x-ig-android-id", this.androidID)
+
+	igwwwClaim := this.ReadHeader(IGHeader_igwwwClaim)
+	if igwwwClaim == "" {
+		igwwwClaim = "0"
 	}
+	SetHeader(req, IGHeader_igwwwClaim, igwwwClaim)
+
+	SetHeader(req, "x-ig-timezone-offset", "true")
+
+	SetHeader(req, "x-bloks-version-id", "e097ac2261d546784637b3df264aa3275cb6281d706d91484f43c207d6661931")
+	SetHeader(req, "x-bloks-is-layout-rtl", "false")
+	SetHeader(req, "x-bloks-is-panorama-enabled", "true")
+
+	SetHeader(req, "x-ig-app-locale", goInstaLocation)
+	SetHeader(req, "x-ig-device-locale", goInstaLocation)
+	SetHeader(req, "x-ig-mapped-locale", goInstaLocation)
+
+	SetHeader(req, "x-ig-bandwidth-speed-kbps", "-1.000")
+	SetHeader(req, "x-ig-bandwidth-totalbytes-b", "0")
+	SetHeader(req, "x-ig-bandwidth-totaltime-ms", "0")
+
+	SetHeader(req, "x-fb-client-ip", "True")
+	SetHeader(req, "x-fb-http-engine", "Liger")
+	SetHeader(req, "x-fb-server-cluster", "True")
+
+	SetHeader(req, "x-pigeon-session-id", this.sessionID)
+}
+
+func (this *Instagram) setLoginHeader(req *http.Request) {
+	SetHeader(req, IGHeader_udsUserID, strconv.FormatInt(this.ID, 10))
+	SetHeader(req, IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
+	SetHeader(req, IGHeader_XMid, this.ReadHeader(IGHeader_XMid))
+	SetHeader(req, IGHeader_Authorization, this.ReadHeader(IGHeader_Authorization))
+	SetHeader(req, "x-ig-app-startup-country", "OR")
+	SetHeader(req, "x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10))
 }
 
 func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 	this.setBaseHeader(req)
-	req.Header.Set("x-ig-connection-speed", fmt.Sprintf("%dkbps", common.GenNumber(1000, 3700)))
-	req.Header.Set("x-ig-bandwidth-speed-kbps", "-1.000")
-	req.Header.Set("x-ig-bandwidth-totalbytes-b", "0")
-	req.Header.Set("x-ig-bandwidth-totaltime-ms", "0")
-
-	req.Header.Set("x-ads-opt-out", "0")
-	req.Header.Set("x-cm-latency", "-1.000")
-	req.Header.Set("x-ig-app-locale", "en_US")
-	req.Header.Set("x-ig-device-locale", "en_US")
-	req.Header.Set("x-pigeon-session-id", common.GenUUID())
-	req.Header.Set("x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10))
-	req.Header.Set("x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")
-	req.Header.Set("x-ig-device-id", this.uuid)
-	req.Header.Set("x-ig-android-id", this.androidID)
-
-	for index := range reqOpt.HeaderKey {
-		key := reqOpt.HeaderKey[index]
-		req.Header.Set(key, this.ReadHeader(key))
+	if this.IsLogin {
+		this.setLoginHeader(req)
 	}
+
+	//SetHeader(req,"x-ig-connection-speed", fmt.Sprintf("%dkbps", common.GenNumber(1000, 3700)))
+	//SetHeader(req,"x-ads-opt-out", "0")
+	//SetHeader(req,"x-cm-latency", "-1.000")
+	//SetHeader(req,"x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")
 }
 
 func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
@@ -149,10 +166,6 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 		setting := strings.ToLower(key)
 		if strings.Index(setting, "ig-set-") == 0 {
 			this.httpHeader[setting[len("ig-set-"):]] = resp.Header.Get(key)
-
-			if IGHeader_udsUserID == setting[len("ig-set-"):] {
-				this.ID, _ = strconv.ParseInt(resp.Header.Get(key), 10, 64)
-			}
 		}
 	}
 }
@@ -166,6 +179,8 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	var baseUrl string
 	if reqOpt.IsApiB {
 		baseUrl = goInstaHost_B
+	} else if reqOpt.IsApiGraph {
+		baseUrl = goInstaHost_Graph
 	} else {
 		baseUrl = goInstaHost
 	}
@@ -213,7 +228,7 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 
 	this.setHeader(reqOpt, req)
 	for key, vul := range reqOpt.Header {
-		req.Header.Set(key, vul)
+		SetHeader(req, key, vul)
 	}
 
 	resp, err := this.c.Do(req)
@@ -238,6 +253,7 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		body, err = zstd.NewReader(resp.Body)
 		break
 	case "deflate":
+	case "":
 		body = resp.Body
 		break
 	}

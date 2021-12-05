@@ -84,15 +84,15 @@ func TestAndLogin() {
 		result.inst = inst
 		if !inst.IsLogin && inst.Status != goinsta.InsAccountError_ChallengeRequired {
 			if SetProxy(inst) {
-				//acc := inst.GetAccount()
-				//err := acc.Sync()
-				//if err != nil {
-				//	result.str = "account sync error"
-				//	result.IsLogin = false
-				//	result.err = err
-				//} else {
-				//	result.IsLogin = true
-				//}
+				acc := inst.GetAccount()
+				err := acc.Sync()
+				if err != nil {
+					result.str = "account sync error"
+					result.IsLogin = false
+					result.err = err
+				} else {
+					result.IsLogin = true
+				}
 
 				if result.IsLogin == false {
 					err := Login(inst)

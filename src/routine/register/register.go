@@ -99,7 +99,7 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config.UseCharles = true
+	config.UseCharles = false
 	config.UseTruncation = false
 
 	initParams()
