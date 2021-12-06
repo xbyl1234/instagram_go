@@ -89,7 +89,7 @@ func (this *Upload) RuploadIgPhoto(path string) (string, error) {
 			"x_fb_photo_waterfall_id":    this.inst.wid,
 			"x-instagram-rupload-params": paramsStr,
 		},
-	}, &resp)
+	}, resp)
 
 	if err != nil {
 		return "", err
@@ -114,7 +114,7 @@ func (this *Upload) RuploadIgPhoto(path string) (string, error) {
 			"x-entity-length":            strconv.Itoa(len(data)),
 		},
 		Body: body,
-	}, &resp)
+	}, resp)
 	err = resp.CheckError(err)
 	return upId, err
 }

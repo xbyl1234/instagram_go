@@ -2,7 +2,6 @@ package goinsta
 
 import (
 	"context"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"makemoney/common"
@@ -95,6 +94,15 @@ func LoadDBAllAccount() ([]AccountCookies, error) {
 	return ret, nil
 }
 
+func CleanStatus() error {
+	_, err := common.MogoHelper.Account.UpdateMany(
+		context.TODO(),
+		bson.M{},
+		bson.M{"$set": bson.M{"status": ""}},
+		options.Update().SetUpsert(true))
+	return err
+}
+
 func SaveInstToDB(inst *Instagram) error {
 	url, _ := neturl.Parse(goInstaHost)
 	urlb, _ := neturl.Parse(goInstaHost_B)
@@ -180,10 +188,11 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		},
 	}
 	if inst.UserAgent == "" {
-		inst.UserAgent = fmt.Sprintf(goInstaUserAgent, common.GenString(common.CharSet_123, 9))
+		inst.UserAgent = GenUserAgent()
 	}
 
 	inst.Proxy = &common.Proxy{ID: config.ProxyID}
+	common.DebugHttpClient(inst.c)
 
 	return inst, nil
 }

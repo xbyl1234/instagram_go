@@ -27,6 +27,7 @@ var ErrorCreateCount = 0
 var ErrorSendSMSCount = 0
 var ErrorRecvSMSCount = 0
 var ErrorOtherCount = 0
+var ErrorChallengeRequired = 0
 
 var PhoneProvider phone.PhoneVerificationCode
 
@@ -55,16 +56,29 @@ func Register() {
 		inst, err := regisert.Do(username, username, password)
 		if err == nil {
 			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
+			inst.IsLogin = true
+			_ = inst.ZrToken()
+			_ = inst.LogAttribution()
+			err = inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
+			if err != nil {
+				if common.IsError(err, common.ChallengeRequiredError) {
+					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
+					ErrorChallengeRequired++
+				}
+				log.Error("user: %s, change ico error: %v", inst.User, err)
+				inst.IsLogin = false
+				inst.Status = err.Error()
+			} else {
+				SuccessCount++
+				inst.IsLogin = true
+			}
 			err = goinsta.SaveInstToDB(inst)
 			if err != nil {
 				log.Error("save inst: %s %s error: %v", inst.User, inst.Pass, err)
 			}
-			//err = inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
-			//if err != nil {
-			//	log.Error("user: %s, change ico error: %v", inst.User, err)
-			//}
-			SuccessCount++
-		} else {
+		}
+
+		if err != nil {
 			if common.IsError(err, common.ApiError) {
 				if strings.Index(err.Error(), "wait a few minutes") != -1 || strings.Index(err.Error(), "请稍等几分钟再试") != -1 {
 					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
@@ -138,8 +152,9 @@ func main() {
 		go Register()
 	}
 	WaitAll.Wait()
-	log.Info("success: %d, create err: %d, send msg err: %d, recv msg err: %d, other err: %d",
+	log.Info("success: %d,challenge err: %d ,create err: %d, send msg err: %d, recv msg err: %d, other err: %d",
 		SuccessCount,
+		ErrorChallengeRequired,
 		ErrorCreateCount,
 		ErrorSendSMSCount,
 		ErrorRecvSMSCount,

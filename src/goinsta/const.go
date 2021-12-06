@@ -1,16 +1,33 @@
 package goinsta
 
+import (
+	"fmt"
+	"math/rand"
+)
+
 var (
 	goInstaHost       = "https://i.instagram.com/"
 	goInstaHost_B     = "https://b.i.instagram.com/"
 	goInstaHost_Graph = "https://graph.instagram.com/"
-	//goInstaUserAgent   = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
-	goInstaUserAgent   = "Instagram 187.0.0.32.120 Android (27/8.1.0; 560dpi; 1440x2712; Google/google; Pixel 2 XL; taimen; taimen; en_US; %s)"
+	//goInstaUserAgent  = "Instagram 107.0.0.27.121 Android (24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom; en_US)"
+	//goInstaUserAgent   = "Instagram 187.0.0.32.120 Android (27/8.1.0; 560dpi; 1440x2712; Google/google; Pixel 2 XL; taimen; taimen; en_US; %s)"
 	goInstaExperiments = "ig_android_device_detection_info_upload,ig_android_gmail_oauth_in_reg,ig_android_device_info_foreground_reporting,ig_android_device_verification_fb_signup,ig_android_passwordless_account_password_creation_universe,ig_growth_android_profile_pic_prefill_with_fb_pic_2,ig_account_identity_logged_out_signals_global_holdout_universe,ig_android_quickcapture_keep_screen_on,ig_android_device_based_country_verification,ig_android_login_identifier_fuzzy_match,ig_android_reg_modularization_universe,ig_android_security_intent_switchoff,ig_android_device_verification_separate_endpoint,ig_android_suma_landing_page,ig_android_sim_info_upload,ig_android_fb_account_linking_sampling_freq_universe,ig_android_retry_create_account_universe,ig_android_caption_typeahead_fix_on_o_universe"
-	goInstaVersion     = "187.0.0.32.120"
+	goInstaVersion     = "207.0.0.39.120"
 	goInstaBuildNum    = "289692181"
 	goInstaLocation    = "en_US"
+	DeviceList         = []string{"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G935F; hero2lte; samsungexynos8890",
+		"24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom",
+		"23/6.0.1; 640dpi; 1440x2392; LGE/lge; RS988; h1; h1",
+		"24/7.0; 640dpi; 1440x2560; HUAWEI; LON-L29; HWLON; hi3660",
+		"23/6.0.1; 640dpi; 1440x2560; ZTE; ZTE A2017U; ailsa_ii; qcom",
+		"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G930F; herolte; samsungexynos8890"}
+	BloksVersionID = "251c3023d7ef985a0e5d91b885c0c03bbb32b4b721d8de33bf9f667ba39b41ff"
+	AppID          = "567067343352427"
 )
+
+func GenUserAgent() string {
+	return fmt.Sprintf("Instagram %s Android (%s; %s)", goInstaVersion, DeviceList[rand.Intn(len(DeviceList))], goInstaLocation)
+}
 
 type muteOption string
 

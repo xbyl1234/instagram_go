@@ -89,18 +89,18 @@ func SetHeader(req *http.Request, key string, vul string) {
 }
 
 func (this *Instagram) setBaseHeader(req *http.Request) {
-	SetHeader(req, "connection", "keep-alive")
-	SetHeader(req, "accept-language", "zh-CN, en-US")
-	SetHeader(req, "user-agent", this.UserAgent)
-	SetHeader(req, "accept-encoding", "zstd, gzip, deflate")
-	SetHeader(req, "x-ig-family-device-id", this.familyID)
+	req.Header.Set("connection", "keep-alive")
+	req.Header.Set("accept-language", "zh-CN, en-US")
+	req.Header.Set("user-agent", this.UserAgent)
+	req.Header.Set("accept-encoding", "zstd, gzip, deflate")
 
 	if req.Header.Get("content-type") == "" {
 		SetHeader(req, "content-type", "application/x-www-form-urlencoded; charset=UTF-8")
 	}
 
+	SetHeader(req, "x-ig-family-device-id", this.familyID)
 	SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
-	SetHeader(req, "x-ig-app-id", "567067343352427")
+	SetHeader(req, "x-ig-app-id", AppID)
 	SetHeader(req, "x-ig-capabilities", "3brTvx0=")
 	SetHeader(req, "x-ig-connection-type", "WIFI")
 	SetHeader(req, "x-ig-device-id", this.uuid)
@@ -114,7 +114,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 
 	SetHeader(req, "x-ig-timezone-offset", "true")
 
-	SetHeader(req, "x-bloks-version-id", "e097ac2261d546784637b3df264aa3275cb6281d706d91484f43c207d6661931")
+	SetHeader(req, "x-bloks-version-id", BloksVersionID)
 	SetHeader(req, "x-bloks-is-layout-rtl", "false")
 	SetHeader(req, "x-bloks-is-panorama-enabled", "true")
 

@@ -51,12 +51,13 @@ func (this *Register) do(username string, firstname string, password string) (*I
 
 	log.Info("get phone number: %s", number)
 	this.number = number
-	err = this.checkPhoneNumber()
+	//err = this.checkPhoneNumber()
 	//if err != nil {
 	//	return nil, err
 	//}
 	respSendSignupSmsCode, err := this.sendSignupSmsCode()
 	if err != nil {
+		this.phone.ReleasePhone(number)
 		return nil, err
 	}
 	this.HadSendSMS = true
@@ -71,6 +72,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 
 	code, err := this.phone.RequirePhoneCode(number)
 	if err != nil {
+		this.phone.ReleasePhone(number)
 		return nil, err
 	}
 	this.HadRecvSMS = true
@@ -91,7 +93,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 		return nil, err
 	}
 
-	this.inst.IsLogin = true
+	this.inst.IsLogin = false
 	this.inst.ID = createValidated.CreatedUser.ID
 	flag = true
 	return this.inst, err

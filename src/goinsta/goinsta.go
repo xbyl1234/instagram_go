@@ -2,7 +2,6 @@ package goinsta
 
 import (
 	"encoding/json"
-	"fmt"
 	"makemoney/common"
 	"net/http"
 	"net/http/cookiejar"
@@ -68,7 +67,7 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 		familyID:  common.GenUUID(),
 		wid:       common.GenUUID(),
 		adid:      common.GenUUID(),
-		UserAgent: fmt.Sprintf(goInstaUserAgent, common.GenString(common.CharSet_123, 9)),
+		UserAgent: GenUserAgent(),
 		sessionID: common.GenUUID(),
 		c: &http.Client{
 			Jar:       jar,
