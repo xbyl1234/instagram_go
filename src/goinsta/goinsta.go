@@ -127,13 +127,13 @@ func (this *Instagram) ReadHeader(key string) string {
 
 func (this *Instagram) PrepareNewClient() {
 	//facebook_dod
-	_ = this.ZrToken()
-	_ = this.ZrToken()
+
 	_ = this.LogAttribution()
-	_ = this.QeSync()
 	_ = this.launcherSync()
+	_ = this.QeSync()
+	_ = this.ZrToken()
 	_ = this.PrefillCandidates()
-	_ = this.LoggingClientEvents()
+	//_ = this.LoggingClientEvents()
 }
 
 //func (this *Instagram) readMsisdnHeader() error {
@@ -250,9 +250,9 @@ func (this *Instagram) PrefillCandidates() error {
 			Signed:  true,
 			Query: map[string]interface{}{
 				"android_device_id": this.androidID,
-				"phone_id":          this.familyID,
-				"usages":            "[\"account_recovery_omnibox\"]",
-				"device_id":         this.uuid,
+				//"phone_id":          this.familyID,
+				"usages":    "[\"account_recovery_omnibox\"]",
+				"device_id": this.uuid,
 			},
 		},
 	)

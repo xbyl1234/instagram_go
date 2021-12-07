@@ -90,47 +90,51 @@ func SetHeader(req *http.Request, key string, vul string) {
 
 func (this *Instagram) setBaseHeader(req *http.Request) {
 	req.Header.Set("connection", "keep-alive")
-	req.Header.Set("accept-language", "zh-CN, en-US")
+	req.Header.Set("accept-language", "en-US")
 	req.Header.Set("user-agent", this.UserAgent)
-	req.Header.Set("accept-encoding", "zstd, gzip, deflate")
+	//req.Header.Set("accept-encoding", "zstd, gzip, deflate")
+	req.Header.Set("accept-encoding", "gzip, deflate")
 
 	if req.Header.Get("content-type") == "" {
 		SetHeader(req, "content-type", "application/x-www-form-urlencoded; charset=UTF-8")
 	}
 
-	SetHeader(req, "x-ig-family-device-id", this.familyID)
-	SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
+	//SetHeader(req, "x-ig-family-device-id", this.familyID)
+	//SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
 	SetHeader(req, "x-ig-app-id", AppID)
 	SetHeader(req, "x-ig-capabilities", "3brTvx0=")
 	SetHeader(req, "x-ig-connection-type", "WIFI")
 	SetHeader(req, "x-ig-device-id", this.uuid)
 	SetHeader(req, "x-ig-android-id", this.androidID)
 
-	igwwwClaim := this.ReadHeader(IGHeader_igwwwClaim)
-	if igwwwClaim == "" {
-		igwwwClaim = "0"
-	}
-	SetHeader(req, IGHeader_igwwwClaim, igwwwClaim)
+	//igwwwClaim := this.ReadHeader(IGHeader_igwwwClaim)
+	//if igwwwClaim == "" {
+	//	igwwwClaim = "0"
+	//}
+	//SetHeader(req, IGHeader_igwwwClaim, igwwwClaim)
 
-	SetHeader(req, "x-ig-timezone-offset", "true")
+	//SetHeader(req, "x-ig-timezone-offset", "true")
 
 	SetHeader(req, "x-bloks-version-id", BloksVersionID)
 	SetHeader(req, "x-bloks-is-layout-rtl", "false")
-	SetHeader(req, "x-bloks-is-panorama-enabled", "true")
+	//SetHeader(req, "x-bloks-is-panorama-enabled", "true")
 
 	SetHeader(req, "x-ig-app-locale", goInstaLocation)
 	SetHeader(req, "x-ig-device-locale", goInstaLocation)
 	SetHeader(req, "x-ig-mapped-locale", goInstaLocation)
 
+	SetHeader(req, "x-ig-connection-speed", fmt.Sprintf("%dkbps", common.GenNumber(1000, 3700)))
 	SetHeader(req, "x-ig-bandwidth-speed-kbps", "-1.000")
 	SetHeader(req, "x-ig-bandwidth-totalbytes-b", "0")
 	SetHeader(req, "x-ig-bandwidth-totaltime-ms", "0")
 
-	SetHeader(req, "x-fb-client-ip", "True")
+	//SetHeader(req, "x-fb-client-ip", "True")
 	SetHeader(req, "x-fb-http-engine", "Liger")
-	SetHeader(req, "x-fb-server-cluster", "True")
+	//SetHeader(req, "x-fb-server-cluster", "True")
 
 	SetHeader(req, "x-pigeon-session-id", this.sessionID)
+	SetHeader(req, "x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10)+".000")
+	//SetHeader(req, "x-pigeon-session-id", common.GenUUID())
 }
 
 func (this *Instagram) setLoginHeader(req *http.Request) {
@@ -138,8 +142,7 @@ func (this *Instagram) setLoginHeader(req *http.Request) {
 	SetHeader(req, IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
 	SetHeader(req, IGHeader_XMid, this.ReadHeader(IGHeader_XMid))
 	SetHeader(req, IGHeader_Authorization, this.ReadHeader(IGHeader_Authorization))
-	SetHeader(req, "x-ig-app-startup-country", "OR")
-	SetHeader(req, "x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10))
+	//SetHeader(req, "x-ig-app-startup-country", "OR")
 }
 
 func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
@@ -194,6 +197,9 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	if reqOpt.Query != nil {
 		bf = bytes.NewBuffer([]byte{})
 		var query string
+		if this.token != "" {
+			reqOpt.Query["_csrftoken"] = this.token
+		}
 		if reqOpt.Signed {
 			_query, err := json.Marshal(reqOpt.Query)
 			if err != nil {

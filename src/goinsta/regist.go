@@ -51,7 +51,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 
 	log.Info("get phone number: %s", number)
 	this.number = number
-	//err = this.checkPhoneNumber()
+	err = this.checkPhoneNumber()
 	//if err != nil {
 	//	return nil, err
 	//}
@@ -88,7 +88,18 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	}
 	this.inst.User = realUsername
 
-	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion)
+	year := fmt.Sprintf("%d", common.GenNumber(1995, 2000))
+	month := fmt.Sprintf("%d", common.GenNumber(1, 11))
+	day := fmt.Sprintf("%d", common.GenNumber(1, 27))
+	_, err = this.checkAgeEligibility(year, month, day)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = this.NewUserFlowBegins()
+	_, err = this.GetSteps()
+
+	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion, year, month, day)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +113,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 func (this *Register) genUsername(username string) (string, error) {
 	usernameSuggestions, err := this.usernameSuggestions(username)
 	err = usernameSuggestions.CheckError(err)
-	if err != nil {
-		return "", err
-	}
+
 	if usernameSuggestions.SuggestionsWithMetadata.Suggestions != nil {
 		for sugNameIdx := range usernameSuggestions.SuggestionsWithMetadata.Suggestions {
 			sugName := usernameSuggestions.SuggestionsWithMetadata.Suggestions[sugNameIdx].Username
@@ -139,6 +148,7 @@ func (this *Register) checkPhoneNumber() error {
 		Signed:  true,
 		Query:   params,
 	})
+
 	return err
 }
 
@@ -235,6 +245,32 @@ func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggest
 			Query:   params,
 		}, resp)
 
+	err = resp.CheckError(err)
+	return resp, err
+}
+
+type RespCheckAge struct {
+	BaseApiResp
+	EligibleToRegister      bool `json:"eligible_to_register"`
+	ParentalConsentRequired bool `json:"parental_consent_required"`
+	IsSupervisedUser        bool `json:"is_supervised_user"`
+}
+
+func (this *Register) checkAgeEligibility(year string, month string, day string) (*RespCheckAge, error) {
+	params := map[string]interface{}{
+		"day":   day,
+		"year":  year,
+		"month": month,
+	}
+	resp := &RespCheckAge{}
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlCheckAgeEligibility,
+		IsPost:  true,
+		Signed:  false,
+		Query:   params,
+	}, resp)
+
+	err = resp.CheckError(err)
 	return resp, err
 }
 
@@ -280,6 +316,57 @@ func (this *Register) checkUsername(username string) (*RespCheckUsername, error)
 			Query:   params,
 		}, resp)
 
+	err = resp.CheckError(err)
+	return resp, err
+}
+
+func (this *Register) NewUserFlowBegins() (*BaseApiResp, error) {
+	params := map[string]interface{}{
+		"device_id": this.inst.uuid,
+	}
+	resp := &BaseApiResp{}
+
+	err := this.inst.HttpRequestJson(
+		&reqOptions{
+			ApiPath: urlNewUserFlowBegins,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
+		}, resp)
+
+	err = resp.CheckError(err)
+	return resp, err
+}
+
+func (this *Register) GetSteps() (*BaseApiResp, error) {
+	params := map[string]interface{}{
+		"is_secondary_account_creation": "false",
+		"fb_connected":                  "false",
+		"seen_steps":                    "[]",
+		"progress_state":                "prefetch",
+		"phone_id":                      this.inst.familyID,
+		"fb_installed":                  "false",
+		"locale":                        goInstaLocation,
+		"timezone_offset":               "-18000",
+		"network_type":                  "WIFI-UNKNOWN",
+		"guid":                          this.inst.uuid,
+		"is_ci":                         "false",
+		"android_id":                    this.inst.androidID,
+		"waterfall_id":                  this.inst.wid,
+		"reg_flow_taken":                "phone",
+		"tos_accepted":                  "false",
+	}
+	resp := &BaseApiResp{}
+
+	err := this.inst.HttpRequestJson(
+		&reqOptions{
+			ApiPath: urlGetSteps,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
+		}, resp)
+
+	err = resp.CheckError(err)
 	return resp, err
 }
 
@@ -319,7 +406,10 @@ func (this *Register) createValidated(
 	firstname string,
 	password string,
 	code string,
-	tosVersion string) (*RespCreateValidated, error) {
+	tosVersion string,
+	year string,
+	month string,
+	day string) (*RespCreateValidated, error) {
 	encodePasswd, err := encryptPassword(password, this.inst.ReadHeader(IGHeader_EncryptionId), this.inst.ReadHeader(IGHeader_EncryptionKey))
 	if err != nil {
 		return nil, err
@@ -327,26 +417,25 @@ func (this *Register) createValidated(
 
 	rand.Seed(time.Now().UnixNano())
 	params := map[string]interface{}{
-		"is_secondary_account_creation": "false",
-		"jazoest":                       genJazoest(this.inst.familyID),
-		"tos_version":                   tosVersion,
-		"suggestedUsername":             "",
-		"verification_code":             code,
-		//"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
-		"sn_result":                              "API_ERROR: class X.9ob:7: ",
+		"is_secondary_account_creation":          "false",
+		"jazoest":                                genJazoest(this.inst.familyID),
+		"tos_version":                            tosVersion,
+		"suggestedUsername":                      "",
+		"verification_code":                      code,
+		"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
 		"do_not_auto_login_if_credentials_match": "true",
 		"phone_id":                               this.inst.familyID,
 		"enc_password":                           encodePasswd,
 		"phone_number":                           this.phone.GetArea() + this.number,
 		"username":                               username,
 		"first_name":                             firstname,
-		"day":                                    strconv.Itoa(rand.Intn(27) + 1),
+		"day":                                    day,
 		"adid":                                   this.inst.adid,
 		"guid":                                   this.inst.uuid,
-		"year":                                   "2000",
+		"year":                                   year,
 		"device_id":                              this.inst.androidID,
 		"_uuid":                                  this.inst.uuid,
-		"month":                                  strconv.Itoa(rand.Intn(12) + 1),
+		"month":                                  month,
 		"sn_nonce":                               genSnNonce(this.phone.GetArea() + this.number),
 		"force_sign_up_code":                     "",
 		"waterfall_id":                           this.inst.wid,

@@ -57,8 +57,8 @@ func Register() {
 		if err == nil {
 			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
 			inst.IsLogin = true
-			_ = inst.ZrToken()
-			_ = inst.LogAttribution()
+			//_ = inst.ZrToken()
+			//_ = inst.LogAttribution()
 			err = inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
 			if err != nil {
 				if common.IsError(err, common.ChallengeRequiredError) {
@@ -100,6 +100,7 @@ func Register() {
 			//feedback_required
 			log.Warn("register error, %v", err)
 		}
+		//time.Sleep(time.Minute * 2)
 	}
 	WaitAll.Done()
 }
