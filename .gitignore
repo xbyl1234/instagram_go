@@ -1,4 +1,4 @@
 .idea/
 *.exe
-/log/
-/data/girl_picture
+/log/ 
+/data/girl_picture/
