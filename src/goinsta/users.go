@@ -126,15 +126,16 @@ func (this *User) Sync() error {
 	return err
 }
 
-func (this *User) GetFollowers() *Followers {
-	return &Followers{user: this, HasMore: true}
-}
-
 type Followers struct {
-	user      *User
+	inst      *Instagram
+	User      int64
 	maxId     string
 	rankToken string
 	HasMore   bool
+}
+
+func (this *Followers) SetAccount(inst *Instagram) {
+	this.inst = inst
 }
 
 type RespNexFollowers struct {
@@ -164,8 +165,8 @@ func (this *Followers) Next() ([]User, error) {
 	}
 
 	resp := &RespNexFollowers{}
-	err := this.user.inst.HttpRequestJson(&reqOptions{
-		ApiPath: fmt.Sprintf(urlFriendFollowers, this.user.ID),
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: fmt.Sprintf(urlFriendFollowers, this.User),
 		IsPost:  false,
 	}, resp)
 	err = resp.CheckError(err)

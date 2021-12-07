@@ -23,3 +23,17 @@ func InitRoutine(proxyPath string) {
 	goinsta.InitAccountPool(intas)
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
+
+func ReqAccount() *goinsta.Instagram {
+	inst := goinsta.AccountPool.GetOne()
+	if inst == nil {
+		return nil
+	}
+	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
+	if _proxy == nil {
+		log.Error("find insta proxy error!")
+		os.Exit(0)
+	}
+	inst.SetProxy(_proxy)
+	return inst
+}

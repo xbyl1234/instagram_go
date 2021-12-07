@@ -34,20 +34,6 @@ var PathSeparator = string(os.PathSeparator)
 var LastTime time.Time
 var WaitAll sync.WaitGroup
 
-func ReqAccount() *goinsta.Instagram {
-	inst := goinsta.AccountPool.GetOne()
-	if inst == nil {
-		return nil
-	}
-	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
-	if _proxy == nil {
-		log.Error("find insta proxy error!")
-		os.Exit(0)
-	}
-	inst.SetProxy(_proxy)
-	return inst
-}
-
 var TagList = list.New()
 var TagIDSet = mapset.NewSet()
 var MediaChan = make(chan *routine.MediaComb, 1000)
@@ -69,7 +55,7 @@ func LoadTags() {
 func CrawTags() {
 	var search *goinsta.Search
 	var err error
-	inst := ReqAccount()
+	inst := routine.ReqAccount()
 	if inst == nil {
 		log.Error("CrawTags no more account!")
 		return
@@ -106,7 +92,7 @@ func CrawTags() {
 			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
 				if inst.NeedReplace() {
 					goinsta.AccountPool.BlackOne(inst)
-					_inst := ReqAccount()
+					_inst := routine.ReqAccount()
 					if _inst == nil {
 						log.Error("CrawTags no more account!")
 						break
@@ -144,7 +130,7 @@ func CrawTags() {
 
 func CrawMedias(tag *goinsta.Tags) {
 	defer WaitAll.Done()
-	inst := ReqAccount()
+	inst := routine.ReqAccount()
 	if inst == nil {
 		log.Error("CrawMedias no more account!")
 		return
@@ -174,7 +160,7 @@ func CrawMedias(tag *goinsta.Tags) {
 			} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
 				if inst.NeedReplace() {
 					goinsta.AccountPool.BlackOne(inst)
-					_inst := ReqAccount()
+					_inst := routine.ReqAccount()
 					if _inst == nil {
 						log.Error("CrawMedias no more account!")
 						break
@@ -204,7 +190,7 @@ func CrawMedias(tag *goinsta.Tags) {
 			var userComb routine.UserComb
 			userComb.User = &medias[index].User
 			userComb.Source = "media"
-			err = routine.SaveUser(&userComb)
+			err = routine.SaveUser(routine.CrawTagsUserColl, &userComb)
 			if err != nil {
 				log.Error("SaveUser error:%v", err)
 				break
@@ -222,7 +208,7 @@ func CrawMedias(tag *goinsta.Tags) {
 
 func CrawCommonUser() {
 	defer WaitAll.Done()
-	inst := ReqAccount()
+	inst := routine.ReqAccount()
 	if inst == nil {
 		log.Error("CrawCommonUser no more account!")
 		return
@@ -250,7 +236,7 @@ func CrawCommonUser() {
 				} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
 					if inst.NeedReplace() {
 						goinsta.AccountPool.BlackOne(inst)
-						_inst := ReqAccount()
+						_inst := routine.ReqAccount()
 						if _inst == nil {
 							log.Error("CrawCommonUser no more account!")
 							break
@@ -266,16 +252,14 @@ func CrawCommonUser() {
 				} else {
 					unknowErrorCount++
 					log.Error("NextComments error:%v", err)
-					break
+					if unknowErrorCount > 3 {
+						return
+					} else if unknowErrorCount != 0 {
+						break
+					}
 				}
 			} else {
 				unknowErrorCount = 0
-			}
-
-			if unknowErrorCount > 3 {
-				return
-			} else if unknowErrorCount != 0 {
-				break
 			}
 
 			comments := respComm.GetAllComments()
@@ -283,7 +267,7 @@ func CrawCommonUser() {
 			for index := range comments {
 				userComb.User = &comments[index].User
 				userComb.Source = "comments"
-				err = routine.SaveUser(&userComb)
+				err = routine.SaveUser(routine.CrawTagsUserColl, &userComb)
 				if err != nil {
 					log.Error("SaveUser error:%v", err)
 					break
@@ -335,7 +319,12 @@ func initParams() {
 
 	err = common.LoadJsonFile(*TaskConfigPath, &config)
 	if err != nil {
-		log.Error("lod task config error: %v", err)
+		log.Error("load task config error: %v", err)
+		os.Exit(0)
+	}
+
+	if config.TaskName == "" {
+		log.Error("task name is null")
 		os.Exit(0)
 	}
 
@@ -378,7 +367,7 @@ func main() {
 	config2.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
-	routine.InitRoutineDB(config.TaskName)
+	routine.InitCrawTagsDB(config.TaskName)
 
 	CrawTags()
 	log.Info("tags count: %d", TagList.Len())

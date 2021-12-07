@@ -11,21 +11,29 @@ import (
 
 var CrawlingDB *mongo.Database
 
-var SearchCollection *mongo.Collection
-var TagCollection *mongo.Collection
-var MediaCollection *mongo.Collection
-var UserCollection *mongo.Collection
+var CrawTagsSearchColl *mongo.Collection
+var CrawTagsTagColl *mongo.Collection
+var CrawTagsMediaColl *mongo.Collection
+var CrawTagsUserColl *mongo.Collection
 
-func InitRoutineDB(taskName string) {
+func InitCrawTagsDB(taskName string) {
 	CrawlingDB = common.GetDB(taskName)
-	TagCollection = CrawlingDB.Collection("tags")
-	MediaCollection = CrawlingDB.Collection("media")
-	UserCollection = CrawlingDB.Collection("users")
-	SearchCollection = CrawlingDB.Collection("search")
+	CrawTagsTagColl = CrawlingDB.Collection("tags")
+	CrawTagsMediaColl = CrawlingDB.Collection("media")
+	CrawTagsUserColl = CrawlingDB.Collection("users")
+	CrawTagsSearchColl = CrawlingDB.Collection("search")
+}
+
+var CrawFansUserColl *mongo.Collection
+var CrawFansTargetUserColl *mongo.Collection
+
+func InitCrawFansDB(taskName string, targetFansDBName string, targetFansCollName string) {
+	CrawFansUserColl = common.GetDB("inst_fans").Collection(taskName)
+	CrawFansTargetUserColl = common.GetDB(targetFansDBName).Collection(targetFansCollName)
 }
 
 func SaveTags(tags *goinsta.Tags) error {
-	_, err := TagCollection.UpdateOne(context.TODO(),
+	_, err := CrawTagsTagColl.UpdateOne(context.TODO(),
 		bson.D{
 			{"id", tags.Id},
 		}, bson.D{{"$set", tags}}, options.Update().SetUpsert(true))
@@ -36,7 +44,7 @@ func SaveTags(tags *goinsta.Tags) error {
 }
 
 func LoadTags() ([]goinsta.Tags, error) {
-	cursor, err := TagCollection.Find(context.TODO(), bson.M{"moreavailable": true}, nil)
+	cursor, err := CrawTagsTagColl.Find(context.TODO(), bson.M{"moreavailable": true}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +55,7 @@ func LoadTags() ([]goinsta.Tags, error) {
 }
 
 func SaveSearch(search *goinsta.Search) error {
-	_, err := SearchCollection.UpdateOne(context.TODO(),
+	_, err := CrawTagsSearchColl.UpdateOne(context.TODO(),
 		bson.D{
 			{"q", search.Q},
 		}, bson.D{{"$set", search}}, options.Update().SetUpsert(true))
@@ -58,7 +66,7 @@ func SaveSearch(search *goinsta.Search) error {
 }
 
 func LoadSearch() (*goinsta.Search, error) {
-	cursor, err := SearchCollection.Find(context.TODO(), bson.M{}, nil)
+	cursor, err := CrawTagsSearchColl.Find(context.TODO(), bson.M{}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +85,7 @@ type MediaComb struct {
 }
 
 func SaveMedia(mediaComb *MediaComb) error {
-	_, err := MediaCollection.UpdateOne(context.TODO(),
+	_, err := CrawTagsMediaColl.UpdateOne(context.TODO(),
 		bson.D{
 			{"q", mediaComb.Media.ID},
 		}, bson.D{
@@ -91,7 +99,7 @@ func SaveMedia(mediaComb *MediaComb) error {
 }
 
 func SaveComments(mediaComb *MediaComb) error {
-	_, err := MediaCollection.UpdateOne(context.TODO(),
+	_, err := CrawTagsMediaColl.UpdateOne(context.TODO(),
 		bson.D{
 			{"q", mediaComb.Media.ID},
 		}, bson.D{
@@ -103,14 +111,12 @@ func SaveComments(mediaComb *MediaComb) error {
 	}
 	return nil
 }
+
 func LoadMedia(limit int) ([]MediaComb, error) {
-	cursor, err := MediaCollection.Find(context.TODO(),
+	cursor, err := CrawTagsMediaColl.Find(context.TODO(),
 		bson.D{{"$or", []bson.M{bson.M{"comments": nil},
 			bson.M{"comments": bson.M{"hasmore": true}}}}},
 		nil)
-	//cursor, err := MediaCollection.Find(context.TODO(),
-	//	bson.M{},
-	//	nil)
 	if err != nil {
 		return nil, err
 	}
@@ -130,12 +136,13 @@ func LoadMedia(limit int) ([]MediaComb, error) {
 }
 
 type UserComb struct {
-	User   *goinsta.User `json:"user"`
-	Source string        `json:"source"`
+	User     *goinsta.User      `json:"user"`
+	Source   string             `json:"source"`
+	Followes *goinsta.Followers `json:"followes"`
 }
 
-func SaveUser(userComb *UserComb) error {
-	_, err := UserCollection.UpdateOne(context.TODO(),
+func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
+	_, err := Coll.UpdateOne(context.TODO(),
 		bson.D{
 			{"user", bson.M{"pk": userComb.User.ID}},
 		}, bson.D{{"$set", userComb}}, options.Update().SetUpsert(true))
@@ -146,7 +153,7 @@ func SaveUser(userComb *UserComb) error {
 }
 
 func LoadUser(tag string, sendTaskName string, limit int) ([]UserComb, error) {
-	cursor, err := UserCollection.Find(context.TODO(),
+	cursor, err := CrawTagsUserColl.Find(context.TODO(),
 		bson.D{{"$and",
 			bson.D{{"tag", tag},
 				{sendTaskName,
@@ -171,6 +178,24 @@ func LoadUser(tag string, sendTaskName string, limit int) ([]UserComb, error) {
 	return result[:index], err
 }
 
-//func MarkUser(userComb *UserComb, markName string) error {
-//
-//}
+func LoadFansTargetUser(limit int) ([]UserComb, error) {
+	cursor, err := CrawFansTargetUserColl.Find(context.TODO(),
+		bson.D{{"$or", []bson.M{bson.M{"followes": nil},
+			bson.M{"followes": bson.M{"hasmore": true}}}}})
+	if err != nil {
+		return nil, err
+	}
+
+	var result = make([]UserComb, limit)
+	index := 0
+	for cursor.Next(context.TODO()) && index < limit {
+		err = cursor.Decode(&result[index])
+		if err != nil {
+			break
+		}
+		index++
+	}
+	_ = cursor.Close(context.TODO())
+
+	return result[:index], err
+}

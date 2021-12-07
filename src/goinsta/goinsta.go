@@ -98,6 +98,11 @@ func (this *Instagram) GetUser(id string) *User {
 	return &User{ID: pk, inst: this}
 }
 
+func (this *Instagram) GetFollowers(id string) *Followers {
+	pk, _ := strconv.ParseInt(id, 10, 64)
+	return &Followers{User: pk, inst: this, HasMore: true}
+}
+
 func (this *Instagram) GetMessage(msgType MessageType) *Message {
 	return &Message{inst: this, msgType: msgType}
 }
