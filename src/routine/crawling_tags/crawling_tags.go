@@ -425,7 +425,7 @@ func main() {
 		WaitAll.Add(config.MediaCoroCount + 1)
 		go SendTags()
 		for index := 0; index < config.MediaCoroCount; index++ {
-			//go CrawMedias()
+			go CrawMedias()
 		}
 	}
 
