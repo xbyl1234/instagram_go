@@ -7,9 +7,20 @@ import (
 	"os"
 )
 
+type DataBaseConfig struct {
+	MogoUri string `json:"mogo_uri"`
+}
+
+var dbConfig DataBaseConfig
+
 func InitRoutine(proxyPath string) {
-	common.InitMogoDB()
-	err := common.InitProxyPool(proxyPath)
+	err := common.LoadJsonFile("./config/dbconfig.json", &dbConfig)
+	if err != nil {
+		log.Error("load db config error:%v", err)
+		panic(err)
+	}
+	common.InitMogoDB(dbConfig.MogoUri)
+	err = common.InitProxyPool(proxyPath)
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)
 		panic(err)

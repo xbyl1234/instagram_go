@@ -15,8 +15,9 @@ type MogoDBHelper struct {
 
 var MogoHelper *MogoDBHelper = nil
 
-func InitMogoDB() {
-	clientOptions := options.Client().ApplyURI("mongodb://xbyl:XBYLxbyl1234@62.216.92.183:27017")
+func InitMogoDB(mogoUri string) {
+	//"mongodb://xbyl:XBYLxbyl1234@62.216.92.183:27017"
+	clientOptions := options.Client().ApplyURI(mogoUri)
 	//clientOptions := options.Client().ApplyURI("mongodb://xbyl:xbyl741852JHK@192.168.187.1:27017")
 
 	var err error
@@ -40,9 +41,6 @@ func GetDB(name string) *mongo.Database {
 }
 
 func GetMogoHelper() *MogoDBHelper {
-	if MogoHelper == nil {
-		InitMogoDB()
-	}
 	return MogoHelper
 }
 
