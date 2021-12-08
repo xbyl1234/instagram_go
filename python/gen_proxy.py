@@ -17,8 +17,8 @@ for line in f.readlines():
         ip['country'] = location
         ip['ip'] = 'zproxy.lum-superproxy.io'
         ip['port'] = '22225'
-        ip['username'] = 'lum-customer-hl_28871e6d-zone-zone2-ip-' + sp[0]
-        ip['passwd'] = '6aii27nh4kms'
+        ip['username'] = 'lum-customer-hl_28871e6d-zone-zone3-ip-' + sp[0]
+        ip['passwd'] = '13vps2jrphhn'
         ip['proxy_type'] = 0
         ip['need_auth'] = True
         ip['is_used'] = False
@@ -31,6 +31,6 @@ for line in f.readlines():
 
 print("all count", str(len(ips)))
 
-f = open("../data/" + filename.replace(".csv", "") + "_" + location + ".txt", "w")
+f = open("../data/" + filename.replace(".csv", "") + "_" + location + ".json", "w")
 d = json.dumps(ips)
 json.dump(ips, f)
