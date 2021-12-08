@@ -15,9 +15,19 @@ type AccountPoolt struct {
 var AccountPool AccountPoolt
 
 func InitAccountPool(accounts []*Instagram) {
-	AccountPool.accounts = accounts
+
 	for idx := range accounts {
-		AccountPool.Available.PushBack(accounts[idx])
+		if accounts[idx].IsLogin && accounts[idx].Status == "" {
+			AccountPool.Available.PushBack(accounts[idx])
+		} else {
+			AccountPool.notAvailable.PushBack(accounts[idx])
+		}
+	}
+	AccountPool.accounts = make([]*Instagram, AccountPool.Available.Len())
+	var index = 0
+	for item := AccountPool.Available.Front(); item != nil; item = item.Next() {
+		AccountPool.accounts[index] = item.Value.(*Instagram)
+		index++
 	}
 }
 

@@ -93,7 +93,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	req.Header.Set("accept-language", "en-US")
 	req.Header.Set("user-agent", this.UserAgent)
 	//req.Header.Set("accept-encoding", "zstd, gzip, deflate")
-	req.Header.Set("accept-encoding", "gzip, deflate")
+	req.Header.Set("accept-encoding", "zstd, gzip, deflate")
 
 	if req.Header.Get("content-type") == "" {
 		SetHeader(req, "content-type", "application/x-www-form-urlencoded; charset=UTF-8")

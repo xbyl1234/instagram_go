@@ -19,8 +19,9 @@ func InitRoutine(proxyPath string) {
 		log.Error("there have no account!")
 		os.Exit(0)
 	}
-	log.Info("load account count: %d", len(intas))
 	goinsta.InitAccountPool(intas)
+
+	log.Info("load account count: %d", goinsta.AccountPool.Available.Len())
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
@@ -29,11 +30,30 @@ func ReqAccount() *goinsta.Instagram {
 	if inst == nil {
 		return nil
 	}
-	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
-	if _proxy == nil {
-		log.Error("find insta proxy error!")
-		os.Exit(0)
-	}
-	inst.SetProxy(_proxy)
+	SetProxy(inst)
 	return inst
+}
+
+func SetProxy(inst *goinsta.Instagram) bool {
+	var _proxy *common.Proxy
+	if inst.Proxy.ID != "" {
+		_proxy = common.ProxyPool.Get(inst.Proxy.ID)
+		if _proxy == nil {
+			log.Warn("find insta proxy %s error!", inst.Proxy.ID)
+		}
+	}
+
+	if _proxy == nil {
+		_proxy = common.ProxyPool.GetNoRisk(false, false)
+		if _proxy == nil {
+			log.Error("get insta proxy error!")
+		}
+	}
+
+	if _proxy != nil {
+		inst.SetProxy(_proxy)
+	} else {
+		return false
+	}
+	return true
 }
