@@ -50,28 +50,6 @@ func initParams() {
 	}
 }
 
-func SetProxy(inst *goinsta.Instagram) bool {
-	var _proxy *common.Proxy
-	if inst.Proxy.ID != "" {
-		_proxy = common.ProxyPool.Get(inst.Proxy.ID)
-		if _proxy == nil {
-			log.Warn("find insta proxy %s error!", inst.Proxy.ID)
-		}
-	}
-
-	if _proxy == nil {
-		_proxy = common.ProxyPool.GetNoRisk(false, false)
-		if _proxy == nil {
-			log.Error("get insta proxy error!")
-		}
-	}
-
-	if _proxy != nil {
-		inst.SetProxy(_proxy)
-	}
-	return true
-}
-
 func Login(inst *goinsta.Instagram) error {
 	err := inst.Login()
 	if err != nil {
@@ -86,7 +64,7 @@ func InstCleanAndLogin(inst *goinsta.Instagram) *TestLoginResult {
 	result := &TestLoginResult{}
 	result.inst = inst
 	if !inst.IsLogin && inst.Status == "" {
-		if SetProxy(inst) {
+		if routine.SetProxy(inst) {
 			//inst.CleanCookiesAndHeader()
 			//inst.PrepareNewClient()
 
@@ -132,7 +110,7 @@ func InstRefreshAccountInfo(inst *goinsta.Instagram) *TestLoginResult {
 	if !inst.IsLogin && inst.Status == "challenge_required" {
 		var result = &TestLoginResult{}
 		inst.IsLogin = true
-		if SetProxy(inst) {
+		if routine.SetProxy(inst) {
 			err := inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
 			result.inst = inst
 			if err == nil {
