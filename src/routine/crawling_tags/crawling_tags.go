@@ -23,7 +23,7 @@ type CrawConfig struct {
 	StartTime             string `json:"start_time"`
 	StopTime              string `json:"last_time"`
 	MediaCoroCount        int    `json:"media_coro_count"`
-	CommonCoroCount       int    `json:"common_coro_count"`
+	CommentCoroCount      int    `json:"comment_coro_count"`
 	ProxyPath             string `json:"proxy_path"`
 	WorkPath              string `json:"config_path"`
 	CrawTagsStatus        bool   `json:"craw_tags_status"`
@@ -39,7 +39,7 @@ var WaitAll sync.WaitGroup
 
 var TagList = list.New()
 var TagIDSet = mapset.NewSet()
-var MediaChan = make(chan *routine.MediaComb, 1000)
+var MediaChan = make(chan *routine.MediaComb, 20)
 var NotFinishTags int32
 var TagsChan = make(chan *goinsta.Tags, 10)
 
@@ -239,11 +239,11 @@ func SendTags() {
 	close(TagsChan)
 }
 
-func CrawCommonUser() {
+func CrawCommentUser() {
 	defer WaitAll.Done()
 	inst := routine.ReqAccount()
 	if inst == nil {
-		log.Error("CrawCommonUser no more account!")
+		log.Error("CrawCommentUser no more account!")
 		return
 	}
 
@@ -271,15 +271,15 @@ func CrawCommonUser() {
 						goinsta.AccountPool.BlackOne(inst)
 						_inst := routine.ReqAccount()
 						if _inst == nil {
-							log.Error("CrawCommonUser no more account!")
+							log.Error("CrawCommentUser no more account!")
 							break
 						}
-						log.Warn("CrawCommonUser replace account %s->%s", inst.User, _inst.User)
+						log.Warn("CrawCommentUser replace account %s->%s", inst.User, _inst.User)
 						inst = _inst
 						mediaComb.Media.SetAccount(_inst)
 						mediaComb.Comments.SetAccount(_inst)
 					} else {
-						log.Warn("CrawCommonUser retrying...user: %s, err: %v", inst.User, err)
+						log.Warn("CrawCommentUser retrying...user: %s, err: %v", inst.User, err)
 					}
 					continue
 				} else {
@@ -384,8 +384,8 @@ func initParams() {
 	if config.MediaCoroCount == 0 {
 		config.MediaCoroCount = runtime.NumCPU()
 	}
-	if config.CommonCoroCount == 0 {
-		config.CommonCoroCount = runtime.NumCPU() * 2
+	if config.CommentCoroCount == 0 {
+		config.CommentCoroCount = runtime.NumCPU() * 2
 	}
 
 	WorkPath, _ = os.Getwd()
@@ -425,14 +425,14 @@ func main() {
 		WaitAll.Add(config.MediaCoroCount + 1)
 		go SendTags()
 		for index := 0; index < config.MediaCoroCount; index++ {
-			go CrawMedias()
+			//go CrawMedias()
 		}
 	}
 
-	WaitAll.Add(1 + config.CommonCoroCount)
+	WaitAll.Add(1 + config.CommentCoroCount)
 	go SendMedias()
-	for index := 0; index < config.CommonCoroCount; index++ {
-		go CrawCommonUser()
+	for index := 0; index < config.CommentCoroCount; index++ {
+		go CrawCommentUser()
 	}
 
 	WaitAll.Wait()

@@ -115,7 +115,8 @@ func SaveComments(mediaComb *MediaComb) error {
 func LoadMedia(limit int) ([]MediaComb, error) {
 	cursor, err := CrawTagsMediaColl.Find(context.TODO(),
 		bson.D{{"$or", []bson.M{bson.M{"comments": nil},
-			bson.M{"comments": bson.M{"hasmore": true}}}}},
+			bson.M{"comments": bson.M{"hasmore": true}}}},
+			{"media.commentcount", bson.M{"$gt": 0}}},
 		nil)
 	if err != nil {
 		return nil, err
