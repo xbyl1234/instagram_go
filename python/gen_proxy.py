@@ -1,7 +1,7 @@
 import json
 import uuid
 
-filename = "zone2_ips.csv"
+filename = "zone3_ips_数据中心.csv"
 location = "us"
 f = open("../data/" + filename)
 ips = {}
