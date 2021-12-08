@@ -11,6 +11,7 @@ import (
 	"makemoney/routine"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -284,7 +285,7 @@ func CrawCommonUser() {
 				} else {
 					unknowErrorCount++
 					log.Error("NextComments error:%v", err)
-					if err.Error() == "Media is unavailable" {
+					if strings.Index(err.Error(), "Media is unavailable") >= 0 {
 						mediaComb.Comments.HasMore = false
 						routine.SaveComments(mediaComb)
 						break
