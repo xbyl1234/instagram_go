@@ -214,7 +214,6 @@ func main() {
 	config.UseTruncation = false
 
 	initParams()
-	common.InitMogoDB()
 	routine.InitRoutine(*ProxyPath)
 
 	//goinsta.CleanStatus()
