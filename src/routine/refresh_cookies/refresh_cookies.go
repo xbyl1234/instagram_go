@@ -8,6 +8,7 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -191,6 +192,7 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 		//The password you entered is incorrect
 		//invalid character 'O' looking for beginning of value
 		//The username you entered doesn't appear to belong to an account
+		//invalid character '<' looking
 
 		result.inst.Status = ""
 		err := inst.GetAccount().Sync()
@@ -202,6 +204,10 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 			} else if common.IsError(err, common.RequestError) {
 				log.Error("account: %s, request error: %v", inst.User, err)
 				result.status = false
+				return result
+			} else if strings.Index(err.Error(), "invalid character '<' looking") != -1 {
+				inst.CleanCookiesAndHeader()
+				result.inst.Status = err.Error()
 				return result
 			} else {
 				log.Error("account: %s, unknow error: %v", inst.User, err)
