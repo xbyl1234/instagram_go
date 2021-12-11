@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"makemoney/common"
+	"makemoney/common/proxy"
 	"makemoney/goinsta"
 	"testing"
 )
@@ -9,6 +9,6 @@ import "makemoney/goinsta/dbhelper"
 
 func TestPhoneDb(t *testing.T) {
 	dbhelper.InitMogoDB()
-	ins := goinsta.New("as", "as", &common.Proxy{})
+	ins := goinsta.New("as", "as", &proxy.Proxy{})
 	goinsta.SaveInstToDB(ins)
 }

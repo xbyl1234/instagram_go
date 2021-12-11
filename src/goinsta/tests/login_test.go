@@ -2,11 +2,10 @@ package tests
 
 import (
 	"container/list"
-	"makemoney/common"
 	"makemoney/common/log"
+	"makemoney/common/proxy"
 	"makemoney/config"
 	"makemoney/goinsta"
-	"makemoney/routine"
 	"testing"
 )
 
@@ -28,7 +27,7 @@ func TestLogin(t *testing.T) {
 	main.InitTest()
 	for item := accounts.Front(); item != nil; item = item.Next() {
 		acc := item.Value.(*tmpAccount)
-		inst := goinsta.New(acc.username, acc.passwd, common.ProxyPool.GetNoRisk())
+		inst := goinsta.New(acc.username, acc.passwd, proxy.ProxyPool.GetNoRisk())
 		inst.PrepareNewClient()
 		err := inst.Login()
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"makemoney/common"
 	"makemoney/common/log"
+	"makemoney/common/proxy"
 	"makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
@@ -145,7 +146,7 @@ func RecvRefreshAccountInfo() {
 			if common.IsError(result.err, common.ChallengeRequiredError) {
 				result.inst.Status = "challenge_required"
 				result.inst.IsLogin = false
-				common.ProxyPool.Black(result.inst.Proxy, common.BlackType_RegisterRisk)
+				proxy.ProxyPool.Black(result.inst.Proxy, proxy.BlackType_RegisterRisk)
 			}
 		} else {
 			result.inst.Status = ""
@@ -155,7 +156,7 @@ func RecvRefreshAccountInfo() {
 	}
 	PrintResult(TestResultList[:index])
 	WaitExit.Done()
-	common.ProxyPool.Dumps()
+	proxy.ProxyPool.Dumps()
 }
 
 func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {

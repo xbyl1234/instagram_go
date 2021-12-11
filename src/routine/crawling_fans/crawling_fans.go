@@ -33,7 +33,12 @@ func CrawlingFans() {
 	defer WaitAll.Done()
 
 	unknowErrorCount := 0
-	inst := routine.ReqAccount()
+	inst, err := routine.ReqAccount()
+	if err != nil {
+		log.Error("CrawlingFans req account error: %v", err)
+		return
+	}
+
 	for item := range TargetUserChan {
 		if item.User.ID != 0 {
 			var followes *goinsta.Followers
@@ -53,10 +58,11 @@ func CrawlingFans() {
 				} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
 					if inst.NeedReplace() {
 						goinsta.AccountPool.BlackOne(inst)
-						_inst := routine.ReqAccount()
-						if _inst == nil {
-							log.Error("CrawlingFans no more account!")
-							break
+						_inst, errAcc := routine.ReqAccount()
+						if errAcc != nil {
+							inst = nil
+							log.Error("CrawlingFans req account error: %v!", errAcc)
+							return
 						}
 						log.Warn("CrawlingFans replace account %s->%s", inst.User, _inst.User)
 						inst = _inst

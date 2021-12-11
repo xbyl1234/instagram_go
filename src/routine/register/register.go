@@ -5,6 +5,7 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/common/phone"
+	"makemoney/common/proxy"
 	"makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
@@ -40,7 +41,7 @@ func Register() {
 			break
 		}
 
-		_proxy := common.ProxyPool.GetNoRisk(true, true)
+		_proxy := proxy.ProxyPool.GetNoRisk(true, true)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break
@@ -62,7 +63,7 @@ func Register() {
 			err = inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
 			if err != nil {
 				if common.IsError(err, common.ChallengeRequiredError) {
-					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
+					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
 					ErrorChallengeRequired++
 				}
 				log.Error("user: %s, change ico error: %v", inst.User, err)
@@ -81,9 +82,9 @@ func Register() {
 		if err != nil {
 			if common.IsError(err, common.ApiError) {
 				if strings.Index(err.Error(), "wait a few minutes") != -1 || strings.Index(err.Error(), "请稍等几分钟再试") != -1 {
-					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
+					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
 				} else if strings.Index(err.Error(), "feedback_required") != -1 {
-					common.ProxyPool.Black(_proxy, common.BlackType_RegisterRisk)
+					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
 				}
 			}
 

@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"makemoney/common"
 	"makemoney/common/log"
+	"makemoney/common/proxy"
 	"makemoney/goinsta"
 	"os"
 	"testing"
@@ -11,7 +11,7 @@ import (
 func TestSearch(t *testing.T) {
 	main.InitTest()
 	inst := goinsta.AccountPool.GetOne()
-	_proxy := common.ProxyPool.Get(inst.Proxy.ID)
+	_proxy := proxy.ProxyPool.Get(inst.Proxy.ID)
 	if _proxy == nil {
 		log.Error("find insta proxy error!")
 		os.Exit(0)

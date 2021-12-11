@@ -59,17 +59,17 @@ func LoadTags() {
 func CrawTags() {
 	var search *goinsta.Search
 	var err error
-	inst := routine.ReqAccount()
-	if inst == nil {
-		log.Error("CrawTags no more account!")
+	inst, err := routine.ReqAccount()
+	if err != nil {
+		log.Error("CrawTags req account error: %v!", err)
 		return
 	}
 
-	defer func() {
-		if inst != nil {
-			goinsta.AccountPool.ReleaseOne(inst)
-		}
-	}()
+	//defer func() {
+	//	if inst != nil {
+	//		goinsta.AccountPool.ReleaseOne(inst)
+	//	}
+	//}()
 
 	search, err = routine.LoadSearch()
 	if err != nil {
@@ -97,10 +97,10 @@ func CrawTags() {
 				break
 			} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 				goinsta.AccountPool.BlackOne(inst)
-				_inst := routine.ReqAccount()
-				if _inst == nil {
+				_inst, errAcc := routine.ReqAccount()
+				if errAcc != nil {
+					log.Error("CrawTags req account error: %v!", errAcc)
 					inst = nil
-					log.Error("CrawTags no more account!")
 					return
 				}
 				log.Warn("CrawTags replace account %s->%s", inst.User, _inst.User)
@@ -136,17 +136,17 @@ func CrawTags() {
 
 func CrawMedias() {
 	defer WaitAll.Done()
-	inst := routine.ReqAccount()
-	if inst == nil {
-		log.Error("CrawMedias no more account!")
+	inst, err := routine.ReqAccount()
+	if err != nil {
+		log.Error("CrawMedias req account error: %v", err)
 		return
 	}
 
-	defer func() {
-		if inst != nil {
-			goinsta.AccountPool.ReleaseOne(inst)
-		}
-	}()
+	//defer func() {
+	//	if inst != nil {
+	//		goinsta.AccountPool.ReleaseOne(inst)
+	//	}
+	//}()
 
 	for tag := range TagsChan {
 		tag.SetAccount(inst)
@@ -171,10 +171,10 @@ func CrawMedias() {
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 					goinsta.AccountPool.BlackOne(inst)
-					_inst := routine.ReqAccount()
-					if _inst == nil {
+					_inst, errAcc := routine.ReqAccount()
+					if errAcc != nil {
+						log.Error("CrawTags req account error: %v!", errAcc)
 						inst = nil
-						log.Error("CrawMedias no more account!")
 						return
 					}
 					log.Warn("CrawMedias replace account %s->%s", inst.User, _inst.User)
@@ -250,31 +250,34 @@ func SendTags() {
 
 func CrawCommentUser() {
 	defer WaitAll.Done()
-	inst := routine.ReqAccount()
-	if inst == nil {
-		log.Error("CrawCommentUser no more account!")
-		return
-	}
+	var inst *goinsta.Instagram
 
-	defer func() {
-		if inst != nil {
-			goinsta.AccountPool.ReleaseOne(inst)
-		}
-	}()
+	//defer func() {
+	//	if inst != nil {
+	//		goinsta.AccountPool.ReleaseOne(inst)
+	//	}
+	//}()
+
 	reqCount := 0
 	for mediaComb := range MediaChan {
 		if mediaComb.Media.CommentCount == 0 {
 			continue
 		}
-
-		if reqCount > 350 {
-			goinsta.AccountPool.ReleaseOne(inst)
-			inst = routine.ReqAccount()
-			if inst == nil {
-				log.Error("CrawCommentUser no more account!")
+		if reqCount > 350 || inst == nil {
+			//goinsta.AccountPool.ReleaseOne(inst)
+			reqCount = 0
+			oldUserName := ""
+			if inst != nil {
+				oldUserName = inst.User
+			}
+			var err error
+			inst, err = routine.ReqAccount()
+			if err != nil {
+				log.Error("CrawCommentUser req account error: %v!", err)
 				inst = nil
 				return
 			}
+			log.Warn("account: %s,CrawCommentUser request count more than 350, replace account to %s", oldUserName, inst.User)
 		}
 
 		mediaComb.Media.SetAccount(inst)
@@ -293,9 +296,10 @@ func CrawCommentUser() {
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 					goinsta.AccountPool.BlackOne(inst)
-					_inst := routine.ReqAccount()
-					if _inst == nil {
-						log.Error("CrawCommentUser no more account!")
+					reqCount = 0
+					_inst, errAcc := routine.ReqAccount()
+					if errAcc != nil {
+						log.Error("CrawCommentUser req account error: %v!", errAcc)
 						inst = nil
 						return
 					}

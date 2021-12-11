@@ -3,6 +3,7 @@ package goinsta
 import (
 	"encoding/json"
 	"makemoney/common"
+	"makemoney/common/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
@@ -41,7 +42,7 @@ type Instagram struct {
 	ReqApiErrorCount int
 	ReqContError     int
 
-	Proxy *common.Proxy
+	Proxy *proxy.Proxy
 	c     *http.Client
 }
 
@@ -57,7 +58,7 @@ func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 	return nil
 }
 
-func New(username, password string, _proxy *common.Proxy) *Instagram {
+func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	// this call never returns error
 	jar, _ := cookiejar.New(nil)
 	inst := &Instagram{
@@ -109,7 +110,7 @@ func (this *Instagram) GetMessage(msgType MessageType) *Message {
 }
 
 // SetProxy sets proxy for connection.
-func (this *Instagram) SetProxy(_proxy *common.Proxy) {
+func (this *Instagram) SetProxy(_proxy *proxy.Proxy) {
 	this.Proxy = _proxy
 	this.c.Transport = _proxy.GetProxy()
 	common.DebugHttpClient(this.c)

@@ -4,6 +4,7 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/common/phone"
+	"makemoney/common/proxy"
 	"makemoney/goinsta"
 	"makemoney/goinsta/dbhelper"
 	"os"
@@ -18,7 +19,7 @@ func SetCurrPath() {
 func InitAll() {
 	log.InitLogger()
 	dbhelper.InitMogoDB()
-	err := common.InitProxyPool("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\zone2_ips_us.txt")
+	err := proxy.InitProxyPool("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\zone2_ips_us.txt")
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)
 		panic(err)
@@ -42,9 +43,9 @@ func TestRegister(t *testing.T) {
 	//	log.Error("provider login error!")
 	//	os.Exit(0)
 	//}
-	_proxy := common.ProxyPool.GetNoRisk()
-	_proxy = common.ProxyPool.GetNoRisk()
-	_proxy = common.ProxyPool.GetNoRisk()
+	_proxy := proxy.ProxyPool.GetNoRisk()
+	_proxy = proxy.ProxyPool.GetNoRisk()
+	_proxy = proxy.ProxyPool.GetNoRisk()
 	if _proxy == nil {
 		log.Error("get proxy error: %v", _proxy)
 	}

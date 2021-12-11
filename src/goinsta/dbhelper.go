@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"makemoney/common"
 	"makemoney/common/log"
+	"makemoney/common/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
@@ -191,7 +192,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		inst.UserAgent = GenUserAgent()
 	}
 
-	inst.Proxy = &common.Proxy{ID: config.ProxyID}
+	inst.Proxy = &proxy.Proxy{ID: config.ProxyID}
 	common.DebugHttpClient(inst.c)
 
 	return inst, nil

@@ -3,6 +3,7 @@ package routine
 import (
 	"makemoney/common"
 	"makemoney/common/log"
+	"makemoney/common/proxy"
 	"makemoney/goinsta"
 	"os"
 )
@@ -20,7 +21,7 @@ func InitRoutine(proxyPath string) {
 		panic(err)
 	}
 	common.InitMogoDB(dbConfig.MogoUri)
-	err = common.InitProxyPool(proxyPath)
+	err = proxy.InitProxyPool(proxyPath)
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)
 		panic(err)
@@ -36,26 +37,30 @@ func InitRoutine(proxyPath string) {
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
-func ReqAccount() *goinsta.Instagram {
+func ReqAccount() (*goinsta.Instagram, error) {
 	inst := goinsta.AccountPool.GetOne()
 	if inst == nil {
-		return nil
+		return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more account"}
 	}
-	SetProxy(inst)
-	return inst
+
+	if !SetProxy(inst) {
+		return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more proxy"}
+	}
+
+	return inst, nil
 }
 
 func SetProxy(inst *goinsta.Instagram) bool {
-	var _proxy *common.Proxy
+	var _proxy *proxy.Proxy
 	if inst.Proxy.ID != "" {
-		_proxy = common.ProxyPool.Get(inst.Proxy.ID)
+		_proxy = proxy.ProxyPool.Get(inst.Proxy.ID)
 		if _proxy == nil {
 			log.Warn("find insta proxy %s error!", inst.Proxy.ID)
 		}
 	}
 
 	if _proxy == nil {
-		_proxy = common.ProxyPool.GetNoRisk(false, false)
+		_proxy = proxy.ProxyPool.GetNoRisk(false, false)
 		if _proxy == nil {
 			log.Error("get insta proxy error!")
 		}

@@ -5,6 +5,7 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/common/phone"
+	proxy2 "makemoney/common/proxy"
 	"math/rand"
 	"strconv"
 	"time"
@@ -14,12 +15,12 @@ type Register struct {
 	inst       *Instagram
 	number     string
 	phone      phone.PhoneVerificationCode
-	proxy      *common.Proxy
+	proxy      *proxy2.Proxy
 	HadSendSMS bool
 	HadRecvSMS bool
 }
 
-func NewRegister(_proxy *common.Proxy, _phone phone.PhoneVerificationCode) *Register {
+func NewRegister(_proxy *proxy2.Proxy, _phone phone.PhoneVerificationCode) *Register {
 	register := &Register{}
 	register.phone = _phone
 	register.proxy = _proxy
