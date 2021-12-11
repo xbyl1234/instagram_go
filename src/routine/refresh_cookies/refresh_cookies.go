@@ -26,6 +26,7 @@ var ProxyPath = flag.String("proxy", "", "")
 var ResIcoPath = flag.String("ico", "", "")
 var Coro = flag.Int("coro", 8, "")
 var TaskType = flag.String("type", "", "")
+var TestOne = flag.String("test_one", "", "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
 var TestResult = make(chan *TestLoginResult, 1000)
@@ -171,6 +172,7 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 			inst.PrepareNewClient()
 			err := Login(inst)
 			if err != nil {
+				result.err = err
 				if common.IsError(err, common.ChallengeRequiredError) {
 					result.inst.Status = "challenge_required"
 					return result
@@ -181,7 +183,6 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 				} else {
 					log.Error("account: %s, unknow error: %v", inst.User, err)
 					result.inst.Status = err.Error()
-					result.err = err
 					return result
 				}
 			}
@@ -194,6 +195,7 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 		result.inst.Status = ""
 		err := inst.GetAccount().Sync()
 		if err != nil {
+			result.err = err
 			if common.IsError(err, common.ChallengeRequiredError) {
 				result.inst.Status = "challenge_required"
 				return result
@@ -286,6 +288,31 @@ func PrintResult(result []*TestLoginResult) {
 		}
 	}
 }
+func testOne(insts []*goinsta.Instagram, username string) {
+	var inst *goinsta.Instagram
+	for index := range insts {
+		if insts[index].User == username {
+			inst = insts[index]
+			break
+		}
+	}
+	if inst == nil {
+		log.Error("not find user: %s", username)
+		os.Exit(0)
+	}
+
+	result := InstTestAccount(inst)
+	if result.status {
+		if result.err == nil {
+			log.Info("islogin: %v, acc status: %s", result.inst.IsLogin, result.inst.Status)
+		} else {
+			log.Info("acc: %s, str: %s, err: %v", result.inst.Status, result.str, result.err)
+		}
+		goinsta.SaveInstToDB(inst)
+	} else {
+		log.Info("result status is false, str: %s, err: %v", result.str, result.err)
+	}
+}
 
 func main() {
 	config.UseCharles = false
@@ -308,6 +335,11 @@ func main() {
 	}
 	log.Info("load account count: %d", len(insts))
 	TestResultList = make([]*TestLoginResult, len(insts))
+
+	if *TestOne != "" {
+		testOne(insts, *TestOne)
+		os.Exit(0)
+	}
 
 	WaitExit.Add(2)
 	WaitTask.Add(*Coro)
