@@ -387,10 +387,14 @@ func (this *Instagram) Login() error {
 	}, resp)
 
 	err = resp.CheckError(err)
-	if err != nil && this.ReadHeader(IGHeader_Authorization) != "" {
-		this.IsLogin = true
+
+	if err == nil {
+		if this.ReadHeader(IGHeader_Authorization) != "" {
+			this.IsLogin = true
+		}
 		this.ID = resp.LoggedInUser.Pk
 	}
+
 	return err
 }
 

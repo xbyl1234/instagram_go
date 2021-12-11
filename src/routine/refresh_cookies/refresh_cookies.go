@@ -24,7 +24,7 @@ type TestLoginResult struct {
 
 var ProxyPath = flag.String("proxy", "", "")
 var ResIcoPath = flag.String("ico", "", "")
-var Coro = flag.Int("coro", 16, "")
+var Coro = flag.Int("coro", 1, "")
 var TaskType = flag.String("type", "", "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
@@ -158,12 +158,33 @@ func RecvRefreshAccountInfo() {
 
 func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 	var result = &TestLoginResult{}
+	result.status = true
+	result.inst = inst
+
 	if routine.SetProxy(inst) {
+		if inst.ID == 0 || !inst.IsLogin {
+			err := Login(inst)
+			if err != nil {
+				result.inst.IsLogin = false
+				result.inst.Status = err.Error()
+				result.err = err
+				return result
+			}
+			result.inst.IsLogin = true
+		}
+
 		err := inst.GetAccount().Sync()
 		if err != nil {
-
+			if common.IsError(result.err, common.ChallengeRequiredError) {
+				result.inst.Status = "challenge_required"
+				return result
+			} else {
+				log.Error("account: %s, unknow error: %v", inst.User, err)
+				result.status = false
+				return result
+			}
 		} else {
-
+			inst.Status = ""
 		}
 	} else {
 		result.str = "no proxy"
@@ -174,10 +195,16 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 }
 
 func RecvTestAccount() {
-	//for result := range TestResult {
-	//
-	//}
+	index := 0
+	for result := range TestResult {
+		TestResultList[index] = result
+		index++
+		if result.status {
+			goinsta.SaveInstToDB(result.inst)
+		}
+	}
 	WaitExit.Done()
+	PrintResult(TestResultList[:index])
 }
 
 func DispatchAccount() {
