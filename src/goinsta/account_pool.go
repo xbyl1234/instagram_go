@@ -55,4 +55,5 @@ func (this *AccountPoolt) BlackOne(insta *Instagram) {
 	defer this._lock.Unlock()
 
 	this.notAvailable.PushBack(insta)
+	SaveInstToDB(insta)
 }
