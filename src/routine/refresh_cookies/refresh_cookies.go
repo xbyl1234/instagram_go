@@ -24,7 +24,7 @@ type TestLoginResult struct {
 
 var ProxyPath = flag.String("proxy", "", "")
 var ResIcoPath = flag.String("ico", "", "")
-var Coro = flag.Int("coro", 1, "")
+var Coro = flag.Int("coro", 8, "")
 var TaskType = flag.String("type", "", "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
@@ -160,27 +160,50 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 	var result = &TestLoginResult{}
 	result.status = true
 	result.inst = inst
+	if inst.Status == "challenge_required" {
+		result.status = false
+		return result
+	}
 
 	if routine.SetProxy(inst) {
-		if inst.ID == 0 || !inst.IsLogin {
+		if inst.ID == 0 || inst.IsLogin == false {
+			inst.CleanCookiesAndHeader()
+			inst.PrepareNewClient()
 			err := Login(inst)
 			if err != nil {
-				result.inst.IsLogin = false
-				result.inst.Status = err.Error()
-				result.err = err
-				return result
+				if common.IsError(err, common.ChallengeRequiredError) {
+					result.inst.Status = "challenge_required"
+					return result
+				} else if common.IsError(err, common.RequestError) {
+					log.Error("account: %s, request error: %v", inst.User, err)
+					result.status = false
+					return result
+				} else {
+					log.Error("account: %s, unknow error: %v", inst.User, err)
+					result.inst.Status = err.Error()
+					result.err = err
+					return result
+				}
 			}
 			result.inst.IsLogin = true
 		}
+		//The password you entered is incorrect
+		//invalid character 'O' looking for beginning of value
+		//The username you entered doesn't appear to belong to an account
 
+		result.inst.Status = ""
 		err := inst.GetAccount().Sync()
 		if err != nil {
-			if common.IsError(result.err, common.ChallengeRequiredError) {
+			if common.IsError(err, common.ChallengeRequiredError) {
 				result.inst.Status = "challenge_required"
+				return result
+			} else if common.IsError(err, common.RequestError) {
+				log.Error("account: %s, request error: %v", inst.User, err)
+				result.status = false
 				return result
 			} else {
 				log.Error("account: %s, unknow error: %v", inst.User, err)
-				result.status = false
+				result.inst.Status = err.Error()
 				return result
 			}
 		} else {
