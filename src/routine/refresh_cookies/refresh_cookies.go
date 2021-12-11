@@ -35,6 +35,7 @@ var WaitExit sync.WaitGroup
 var (
 	TaskLogin       = "login"
 	TaskRefreshInfo = "refresh_info"
+	TaskTestAccount = "test"
 )
 
 func initParams() {
@@ -155,6 +156,30 @@ func RecvRefreshAccountInfo() {
 	common.ProxyPool.Dumps()
 }
 
+func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
+	var result = &TestLoginResult{}
+	if routine.SetProxy(inst) {
+		err := inst.GetAccount().Sync()
+		if err != nil {
+
+		} else {
+
+		}
+	} else {
+		result.str = "no proxy"
+		result.status = false
+	}
+
+	return result
+}
+
+func RecvTestAccount() {
+	//for result := range TestResult {
+	//
+	//}
+	WaitExit.Done()
+}
+
 func DispatchAccount() {
 	defer WaitTask.Done()
 	var Consumer func(inst *goinsta.Instagram) *TestLoginResult
@@ -164,6 +189,9 @@ func DispatchAccount() {
 		break
 	case TaskRefreshInfo:
 		Consumer = InstRefreshAccountInfo
+		break
+	case TaskTestAccount:
+		Consumer = InstTestAccount
 		break
 	default:
 		return
@@ -240,6 +268,9 @@ func main() {
 		break
 	case TaskRefreshInfo:
 		go RecvRefreshAccountInfo()
+		break
+	case TaskTestAccount:
+		go RecvTestAccount()
 		break
 	default:
 		log.Error("task type error")
