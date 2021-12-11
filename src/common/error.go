@@ -46,6 +46,7 @@ var (
 	OtherError             ErrType = 3
 	RequestError           ErrType = 4
 	ChallengeRequiredError ErrType = 5
+	LoginRequiredError     ErrType = 6
 )
 
 func IsNoMoreError(err error) bool {

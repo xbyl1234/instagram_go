@@ -95,7 +95,7 @@ func CrawTags() {
 				config.CrawTagsStatus = true
 				log.Info("tags has craw finish!")
 				break
-			} else if common.IsError(err, common.ChallengeRequiredError) {
+			} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 				goinsta.AccountPool.BlackOne(inst)
 				_inst := routine.ReqAccount()
 				if _inst == nil {
@@ -169,7 +169,7 @@ func CrawMedias() {
 					}
 					log.Info("tags %s medias has craw finish!", tag.Name)
 					break
-				} else if common.IsError(err, common.ChallengeRequiredError) {
+				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 					goinsta.AccountPool.BlackOne(inst)
 					_inst := routine.ReqAccount()
 					if _inst == nil {
@@ -261,11 +261,22 @@ func CrawCommentUser() {
 			goinsta.AccountPool.ReleaseOne(inst)
 		}
 	}()
-
+	reqCount := 0
 	for mediaComb := range MediaChan {
 		if mediaComb.Media.CommentCount == 0 {
 			continue
 		}
+
+		if reqCount > 350 {
+			goinsta.AccountPool.ReleaseOne(inst)
+			inst = routine.ReqAccount()
+			if inst == nil {
+				log.Error("CrawCommentUser no more account!")
+				inst = nil
+				return
+			}
+		}
+
 		mediaComb.Media.SetAccount(inst)
 		if mediaComb.Comments != nil {
 			mediaComb.Comments.SetAccount(inst)
@@ -275,11 +286,12 @@ func CrawCommentUser() {
 
 		for true {
 			respComm, err := mediaComb.Comments.NextComments()
+			reqCount++
 			if err != nil {
 				if common.IsNoMoreError(err) {
 					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
 					break
-				} else if common.IsError(err, common.ChallengeRequiredError) {
+				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 					goinsta.AccountPool.BlackOne(inst)
 					_inst := routine.ReqAccount()
 					if _inst == nil {
@@ -302,7 +314,7 @@ func CrawCommentUser() {
 					break
 				} else {
 					log.Error("NextComments unknow error:%v", err)
-					break
+					return
 				}
 			}
 

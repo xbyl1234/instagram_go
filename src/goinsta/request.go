@@ -64,6 +64,9 @@ func (this *BaseApiResp) CheckError(err error) error {
 		if this.Message == InsAccountError_ChallengeRequired {
 			this.inst.Status = InsAccountError_ChallengeRequired
 			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ChallengeRequiredError}
+		} else if this.Message == InsAccountError_LoginRequired {
+			this.inst.Status = InsAccountError_LoginRequired
+			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.LoginRequiredError}
 		} else {
 			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
 		}

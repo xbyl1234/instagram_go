@@ -13,6 +13,7 @@ import (
 
 var (
 	InsAccountError_ChallengeRequired = "challenge_required"
+	InsAccountError_LoginRequired     = "login_required"
 )
 
 type Instagram struct {
