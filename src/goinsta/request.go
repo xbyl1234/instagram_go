@@ -32,16 +32,16 @@ type reqOptions struct {
 }
 
 type BaseApiResp struct {
-	url      string
-	username string
+	url  string
+	inst *Instagram
 
 	Status    string `json:"status"`
 	ErrorType string `json:"error_type"`
 	Message   string `json:"message"`
 }
 
-func (this *BaseApiResp) SetInfo(url string, username string) {
-	this.username = username
+func (this *BaseApiResp) SetInfo(url string, inst *Instagram) {
+	this.inst = inst
 	this.url = url
 }
 
@@ -58,10 +58,11 @@ func (this *BaseApiResp) CheckError(err error) error {
 	}
 	if this.Status != "ok" {
 		log.Warn("account: %s, url: %s, api error: %s",
-			this.username,
+			this.inst.User,
 			this.url,
 			this.ErrorType+":"+this.Message)
 		if this.Message == InsAccountError_ChallengeRequired {
+			this.inst.Status = InsAccountError_ChallengeRequired
 			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ChallengeRequiredError}
 		} else {
 			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
@@ -327,7 +328,7 @@ func (this *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{})
 		if value.CanInterface() {
 			setInfo := value.MethodByName("SetInfo")
 			if setInfo.Kind() == reflect.Func {
-				setInfo.Call([]reflect.Value{reflect.ValueOf(reqOpt.ApiPath), reflect.ValueOf(this.User)})
+				setInfo.Call([]reflect.Value{reflect.ValueOf(reqOpt.ApiPath), reflect.ValueOf(this)})
 			} else {
 				log.Warn("reflect SetInfo error! url: %s", reqOpt.ApiPath)
 			}

@@ -115,6 +115,10 @@ func (this *Instagram) SetProxy(_proxy *common.Proxy) {
 }
 
 func (this *Instagram) NeedReplace() bool {
+	if this.Status == InsAccountError_ChallengeRequired {
+		return true
+	}
+
 	if this.ReqContError >= 3 {
 		return true
 	}
