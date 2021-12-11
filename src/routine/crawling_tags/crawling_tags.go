@@ -65,7 +65,11 @@ func CrawTags() {
 		return
 	}
 
-	defer goinsta.AccountPool.ReleaseOne(inst)
+	defer func() {
+		if inst != nil {
+			goinsta.AccountPool.ReleaseOne(inst)
+		}
+	}()
 
 	search, err = routine.LoadSearch()
 	if err != nil {
@@ -95,8 +99,9 @@ func CrawTags() {
 				goinsta.AccountPool.BlackOne(inst)
 				_inst := routine.ReqAccount()
 				if _inst == nil {
+					inst = nil
 					log.Error("CrawTags no more account!")
-					break
+					return
 				}
 				log.Warn("CrawTags replace account %s->%s", inst.User, _inst.User)
 				inst = _inst
@@ -137,6 +142,12 @@ func CrawMedias() {
 		return
 	}
 
+	defer func() {
+		if inst != nil {
+			goinsta.AccountPool.ReleaseOne(inst)
+		}
+	}()
+
 	for tag := range TagsChan {
 		tag.SetAccount(inst)
 		err := tag.Sync(goinsta.TabRecent)
@@ -162,8 +173,9 @@ func CrawMedias() {
 					goinsta.AccountPool.BlackOne(inst)
 					_inst := routine.ReqAccount()
 					if _inst == nil {
+						inst = nil
 						log.Error("CrawMedias no more account!")
-						break
+						return
 					}
 					log.Warn("CrawMedias replace account %s->%s", inst.User, _inst.User)
 					inst = _inst
@@ -220,7 +232,6 @@ func CrawMedias() {
 			}
 		}
 	}
-	goinsta.AccountPool.ReleaseOne(inst)
 }
 
 func SendTags() {
@@ -245,6 +256,12 @@ func CrawCommentUser() {
 		return
 	}
 
+	defer func() {
+		if inst != nil {
+			goinsta.AccountPool.ReleaseOne(inst)
+		}
+	}()
+
 	for mediaComb := range MediaChan {
 		if mediaComb.Media.CommentCount == 0 {
 			continue
@@ -267,7 +284,8 @@ func CrawCommentUser() {
 					_inst := routine.ReqAccount()
 					if _inst == nil {
 						log.Error("CrawCommentUser no more account!")
-						break
+						inst = nil
+						return
 					}
 					log.Warn("CrawCommentUser replace account %s->%s", inst.User, _inst.User)
 					inst = _inst
@@ -306,8 +324,6 @@ func CrawCommentUser() {
 			}
 		}
 	}
-
-	goinsta.AccountPool.ReleaseOne(inst)
 }
 
 func SendMedias() {
