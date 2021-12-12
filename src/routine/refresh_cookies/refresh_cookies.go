@@ -216,7 +216,8 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 				log.Error("account: %s, request error: %v", inst.User, err)
 				result.status = false
 				return result
-			} else if strings.Index(err.Error(), "invalid character '<' looking") != -1 {
+			} else if strings.Index(err.Error(), "invalid character '<' looking for beginning of value") != -1 {
+				log.Error("account: %s, cookies error: %v", inst.User, err)
 				inst.CleanCookiesAndHeader()
 				result.inst.Status = err.Error()
 				return result
@@ -333,7 +334,7 @@ func testOne(insts []*goinsta.Instagram, username string) {
 
 func main() {
 	config2.UseCharles = false
-	config2.UseTruncation = false
+	config2.UseTruncation = true
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
