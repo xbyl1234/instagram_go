@@ -105,7 +105,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 		return nil, err
 	}
 
-	this.inst.IsLogin = false
+	this.inst.IsLogin = true
 	this.inst.ID = createValidated.CreatedUser.ID
 	flag = true
 	return this.inst, err

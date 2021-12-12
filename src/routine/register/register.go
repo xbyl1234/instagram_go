@@ -6,21 +6,26 @@ import (
 	"makemoney/common/log"
 	"makemoney/common/phone"
 	"makemoney/common/proxy"
-	"makemoney/config"
+	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
 )
 
-var ProxyPath = flag.String("proxy", "", "")
-var ResIcoPath = flag.String("ico", "", "")
-var ResUsernamePath = flag.String("name", "", "")
-var Coro = flag.Int("coro", runtime.NumCPU(), "")
+type Config struct {
+	ProxyPath       string `json:"proxy_path"`
+	ResIcoPath      string `json:"res_ico_path"`
+	ResUsernamePath string `json:"res_username_path"`
+	Coro            int    `json:"coro"`
+}
+
+var ConfigPath = flag.String("config", "./config/register.json", "")
 var RegisterCount = flag.Int("count", 0, "")
+
+var config Config
 
 var Count int32 = 0
 var SuccessCount = 0
@@ -57,7 +62,7 @@ func Register() {
 		inst, err := regisert.Do(username, username, password)
 		if err == nil {
 			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
-			inst.IsLogin = true
+			//inst.IsLogin = true
 			//_ = inst.ZrToken()
 			//_ = inst.LogAttribution()
 			err = inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
@@ -67,7 +72,7 @@ func Register() {
 					ErrorChallengeRequired++
 				}
 				log.Error("user: %s, change ico error: %v", inst.User, err)
-				inst.IsLogin = false
+				//inst.IsLogin = false
 				inst.Status = err.Error()
 			} else {
 				SuccessCount++
@@ -109,15 +114,20 @@ func Register() {
 func initParams() {
 	flag.Parse()
 	log.InitDefaultLog("register", true, true)
-	if *ProxyPath == "" {
+	err := common.LoadJsonFile(*ConfigPath, &config)
+	if err != nil {
+		log.Error("load config error: %v", err)
+		os.Exit(0)
+	}
+	if config.ProxyPath == "" {
 		log.Error("proxy path is null")
 		os.Exit(0)
 	}
-	if *ResIcoPath == "" {
+	if config.ResIcoPath == "" {
 		log.Error("ResourcePath is null")
 		os.Exit(0)
 	}
-	if *ResUsernamePath == "" {
+	if config.ResUsernamePath == "" {
 		log.Error("ResUsernamePath is null")
 		os.Exit(0)
 	}
@@ -130,11 +140,11 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config.UseCharles = false
-	config.UseTruncation = false
+	config2.UseCharles = false
+	config2.UseTruncation = false
 
 	initParams()
-	routine.InitRoutine(*ProxyPath)
+	routine.InitRoutine(config.ProxyPath)
 
 	var err error
 	PhoneProvider, err = phone.NewPhoneVerificationCode("do889")
@@ -142,14 +152,14 @@ func main() {
 		log.Error("create phone provider error!%v", err)
 		os.Exit(0)
 	}
-	err = common.InitResource(*ResIcoPath, *ResUsernamePath)
+	err = common.InitResource(config.ResIcoPath, config.ResUsernamePath)
 	if err != nil {
 		log.Error("InitResource error!%v", err)
 		os.Exit(0)
 	}
 
-	WaitAll.Add(*Coro)
-	for i := 0; i < *Coro; i++ {
+	WaitAll.Add(config.Coro)
+	for i := 0; i < config.Coro; i++ {
 		go Register()
 	}
 	WaitAll.Wait()
