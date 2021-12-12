@@ -181,10 +181,10 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 	var result = &TestLoginResult{}
 	result.status = true
 	result.inst = inst
-	if inst.Status == "challenge_required" {
-		result.status = false
-		return result
-	}
+	//if inst.Status == "challenge_required" {
+	//	result.status = false
+	//	return result
+	//}
 
 	if routine.SetProxy(inst) {
 		for true {
