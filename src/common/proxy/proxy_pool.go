@@ -1,9 +1,13 @@
 package proxy
 
 import (
+	"crypto/tls"
 	"fmt"
+	"golang.org/x/net/proxy"
 	"makemoney/common"
 	"makemoney/common/log"
+	"net/http"
+	"net/url"
 )
 
 type ProxyType int
@@ -36,19 +40,48 @@ type Proxy struct {
 	BlackType       BlackType `json:"black_type"`
 }
 
+func (this *Proxy) GetProxy() *http.Transport {
+	if this.ProxyType == 0 {
+		var proxyUrl string
+		if this.NeedAuth {
+			proxyUrl = "http://" + this.Username + ":" + this.Passwd + "@" + this.Ip + ":" + this.Port
+		} else {
+			proxyUrl = "http://" + this.Ip + ":" + this.Port
+		}
+		_url, _ := url.Parse(proxyUrl)
+		return &http.Transport{
+			Proxy:           http.ProxyURL(_url),
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	} else {
+		var auth *proxy.Auth = &proxy.Auth{}
+		if this.NeedAuth {
+			auth.User = this.Username
+			auth.Password = this.Passwd
+		} else {
+			auth = nil
+		}
+		dialer, _ := proxy.SOCKS5("tcp", this.Ip+":"+this.Port, auth, proxy.Direct)
+		var httpTran = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+		httpTran.Dial = dialer.Dial
+		return httpTran
+	}
+}
+
 type ProxyPoolt interface {
 	GetNoRisk(busy bool, used bool) *Proxy
 	Get(id string) *Proxy
 	Black(proxy *Proxy, _type BlackType)
 	Remove(proxy *Proxy)
+	Dumps()
 }
 
 var ProxyPool ProxyPoolt
 
 type ProxyConfigt struct {
-	Provider  string    `json:"provider"`
-	Url       string    `json:"url"`
-	ProxyType ProxyType `json:"proxy_type"`
+	Provider string `json:"provider"`
+	Url      string `json:"url"`
+	//ProxyType ProxyType `json:"proxy_type"`
 }
 
 var ProxyConfig ProxyConfigt

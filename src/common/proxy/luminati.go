@@ -1,13 +1,9 @@
 package proxy
 
 import (
-	"crypto/tls"
-	"golang.org/x/net/proxy"
 	"makemoney/common"
 	"makemoney/common/log"
 	math_rand "math/rand"
-	"net/http"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -21,34 +17,6 @@ type LuminatiPool struct {
 	proxyLock sync.Mutex
 	path      string
 	dumpsPath string
-}
-
-func (this *Proxy) GetProxy() *http.Transport {
-	if this.ProxyType == 0 {
-		var proxyUrl string
-		if this.NeedAuth {
-			proxyUrl = "http://" + this.Username + ":" + this.Passwd + "@" + this.Ip + ":" + this.Port
-		} else {
-			proxyUrl = "http://" + this.Ip + ":" + this.Port
-		}
-		_url, _ := url.Parse(proxyUrl)
-		return &http.Transport{
-			Proxy:           http.ProxyURL(_url),
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		}
-	} else {
-		var auth *proxy.Auth = &proxy.Auth{}
-		if this.NeedAuth {
-			auth.User = this.Username
-			auth.Password = this.Passwd
-		} else {
-			auth = nil
-		}
-		dialer, _ := proxy.SOCKS5("tcp", this.Ip+":"+this.Port, auth, proxy.Direct)
-		var httpTran = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-		httpTran.Dial = dialer.Dial
-		return httpTran
-	}
 }
 
 func InitLuminatiPool(path string) (ProxyPoolt, error) {

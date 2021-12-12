@@ -78,6 +78,7 @@ func (this *DovePool) RequestProxy() bool {
 		break
 	}
 	if len(resp.Data) == 0 {
+		log.Error("doveip request proxy list is null!")
 		return false
 	}
 	this.proxyList = make([]*Proxy, len(resp.Data))
@@ -103,6 +104,8 @@ func (this *DovePool) RequestProxy() bool {
 		}
 		this.proxyMask[index] = true
 	}
+
+	log.Info("doveip request proxy list success!")
 	return true
 }
 
@@ -142,5 +145,9 @@ func (this *DovePool) Black(proxy *Proxy, _type BlackType) {
 
 }
 func (this *DovePool) Remove(proxy *Proxy) {
+
+}
+
+func (this *DovePool) Dumps() {
 
 }

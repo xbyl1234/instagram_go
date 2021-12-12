@@ -16,6 +16,7 @@ var (
 	InsAccountError_ChallengeRequired = "challenge_required"
 	InsAccountError_LoginRequired     = "login_required"
 )
+var ProxyCallBack func(id string) (*proxy.Proxy, error)
 
 type Instagram struct {
 	User                string

@@ -5,7 +5,7 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/common/proxy"
-	"makemoney/config"
+	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
@@ -13,22 +13,23 @@ import (
 	"sync"
 )
 
-type tmpAccount struct {
-	username string
-	passwd   string
-}
 type TestLoginResult struct {
 	inst   *goinsta.Instagram
 	status bool
 	err    error
 	str    string
 }
+type Config struct {
+	ProxyPath  string `json:"proxy_path"`
+	ResIcoPath string `json:"res_ico_path"`
+	Coro       int    `json:"coro"`
+}
 
-var ProxyPath = flag.String("proxy", "", "")
-var ResIcoPath = flag.String("ico", "", "")
-var Coro = flag.Int("coro", 8, "")
+var config Config
+
 var TaskType = flag.String("type", "", "")
 var TestOne = flag.String("test_one", "", "")
+var ConfigPath = flag.String("config", "./config/refresh.json", "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
 var TestResult = make(chan *TestLoginResult, 1000)
@@ -44,13 +45,22 @@ var (
 func initParams() {
 	flag.Parse()
 	log.InitDefaultLog("refresh_cookies", true, true)
-	if *ProxyPath == "" {
+	err := common.LoadJsonFile(*ConfigPath, &config)
+	if err != nil {
+		log.Error("load config error: %v", err)
+		os.Exit(0)
+	}
+
+	if config.ProxyPath == "" {
 		log.Error("proxy path is null")
 		os.Exit(0)
 	}
-	if *ResIcoPath == "" {
+	if config.ResIcoPath == "" {
 		log.Error("ResourcePath path is null")
 		os.Exit(0)
+	}
+	if config.Coro == 0 {
+		config.Coro = 1
 	}
 }
 
@@ -322,14 +332,14 @@ func testOne(insts []*goinsta.Instagram, username string) {
 }
 
 func main() {
-	config.UseCharles = false
-	config.UseTruncation = false
+	config2.UseCharles = false
+	config2.UseTruncation = false
 
 	initParams()
-	routine.InitRoutine(*ProxyPath)
+	routine.InitRoutine(config.ProxyPath)
 
 	//goinsta.CleanStatus()
-	err := common.InitResource(*ResIcoPath, "")
+	err := common.InitResource(config.ResIcoPath, "")
 	if err != nil {
 		log.Error("load res error: %v", err)
 		os.Exit(0)
@@ -349,7 +359,7 @@ func main() {
 	}
 
 	WaitExit.Add(2)
-	WaitTask.Add(*Coro)
+	WaitTask.Add(config.Coro)
 	go SendAccount(insts)
 	switch *TaskType {
 	case TaskLogin:
@@ -366,7 +376,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	for i := 0; i < *Coro; i++ {
+	for i := 0; i < config.Coro; i++ {
 		go DispatchAccount()
 	}
 

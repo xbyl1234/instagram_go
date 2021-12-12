@@ -34,6 +34,7 @@ func InitRoutine(proxyPath string) {
 	goinsta.InitAccountPool(intas)
 
 	log.Info("load account count: %d", goinsta.AccountPool.Available.Len())
+	goinsta.ProxyCallBack = ProxyCallBack
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
@@ -72,4 +73,28 @@ func SetProxy(inst *goinsta.Instagram) bool {
 		return false
 	}
 	return true
+}
+
+func ProxyCallBack(id string) (*proxy.Proxy, error) {
+	var _proxy *proxy.Proxy
+	if id != "" {
+		_proxy = proxy.ProxyPool.Get(id)
+		if _proxy == nil {
+			log.Warn("find insta proxy %s error!", id)
+		}
+	}
+
+	if _proxy == nil {
+		_proxy = proxy.ProxyPool.GetNoRisk(false, false)
+	}
+
+	if _proxy == nil {
+		log.Error("get insta proxy error!")
+		return nil, &common.MakeMoneyError{
+			ErrStr:  "no more proxy",
+			ErrType: common.PorxyError,
+		}
+	}
+
+	return _proxy, nil
 }

@@ -313,13 +313,73 @@ func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 	}
 }
 
+func (this *Instagram) PrepareProxy() error {
+	var id = ""
+	if this.Proxy != nil {
+		id = this.Proxy.ID
+	}
+	proxy, errProxy := ProxyCallBack(id)
+	if errProxy != nil {
+		log.Error("account: %s, get proxy error: %v", this.User, errProxy)
+		return errProxy
+	}
+	this.SetProxy(proxy)
+	return nil
+}
+
 func (this *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
+	if this.Proxy == nil || this.Proxy.Ip == "" {
+		err := this.PrepareProxy()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for true {
+		result, err := this._HttpRequest(reqOpt)
+		if common.IsError(err, common.RequestError) {
+			log.Warn("account: %s,url: %s, request error: %v...", this.User, reqOpt.ApiPath, err)
+			errProxy := this.PrepareProxy()
+			if errProxy != nil {
+				return nil, err
+			}
+			continue
+		}
+		return result, err
+	}
+	return nil, nil
+}
+
+func (this *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) error {
+	if this.Proxy == nil || this.Proxy.Ip == "" {
+		err := this.PrepareProxy()
+		if err != nil {
+			return err
+		}
+	}
+
+	for true {
+		err := this._HttpRequestJson(reqOpt, response)
+		if common.IsError(err, common.RequestError) {
+			//log.Warn("account: %s,url: %s, request error: %v...", this.User, reqOpt.ApiPath, err)
+			errProxy := this.PrepareProxy()
+			if errProxy != nil {
+				return err
+			}
+			continue
+		}
+		return err
+	}
+	return nil
+}
+
+func (this *Instagram) _HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 	body, err := this.httpDo(reqOpt)
 	this.CheckInstReqError(reqOpt.ApiPath, body, err)
 	return body, err
 }
 
-func (this *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
+func (this *Instagram) _HttpRequestJson(reqOpt *reqOptions, response interface{}) (err error) {
 	body, err := this.httpDo(reqOpt)
 	if err == nil {
 		err = json.Unmarshal(body, &response)
