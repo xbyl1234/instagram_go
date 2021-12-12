@@ -187,55 +187,54 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 	}
 
 	if routine.SetProxy(inst) {
-		if inst.ID == 0 || inst.IsLogin == false {
-			inst.CleanCookiesAndHeader()
-			inst.PrepareNewClient()
-			err := Login(inst)
+		for true {
+			if inst.ID == 0 || inst.IsLogin == false {
+				inst.CleanCookiesAndHeader()
+				inst.PrepareNewClient()
+				err := Login(inst)
+				if err != nil {
+					result.err = err
+					if common.IsError(err, common.ChallengeRequiredError) {
+						result.inst.Status = "challenge_required"
+						return result
+					} else if common.IsError(err, common.RequestError) {
+						log.Error("account: %s, request error: %v", inst.User, err)
+						result.status = false
+						return result
+					} else {
+						log.Error("account: %s, unknow error: %v", inst.User, err)
+						result.inst.Status = err.Error()
+						return result
+					}
+				}
+				result.inst.IsLogin = true
+			}
+			//The password you entered is incorrect
+			//invalid character 'O' looking for beginning of value
+			//The username you entered doesn't appear to belong to an account
+			//invalid character '<' looking
+
+			result.inst.Status = ""
+			err := inst.GetAccount().Sync()
 			if err != nil {
 				result.err = err
 				if common.IsError(err, common.ChallengeRequiredError) {
 					result.inst.Status = "challenge_required"
-					return result
 				} else if common.IsError(err, common.RequestError) {
 					log.Error("account: %s, request error: %v", inst.User, err)
 					result.status = false
-					return result
+				} else if strings.Index(err.Error(), "invalid character") != -1 {
+					log.Error("account: %s, cookies error: %v", inst.User, err)
+					inst.CleanCookiesAndHeader()
+					continue
 				} else {
 					log.Error("account: %s, unknow error: %v", inst.User, err)
 					result.inst.Status = err.Error()
-					return result
 				}
-			}
-			result.inst.IsLogin = true
-		}
-		//The password you entered is incorrect
-		//invalid character 'O' looking for beginning of value
-		//The username you entered doesn't appear to belong to an account
-		//invalid character '<' looking
-
-		result.inst.Status = ""
-		err := inst.GetAccount().Sync()
-		if err != nil {
-			result.err = err
-			if common.IsError(err, common.ChallengeRequiredError) {
-				result.inst.Status = "challenge_required"
-				return result
-			} else if common.IsError(err, common.RequestError) {
-				log.Error("account: %s, request error: %v", inst.User, err)
-				result.status = false
-				return result
-			} else if strings.Index(err.Error(), "invalid character") != -1 {
-				log.Error("account: %s, cookies error: %v", inst.User, err)
-				inst.CleanCookiesAndHeader()
-				result.inst.Status = err.Error()
-				return result
 			} else {
-				log.Error("account: %s, unknow error: %v", inst.User, err)
-				result.inst.Status = err.Error()
-				return result
+				inst.Status = ""
 			}
-		} else {
-			inst.Status = ""
+			break
 		}
 	} else {
 		result.str = "no proxy"
