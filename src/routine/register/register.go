@@ -141,7 +141,7 @@ func initParams() {
 //a123456789
 func main() {
 	config2.UseCharles = false
-	config2.UseTruncation = false
+	config2.UseTruncation = true
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
