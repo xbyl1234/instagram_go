@@ -30,6 +30,7 @@ var config Config
 var TaskType = flag.String("type", "", "")
 var TestOne = flag.String("test_one", "", "")
 var ConfigPath = flag.String("config", "./config/refresh.json", "")
+var SendAllAccount = flag.String("acc", "all", "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
 var TestResult = make(chan *TestLoginResult, 1000)
@@ -40,6 +41,13 @@ var (
 	TaskLogin       = "login"
 	TaskRefreshInfo = "refresh_info"
 	TaskTestAccount = "test"
+)
+var (
+	SendAll       = "all"
+	SendBad       = "bad"
+	SendNoLogin   = "nologin"
+	SendStatusErr = "badstat"
+	SendReqErr    = "badreq"
 )
 
 func initParams() {
@@ -216,7 +224,7 @@ func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
 				log.Error("account: %s, request error: %v", inst.User, err)
 				result.status = false
 				return result
-			} else if strings.Index(err.Error(), "invalid character '<' looking for beginning of value") != -1 {
+			} else if strings.Index(err.Error(), "invalid character") != -1 {
 				log.Error("account: %s, cookies error: %v", inst.User, err)
 				inst.CleanCookiesAndHeader()
 				result.inst.Status = err.Error()
@@ -275,9 +283,38 @@ func DispatchAccount() {
 	}
 }
 
+func send(inst *goinsta.Instagram) {
+	switch *SendAllAccount {
+	case SendAll:
+		TestAccount <- inst
+		break
+	case SendBad:
+		if !inst.IsLogin || inst.ID == 0 || inst.Status != "" {
+			TestAccount <- inst
+		}
+		break
+	case SendNoLogin:
+		if !inst.IsLogin {
+			TestAccount <- inst
+		}
+		break
+	case SendStatusErr:
+		if inst.Status != "" {
+			TestAccount <- inst
+		}
+		break
+	case SendReqErr:
+		if strings.Index(inst.Status, "invalid character") != -1 {
+			inst.CleanCookiesAndHeader()
+			TestAccount <- inst
+		}
+		break
+	}
+}
+
 func SendAccount(insts []*goinsta.Instagram) {
 	for index := range insts {
-		TestAccount <- insts[index]
+		send(insts[index])
 	}
 
 	close(TestAccount)
