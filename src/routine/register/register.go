@@ -140,14 +140,14 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	config2.UseTruncation = true
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 
 	var err error
-	PhoneProvider, err = phone.NewPhoneVerificationCode("do889")
+	PhoneProvider, err = phone.NewPhoneVerificationCode("taxin")
 	if err != nil {
 		log.Error("create phone provider error!%v", err)
 		os.Exit(0)
