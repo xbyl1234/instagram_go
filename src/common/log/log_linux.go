@@ -1,5 +1,13 @@
 package log
 
+import (
+	"fmt"
+	"os"
+	"runtime"
+	"syscall"
+	"time"
+)
+
 func Recover() {
 	if runtime.GOOS == "windows" {
 		return
