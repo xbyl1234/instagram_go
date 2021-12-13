@@ -82,7 +82,7 @@ func (this *Log) printLog(lev int, data string) {
 		this.w.Write([]byte(log))
 	}
 	if this.write2Front {
-		print(log)
+		fmt.Print(log)
 	}
 }
 
