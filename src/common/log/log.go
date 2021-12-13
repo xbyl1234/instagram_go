@@ -124,27 +124,57 @@ func getTimeArr(start, end string) int64 {
 	return date
 }
 
-func cleanLog(t1 interface{}) {
-	for {
-		select {
-		case <-t1.(*time.Ticker).C:
-			path, _ := os.Getwd()
-			today := time.Now().Format("20060102")
-			logs, _ := ListDir(path + "/log")
-			for _, logFile := range logs {
-				oldFile := strings.Replace(logFile, "log_", "", -1)
-				oldFile = strings.Replace(oldFile, ".txt", "", -1)
-				arr := getTimeArr(oldFile, today)
-				if arr >= 30 {
-					Info("delete old log file %s", path+"/log/"+logFile)
-					os.Remove(path + "/log/" + logFile)
-				}
-			}
+func getLogTime(fileName string) string {
+	if len(fileName) < 5 {
+		return ""
+	}
+	p := strings.Index(fileName[4:], "_")
+	if p == -1 {
+		return ""
+	}
+	p += 5
+	if len(fileName) < p+8 {
+		return ""
+	}
+	return fileName[p : p+8]
+}
+
+func CleanLog() {
+	path, _ := os.Getwd()
+	today := time.Now().Format("20060102")
+	logs, _ := ListDir(path + "/log")
+	for _, logFile := range logs {
+		logTime := getLogTime(logFile)
+		if logTime == "" {
+			continue
+		}
+
+		arr := getTimeArr(logTime, today)
+		if arr >= 3 {
+			os.Remove(path + "/log/" + logFile)
 		}
 	}
 }
 
+func cleanLog(t1 interface{}) {
+	for {
+		select {
+		case <-t1.(*time.Ticker).C:
+			CleanLog()
+		}
+	}
+}
+
+func TestPanic() {
+	var t []byte
+	t[10] = 0
+}
+
+var recoverFile *os.File
+
 func InitDefaultLog(logName string, write2Front bool, write2File bool) {
+	Recover()
+	CleanLog()
 	path, _ := os.Getwd()
 	defaultLog = &Log{}
 	defaultLog.preFit = ""
