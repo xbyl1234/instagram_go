@@ -43,6 +43,8 @@ type Instagram struct {
 	ReqApiErrorCount int
 	ReqContError     int
 
+	LastSendMsgTime int
+
 	Proxy *proxy.Proxy
 	c     *http.Client
 }

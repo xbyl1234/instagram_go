@@ -1,0 +1,12 @@
+{
+    "bloks_action": "com.instagram.challenge.navigation.take_challenge",
+    "challenge_context": "{\"step_name\": \"submit_phone\", \"cni\": 17852994578676615, \"is_stateless\": false, \"challenge_type_enum\": \"SMS\"}",
+    "challenge_type_enum_str": "SMS",
+    "cni": 17852994578676615,
+    "flow_render_type": 3,
+    "status": "ok",
+    "step_data": {
+        "phone_number": "+8617131121347"
+    },
+    "step_name": "submit_phone"
+}

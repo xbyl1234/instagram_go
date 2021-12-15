@@ -18,6 +18,7 @@ func (this *Account) Sync() error {
 		ApiPath: fmt.Sprintf(urlUserInfo, this.ID),
 		Query: map[string]interface{}{
 			"edit": true,
+			//	from_module=self_profile
 		}},
 		&resp)
 

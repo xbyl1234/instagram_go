@@ -71,6 +71,7 @@ type AccountCookies struct {
 	RegisterIpCountry   string            `json:"register_ip_country"`
 	Status              string            `json:"status"`
 	UserAgent           string            `json:"user_agent"`
+	LastSendMsgTime     int               `json:"last_send_msg_time"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -128,6 +129,7 @@ func SaveInstToDB(inst *Instagram) error {
 		RegisterIpCountry:   inst.RegisterIpCountry,
 		Status:              inst.Status,
 		UserAgent:           inst.UserAgent,
+		LastSendMsgTime:     inst.LastSendMsgTime,
 	}
 	return SaveNewAccount(Cookies)
 }
@@ -184,6 +186,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		Status:              config.Status,
 		UserAgent:           config.UserAgent,
 		sessionID:           common.GenUUID(),
+		LastSendMsgTime:     config.LastSendMsgTime,
 		c: &http.Client{
 			Jar: jar,
 		},

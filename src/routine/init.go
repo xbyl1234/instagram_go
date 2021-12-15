@@ -38,8 +38,8 @@ func InitRoutine(proxyPath string) {
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
-func ReqAccount() (*goinsta.Instagram, error) {
-	inst := goinsta.AccountPool.GetOne()
+func ReqAccount(block bool) (*goinsta.Instagram, error) {
+	inst := goinsta.AccountPool.GetOne(block)
 	if inst == nil {
 		return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more account"}
 	}

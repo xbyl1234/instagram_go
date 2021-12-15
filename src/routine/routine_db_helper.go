@@ -24,12 +24,25 @@ func InitCrawTagsDB(taskName string) {
 	CrawTagsSearchColl = CrawlingDB.Collection("search")
 }
 
+var CrawFasDB *mongo.Database
 var CrawFansUserColl *mongo.Collection
 var CrawFansTargetUserColl *mongo.Collection
 
 func InitCrawFansDB(taskName string, targetFansDBName string, targetFansCollName string) {
-	CrawFansUserColl = common.GetDB("inst_fans").Collection(taskName)
+	CrawFasDB = common.GetDB("inst_fans")
+	CrawFansUserColl = CrawFasDB.Collection(taskName)
 	CrawFansTargetUserColl = common.GetDB(targetFansDBName).Collection(targetFansCollName)
+}
+
+var SendMsgDB *mongo.Database
+var SendTaskColl *mongo.Collection
+var SendTargeUserColl *mongo.Collection
+
+func InitSendMsgDB(TargetUserDB string, TargetUserCollection string) {
+	SendMsgDB = common.GetDB("inst_fans")
+	SendTaskColl = SendMsgDB.Collection("task")
+	targetDB := common.GetDB(TargetUserDB)
+	SendTargeUserColl = targetDB.Collection(TargetUserCollection)
 }
 
 func SaveTags(tags *goinsta.Tags) error {
@@ -153,13 +166,14 @@ func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
 	return nil
 }
 
-func LoadUser(tag string, sendTaskName string, limit int) ([]UserComb, error) {
+func LoadUser(source string, sendTaskName string, limit int) ([]UserComb, error) {
 	cursor, err := CrawTagsUserColl.Find(context.TODO(),
 		bson.D{{"$and",
-			bson.D{{"tag", tag},
-				{sendTaskName,
-					bson.M{"$exists": false}}}}},
-		nil)
+			bson.D{
+				{"source", source},
+				{sendTaskName, bson.M{"$exists": false}},
+			},
+		}}, nil)
 
 	if err != nil {
 		return nil, err
