@@ -8,8 +8,10 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type CrawConfig struct {
@@ -21,6 +23,7 @@ type CrawConfig struct {
 	TargetUserSource     string   `json:"target_user_source"`
 	TextMsg              []string `json:"text_msg"`
 	ImageMsg             []string `json:"image_msg"`
+	ImageMsgUploadID     []string `json:"image_msg_upload_id"`
 	IntervalTimeAccount  int      `json:"interval_time_account"`
 	IntervalTimeMsg      int      `json:"interval_time_msg"`
 }
@@ -43,7 +46,6 @@ func SendMsg(inst *goinsta.Instagram, user *routine.UserComb) error {
 			imageIDs[index] = id
 		}
 	}
-
 }
 
 func SendTask() {
@@ -131,6 +133,14 @@ func initParams() {
 	if len(config.ImageMsg) == 0 {
 		log.Error("ImageMsg is null")
 		os.Exit(0)
+	}
+	if len(config.ImageMsgUploadID) == 0 {
+		id := time.Now().Unix()
+		config.ImageMsgUploadID = make([]string, len(config.ImageMsg))
+		for index := range config.ImageMsgUploadID {
+			config.ImageMsgUploadID[index] = strconv.FormatInt(id+int64(index), 10)
+		}
+		common.Dumps(*TaskConfigPath, config)
 	}
 }
 

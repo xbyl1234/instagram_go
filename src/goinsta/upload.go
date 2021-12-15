@@ -66,9 +66,9 @@ func (this *Upload) RuploadPhoto(path string) (string, error) {
 	return upId, err
 }
 
-func (this *Upload) RuploadIgPhoto(path string) (string, error) {
-	upId := strconv.FormatInt(time.Now().Unix(), 10)
-	entityName := upId + "_0_" + common.GenString(common.CharSet_123, 10)
+func (this *Upload) RuploadIgPhoto(path string, uploadID string) (string, error) {
+	//upId := strconv.FormatInt(time.Now().Unix(), 10)
+	entityName := uploadID + "_0_" + common.GenString(common.CharSet_123, 10)
 
 	imageCompression, _ := json.Marshal(map[string]string{
 		"lib_name":    "moz",
@@ -77,7 +77,7 @@ func (this *Upload) RuploadIgPhoto(path string) (string, error) {
 	})
 
 	params, _ := json.Marshal(map[string]string{
-		"upload_id":         upId,
+		"upload_id":         uploadID,
 		"media_type":        "1",
 		"image_compression": string(imageCompression),
 	})
@@ -116,7 +116,7 @@ func (this *Upload) RuploadIgPhoto(path string) (string, error) {
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return upId, err
+	return uploadID, err
 }
 
 func (this *Upload) RuploadVideo(path string) (string, error) {
