@@ -3,6 +3,7 @@ package goinsta
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"makemoney/common"
 	"makemoney/common/log"
@@ -12,6 +13,42 @@ import (
 	neturl "net/url"
 	"time"
 )
+
+type MogoDBHelper struct {
+	Client         *mongo.Client
+	Phone          *mongo.Collection
+	Account        *mongo.Collection
+	UploadIDRecord *mongo.Collection
+}
+
+var MogoHelper *MogoDBHelper = nil
+
+func InitMogoDB(mogoUri string) {
+	//"mongodb://xbyl:XBYLxbyl1234@62.216.92.183:27017"
+	clientOptions := options.Client().ApplyURI(mogoUri)
+	//clientOptions := options.Client().ApplyURI("mongodb://xbyl:xbyl741852JHK@192.168.187.1:27017")
+
+	var err error
+	MogoHelper = &MogoDBHelper{}
+
+	MogoHelper.Client, err = mongo.Connect(context.TODO(), clientOptions)
+	if err != nil {
+		log.Error("mongo %v", err)
+	}
+
+	err = MogoHelper.Client.Ping(context.TODO(), nil)
+	if err != nil {
+		log.Error("mongo %v", err)
+	}
+
+	MogoHelper.Phone = MogoHelper.Client.Database("inst").Collection("phone")
+	MogoHelper.Account = MogoHelper.Client.Database("inst").Collection("account")
+	MogoHelper.UploadIDRecord = MogoHelper.Client.Database("inst").Collection("upload_id")
+}
+
+func GetDB(name string) *mongo.Database {
+	return MogoHelper.Client.Database(name)
+}
 
 type PhoneStorage struct {
 	Area          string        `bson:"area"`
@@ -23,7 +60,7 @@ type PhoneStorage struct {
 }
 
 func UpdatePhoneSendOnce(provider string, area string, number string) error {
-	_, err := common.MogoHelper.Phone.UpdateOne(context.TODO(),
+	_, err := MogoHelper.Phone.UpdateOne(context.TODO(),
 		bson.D{
 			{"area", area},
 			{"phone", number},
@@ -40,7 +77,7 @@ func UpdatePhoneSendOnce(provider string, area string, number string) error {
 }
 
 func UpdatePhoneRegisterOnce(area string, number string) error {
-	_, err := common.MogoHelper.Phone.UpdateOne(context.TODO(),
+	_, err := MogoHelper.Phone.UpdateOne(context.TODO(),
 		bson.D{
 			{"area", area},
 			{"phone", number},
@@ -75,7 +112,7 @@ type AccountCookies struct {
 }
 
 func SaveNewAccount(account AccountCookies) error {
-	_, err := common.MogoHelper.Account.UpdateOne(
+	_, err := MogoHelper.Account.UpdateOne(
 		context.TODO(),
 		bson.M{"username": account.Username},
 		bson.M{"$set": account},
@@ -84,7 +121,7 @@ func SaveNewAccount(account AccountCookies) error {
 }
 
 func LoadDBAllAccount() ([]AccountCookies, error) {
-	cursor, err := common.MogoHelper.Account.Find(context.TODO(), bson.M{}, nil)
+	cursor, err := MogoHelper.Account.Find(context.TODO(), bson.M{}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +134,7 @@ func LoadDBAllAccount() ([]AccountCookies, error) {
 }
 
 func CleanStatus() error {
-	_, err := common.MogoHelper.Account.UpdateMany(
+	_, err := MogoHelper.Account.UpdateMany(
 		context.TODO(),
 		bson.M{},
 		bson.M{"$set": bson.M{"status": ""}},
@@ -199,4 +236,44 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	common.DebugHttpClient(inst.c)
 
 	return inst, nil
+}
+
+type UploadIDRecord struct {
+	FileMd5  string `bson:"file_md5"`
+	Username string `bson:"username"`
+	FileType string `bson:"file_type"`
+	FileName string `bson:"file_name"`
+	UploadID string `bson:"upload_id"`
+}
+
+func SaveUploadID(record *UploadIDRecord) error {
+	_, err := MogoHelper.UploadIDRecord.UpdateOne(
+		context.TODO(),
+		bson.M{"file_md5": record.FileMd5},
+		bson.M{"$set": record},
+		options.Update().SetUpsert(true))
+	return err
+}
+
+func FindUploadID(username string, fileMd5 string) (*UploadIDRecord, error) {
+	cursor, err := MogoHelper.UploadIDRecord.Find(context.TODO(),
+		bson.D{{"$and",
+			bson.D{
+				{"username", username},
+				{"file_md5", fileMd5},
+			},
+		}}, nil)
+
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var result = &UploadIDRecord{}
+	if cursor.Next(context.TODO()) {
+		err = cursor.Decode(result)
+		return result, err
+	}
+
+	return nil, &common.MakeMoneyError{ErrType: common.NoMoreError}
 }

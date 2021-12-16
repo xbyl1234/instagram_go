@@ -1,17 +1,18 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"flag"
+	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
 	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
-	"strconv"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type CrawConfig struct {
@@ -23,29 +24,79 @@ type CrawConfig struct {
 	TargetUserSource     string   `json:"target_user_source"`
 	TextMsg              []string `json:"text_msg"`
 	ImageMsg             []string `json:"image_msg"`
-	ImageMsgUploadID     []string `json:"image_msg_upload_id"`
 	IntervalTimeAccount  int      `json:"interval_time_account"`
 	IntervalTimeMsg      int      `json:"interval_time_msg"`
 }
 
 var config CrawConfig
 var ImageData [][]byte
+var ImageMd5 []string
 var WaitAll sync.WaitGroup
 var UserChan = make(chan *routine.UserComb, 100)
 
 var SendSuccessCount int32
 var SendErrorCount int32
 
+func AutoReleaseErrorAccount(inst *goinsta.Instagram, err error) {
+
+}
+
 func SendMsg(inst *goinsta.Instagram, user *routine.UserComb) error {
-	imageIDs := make([]string, len(config.ImageMsg))
-	for index := range config.ImageMsg {
-		id, err := inst.GetUpload().RuploadIgPhoto(config.ImageMsg[0])
-		if err != nil {
-			imageIDs[index] = ""
+	if inst.MatePoint == nil {
+		mate := make(map[string]string)
+		for index := range ImageMd5 {
+			recordID, _ := goinsta.FindUploadID(inst.User, ImageMd5[index])
+			if recordID != nil {
+				mate[ImageMd5[index]] = recordID.UploadID
+			}
+		}
+		inst.MatePoint = mate
+	}
+	if user.User.ID == 0 {
+		goinsta.AccountPool.ReleaseOne(inst)
+		return nil
+	}
+
+	var err error
+	var imageIndex = 0
+	for index := range config.TextMsg {
+		message := inst.GetMessage()
+		if config.TextMsg[index] == "image" {
+			uploadID := inst.MatePoint.(map[string]string)[ImageMd5[imageIndex]]
+			if uploadID == "" {
+				uploadID, err = inst.GetUpload().RuploadPhoto(ImageData[imageIndex])
+				if err != nil {
+					AutoReleaseErrorAccount(inst, err)
+					log.Error("account: %s, send to %d, error: %v", inst.User, user.User.ID, err)
+					return err
+				}
+				_ = goinsta.SaveUploadID(&goinsta.UploadIDRecord{
+					FileMd5:  ImageMd5[imageIndex],
+					Username: user.User.Username,
+					FileType: "img",
+					FileName: config.ImageMsg[imageIndex],
+					UploadID: uploadID,
+				})
+				inst.MatePoint.(map[string]string)[ImageMd5[imageIndex]] = uploadID
+			}
+			err = message.SendImgMessage(fmt.Sprintf("%d", user.User.ID), uploadID)
+			if err != nil {
+				AutoReleaseErrorAccount(inst, err)
+				log.Error("account: %s, send img to %d, error: %v", inst.User, user.User.ID, err)
+				return err
+			}
+			imageIndex++
 		} else {
-			imageIDs[index] = id
+			err = message.SendTextMessage(fmt.Sprintf("%d", user.User.ID), config.TextMsg[index])
+			if err != nil {
+				AutoReleaseErrorAccount(inst, err)
+				log.Error("account: %s, send to %d, error: %v", inst.User, user.User.ID, err)
+				return err
+			}
 		}
 	}
+
+	return nil
 }
 
 func SendTask() {
@@ -134,14 +185,26 @@ func initParams() {
 		log.Error("ImageMsg is null")
 		os.Exit(0)
 	}
-	if len(config.ImageMsgUploadID) == 0 {
-		id := time.Now().Unix()
-		config.ImageMsgUploadID = make([]string, len(config.ImageMsg))
-		for index := range config.ImageMsgUploadID {
-			config.ImageMsgUploadID[index] = strconv.FormatInt(id+int64(index), 10)
+
+	for index := range config.ImageMsg {
+		ImageData[index], err = os.ReadFile(config.ImageMsg[index])
+		if err != nil {
+			log.Error("load image %s error: %v", config.ImageMsg[index], err)
+			os.Exit(0)
 		}
-		common.Dumps(*TaskConfigPath, config)
+		h := md5.New()
+		h.Write(ImageData[index])
+		ImageMd5[index] = hex.EncodeToString(h.Sum(nil))
 	}
+
+	//if len(config.ImageMsgUploadID) == 0 {
+	//	id := time.Now().Unix()
+	//	config.ImageMsgUploadID = make([]string, len(config.ImageMsg))
+	//	for index := range config.ImageMsgUploadID {
+	//		config.ImageMsgUploadID[index] = strconv.FormatInt(id+int64(index), 10)
+	//	}
+	//	common.Dumps(*TaskConfigPath, config)
+	//}
 }
 
 func main() {

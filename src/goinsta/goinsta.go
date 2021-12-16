@@ -45,8 +45,9 @@ type Instagram struct {
 
 	LastSendMsgTime int
 
-	Proxy *proxy.Proxy
-	c     *http.Client
+	MatePoint interface{}
+	Proxy     *proxy.Proxy
+	c         *http.Client
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -108,8 +109,8 @@ func (this *Instagram) GetFollowers(id string) *Followers {
 	return &Followers{User: pk, inst: this, HasMore: true}
 }
 
-func (this *Instagram) GetMessage(msgType MessageType) *Message {
-	return &Message{inst: this, msgType: msgType}
+func (this *Instagram) GetMessage() *Message {
+	return &Message{inst: this}
 }
 
 // SetProxy sets proxy for connection.

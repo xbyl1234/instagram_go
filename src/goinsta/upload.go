@@ -24,7 +24,7 @@ type RespRuploadIgPhoto struct {
 	XsharingNonces interface{} `json:"xsharing_nonces"`
 }
 
-func (this *Upload) RuploadPhoto(path string) (string, error) {
+func (this *Upload) RuploadPhoto(data []byte) (string, error) {
 	upId := strconv.FormatInt(time.Now().Unix(), 10)
 	entityName := upId + "_0_" + common.GenString(common.CharSet_123, 10)
 
@@ -41,14 +41,10 @@ func (this *Upload) RuploadPhoto(path string) (string, error) {
 	})
 	paramsStr := string(params)
 
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
 	body := bytes.NewBuffer(data)
 
 	var resp = &RespRuploadIgPhoto{}
-	err = this.inst.HttpRequestJson(&reqOptions{
+	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: urlUploadPhone + entityName,
 		IsPost:  true,
 		Header: map[string]string{

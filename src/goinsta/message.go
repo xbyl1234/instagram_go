@@ -2,18 +2,8 @@ package goinsta
 
 import "makemoney/common"
 
-type MessageType int
-
-var (
-	MessageType_Text  MessageType = 0
-	MessageType_Image MessageType = 1
-	MessageType_Voice MessageType = 2
-	MessageType_Video MessageType = 3
-)
-
 type Message struct {
-	msgType MessageType
-	inst    *Instagram
+	inst *Instagram
 }
 
 type RespSendMsg struct {

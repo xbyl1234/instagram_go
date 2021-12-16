@@ -5,7 +5,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"makemoney/common"
 	"makemoney/goinsta"
 )
 
@@ -17,7 +16,7 @@ var CrawTagsMediaColl *mongo.Collection
 var CrawTagsUserColl *mongo.Collection
 
 func InitCrawTagsDB(taskName string) {
-	CrawlingDB = common.GetDB(taskName)
+	CrawlingDB = goinsta.GetDB(taskName)
 	CrawTagsTagColl = CrawlingDB.Collection("tags")
 	CrawTagsMediaColl = CrawlingDB.Collection("media")
 	CrawTagsUserColl = CrawlingDB.Collection("users")
@@ -29,9 +28,9 @@ var CrawFansUserColl *mongo.Collection
 var CrawFansTargetUserColl *mongo.Collection
 
 func InitCrawFansDB(taskName string, targetFansDBName string, targetFansCollName string) {
-	CrawFasDB = common.GetDB("inst_fans")
+	CrawFasDB = goinsta.GetDB("inst_fans")
 	CrawFansUserColl = CrawFasDB.Collection(taskName)
-	CrawFansTargetUserColl = common.GetDB(targetFansDBName).Collection(targetFansCollName)
+	CrawFansTargetUserColl = goinsta.GetDB(targetFansDBName).Collection(targetFansCollName)
 }
 
 var SendMsgDB *mongo.Database
@@ -39,9 +38,9 @@ var SendTaskColl *mongo.Collection
 var SendTargeUserColl *mongo.Collection
 
 func InitSendMsgDB(TargetUserDB string, TargetUserCollection string) {
-	SendMsgDB = common.GetDB("inst_fans")
+	SendMsgDB = goinsta.GetDB("inst_fans")
 	SendTaskColl = SendMsgDB.Collection("task")
-	targetDB := common.GetDB(TargetUserDB)
+	targetDB := goinsta.GetDB(TargetUserDB)
 	SendTargeUserColl = targetDB.Collection(TargetUserCollection)
 }
 
@@ -153,6 +152,18 @@ type UserComb struct {
 	User     *goinsta.User      `json:"user"`
 	Source   string             `json:"source"`
 	Followes *goinsta.Followers `json:"followes"`
+	SendFlag map[string]string  `json:"send_flag"`
+}
+
+func SaveSendFlag(Coll *mongo.Collection, userComb *UserComb, sendTaskName string) error {
+	_, err := Coll.UpdateOne(context.TODO(),
+		bson.D{{"user", bson.M{"pk": userComb.User.ID}}}, bson.D{{"$set", bson.M{"send_flag": bson.M{sendTaskName: true}}}},
+		options.Update().SetUpsert(true))
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
@@ -171,7 +182,7 @@ func LoadUser(source string, sendTaskName string, limit int) ([]UserComb, error)
 		bson.D{{"$and",
 			bson.D{
 				{"source", source},
-				{sendTaskName, bson.M{"$exists": false}},
+				{"send_flag", bson.M{sendTaskName: bson.M{"$exists": false}}},
 			},
 		}}, nil)
 

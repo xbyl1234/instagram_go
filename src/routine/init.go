@@ -20,7 +20,7 @@ func InitRoutine(proxyPath string) {
 		log.Error("load db config error:%v", err)
 		panic(err)
 	}
-	common.InitMogoDB(dbConfig.MogoUri)
+	goinsta.InitMogoDB(dbConfig.MogoUri)
 	err = proxy.InitProxyPool(proxyPath)
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)
