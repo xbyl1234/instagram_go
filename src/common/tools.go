@@ -9,8 +9,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/proxy"
 	"io"
 	"io/ioutil"
+	"makemoney/common/log"
 	"makemoney/config"
 	math_rand "math/rand"
 	"net/http"
@@ -58,15 +61,37 @@ func Dumps(path string, obj interface{}) error {
 
 func DebugHttpClient(clinet *http.Client) {
 	if config.UseCharles {
-		uri, err := neturl.Parse("http://127.0.0.1:8888")
-		if err == nil {
-			clinet.Transport = &http.Transport{
+		var tr *http.Transport
+		if false {
+			uri, _ := neturl.Parse("http://127.0.0.1:8888")
+			tr = &http.Transport{
 				Proxy: http.ProxyURL(uri),
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: true,
 				},
 			}
+		} else {
+			dialer, _ := proxy.SOCKS5("tcp", "127.0.0.1:8889", nil, proxy.Direct)
+			tr = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+			tr.Dial = dialer.Dial
 		}
+
+		err := http2.ConfigureTransport(tr)
+		if err != nil {
+			log.Error("ConfigureTransport error: %v", err)
+		}
+		tr.TLSClientConfig = &tls.Config{
+			NextProtos: []string{"h2", "h2-fb", "http/1.1"},
+			MinVersion: tls.VersionTLS13,
+			MaxVersion: tls.VersionTLS13,
+			CipherSuites: []uint16{
+				tls.TLS_AES_128_GCM_SHA256,
+				tls.TLS_AES_256_GCM_SHA384,
+				tls.TLS_CHACHA20_POLY1305_SHA256,
+			},
+		}
+
+		clinet.Transport = tr
 	}
 }
 

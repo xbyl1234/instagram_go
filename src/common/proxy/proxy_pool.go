@@ -3,6 +3,7 @@ package proxy
 import (
 	"crypto/tls"
 	"fmt"
+	"golang.org/x/net/http2"
 	"golang.org/x/net/proxy"
 	"makemoney/common"
 	"makemoney/common/log"
@@ -41,6 +42,8 @@ type Proxy struct {
 }
 
 func (this *Proxy) GetProxy() *http.Transport {
+	var tr *http.Transport
+
 	if this.ProxyType == 0 {
 		var proxyUrl string
 		if this.NeedAuth {
@@ -49,7 +52,7 @@ func (this *Proxy) GetProxy() *http.Transport {
 			proxyUrl = "http://" + this.Ip + ":" + this.Port
 		}
 		_url, _ := url.Parse(proxyUrl)
-		return &http.Transport{
+		tr = &http.Transport{
 			Proxy:           http.ProxyURL(_url),
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
@@ -62,10 +65,26 @@ func (this *Proxy) GetProxy() *http.Transport {
 			auth = nil
 		}
 		dialer, _ := proxy.SOCKS5("tcp", this.Ip+":"+this.Port, auth, proxy.Direct)
-		var httpTran = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-		httpTran.Dial = dialer.Dial
-		return httpTran
+		tr = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+		tr.Dial = dialer.Dial
 	}
+
+	tr.TLSClientConfig = &tls.Config{
+		NextProtos: []string{"h2", "h2-fb", "http/1.1"},
+		MinVersion: tls.VersionTLS13,
+		MaxVersion: tls.VersionTLS13,
+		CipherSuites: []uint16{
+			tls.TLS_AES_128_GCM_SHA256,
+			tls.TLS_AES_256_GCM_SHA384,
+			tls.TLS_CHACHA20_POLY1305_SHA256,
+		},
+	}
+	err := http2.ConfigureTransport(tr)
+	if err != nil {
+		log.Error("ConfigureTransport error: %v", err)
+		return nil
+	}
+	return tr
 }
 
 type ProxyPoolt interface {

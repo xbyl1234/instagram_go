@@ -196,15 +196,6 @@ func initParams() {
 		h.Write(ImageData[index])
 		ImageMd5[index] = hex.EncodeToString(h.Sum(nil))
 	}
-
-	//if len(config.ImageMsgUploadID) == 0 {
-	//	id := time.Now().Unix()
-	//	config.ImageMsgUploadID = make([]string, len(config.ImageMsg))
-	//	for index := range config.ImageMsgUploadID {
-	//		config.ImageMsgUploadID[index] = strconv.FormatInt(id+int64(index), 10)
-	//	}
-	//	common.Dumps(*TaskConfigPath, config)
-	//}
 }
 
 func main() {

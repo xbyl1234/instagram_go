@@ -74,11 +74,12 @@ const (
 	urlValidateSignupSmsCode = "api/v1/accounts/validate_signup_sms_code/"
 	urlUsernameSuggestions   = "api/v1/accounts/username_suggestions/"
 	urlCreateValidated       = "api/v1/accounts/create_validated/"
-	urlCheckUsername         = "api/v1/users/check_username/"
-	urlLauncherSync          = "api/v1/launcher/sync/"
-	urlCheckAgeEligibility   = "api/v1/consent/check_age_eligibility/"
-	urlNewUserFlowBegins     = "api/v1/consent/new_user_flow_begins/"
-	urlGetSteps              = "api/v1/dynamic_onboarding/get_steps/"
+	//urlCreateValidated       = "api/v1/accounts/create/"
+	urlCheckUsername       = "api/v1/users/check_username/"
+	urlLauncherSync        = "api/v1/launcher/sync/"
+	urlCheckAgeEligibility = "api/v1/consent/check_age_eligibility/"
+	urlNewUserFlowBegins   = "api/v1/consent/new_user_flow_begins/"
+	urlGetSteps            = "api/v1/dynamic_onboarding/get_steps/"
 
 	// account
 	urlCurrentUser          = "api/v1/accounts/current_user/"

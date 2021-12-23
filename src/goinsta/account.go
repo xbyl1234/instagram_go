@@ -2,6 +2,7 @@ package goinsta
 
 import (
 	"fmt"
+	"io/ioutil"
 )
 
 type Account struct {
@@ -36,7 +37,8 @@ type RespChangeProfilePicture struct {
 }
 
 func (this *Account) ChangeProfilePicture(path string) error {
-	upID, err := this.inst.GetUpload().RuploadIgPhoto(path)
+	data, err := ioutil.ReadFile(path)
+	upID, err := this.inst.GetUpload().RuploadPhoto(data)
 	if err != nil {
 		return err
 	}
