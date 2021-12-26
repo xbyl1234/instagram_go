@@ -58,22 +58,28 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	//}
 	respSendSignupSmsCode, err := this.sendSignupSmsCode()
 	if err != nil {
-		this.phone.ReleasePhone(number)
+		errRelease := this.phone.ReleasePhone(number)
+		if errRelease != nil {
+			log.Error("release phone: %s, error: %v", number, errRelease)
+		}
 		return nil, err
 	}
 	this.HadSendSMS = true
 
-	UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
+	_ = UpdatePhoneSendOnce(this.phone.GetProvider(), this.phone.GetArea(), this.number)
 	var flag = false
 	defer func() {
 		if flag {
-			UpdatePhoneRegisterOnce(this.phone.GetArea(), this.number)
+			_ = UpdatePhoneRegisterOnce(this.phone.GetArea(), this.number)
 		}
 	}()
 
 	code, err := this.phone.RequirePhoneCode(number)
 	if err != nil {
-		this.phone.ReleasePhone(number)
+		errRelease := this.phone.ReleasePhone(number)
+		if errRelease != nil {
+			log.Error("release phone: %s, error: %v", number, errRelease)
+		}
 		return nil, err
 	}
 	this.HadRecvSMS = true

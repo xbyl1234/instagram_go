@@ -232,6 +232,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		inst.UserAgent = GenUserAgent()
 	}
 
+	inst.graph = &Graph{inst: inst}
 	inst.Proxy = &proxy.Proxy{ID: config.ProxyID}
 	common.DebugHttpClient(inst.c)
 

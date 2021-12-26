@@ -48,6 +48,7 @@ type Instagram struct {
 	MatePoint interface{}
 	Proxy     *proxy.Proxy
 	c         *http.Client
+	graph     *Graph
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -80,6 +81,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 			Transport: _proxy.GetProxy(),
 		},
 	}
+	inst.graph = &Graph{inst: inst}
 	inst.Proxy = _proxy
 	inst.httpHeader = make(map[string]string)
 	common.DebugHttpClient(inst.c)

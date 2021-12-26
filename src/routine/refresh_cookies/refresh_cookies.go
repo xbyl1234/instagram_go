@@ -369,7 +369,7 @@ func testOne(insts []*goinsta.Instagram, username string) {
 }
 
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	config2.UseTruncation = true
 
 	initParams()

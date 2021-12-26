@@ -1,38 +1,56 @@
 let FBSharedFramework = Module.getBaseAddress("FBSharedFramework")
 console.log(`FBSharedFramework : ${FBSharedFramework}`)
 
-var left = FBSharedFramework.add(0x220194);
+
+
+var left = FBSharedFramework.add(0x15A8B4);
 console.log(`before: ${hexdump(left, {length: 8, ansi: true})}`);
 let maxPatchSize = 64;
 Memory.patchCode(left, maxPatchSize, function (code) {
     let cw = new Arm64Writer(code, {pc: left});
-    cw.putBytes([0x40, 0x0C, 0x00, 0x54]); //b.eq #0x150
+    cw.putBytes([0x80, 0x08, 0x00, 0x54]); //b.eq #0x150
     cw.flush()
 });
 console.log(`before: ${hexdump(left, {length: 8, ansi: true})}`);
 
-
-var verifyWithMetrics = FBSharedFramework.add(0x224ECC);
-Interceptor.attach(verifyWithMetrics, {
-    onEnter: function (args) {
-        console.log("on verifyWithMetrics")
-    },
-    onLeave: function (ret) {
-        console.log("on verifyWithMetrics exit")
-        return 1
+function printBacktrace(context) {
+    console.log('called from:\n')
+    var bt = Thread.backtrace(context, Backtracer.ACCURATE)
+    for (var i = 0; i < bt.length; i++) {
+        console.log(bt[i] - FBSharedFramework + "  " + DebugSymbol.fromAddress(bt[i]))
     }
-});
+}
 
-var v2 = FBSharedFramework.add(0x8A88C);
-Interceptor.attach(v2, {
-    onEnter: function (args) {
-        console.log("on v2")
-    },
-    onLeave: function (ret) {
-        console.log("on v2 exit")
-        return2
-    }
-});
+
+
+
+// var verifyWithMetrics = FBSharedFramework.add(0x15AF8C);
+// Interceptor.attach(verifyWithMetrics, {
+//     onEnter: function (args) {
+//         console.log("on verifyWithMetrics")
+//     },
+//     onLeave: function (ret) {
+//         console.log("on verifyWithMetrics exit")
+//         this.w20 = 1
+//         return 1
+//     }
+// });
+
+// var OpenSSLerror = FBSharedFramework.add(0X10635B8);
+// Interceptor.attach(OpenSSLerror, {
+//     onEnter: function (args) {
+//         console.log("on OpenSSLerror")
+//         printBacktrace(this.context)
+//     },
+//     onLeave: function (ret) {
+//         console.log("on OpenSSLerror exit")
+//         return 1
+//     }
+// });
+
+
+// frida -U -n Instagram -l agent/inst.js --no-pause
+
 
 // var Openssl_Write = FBSharedFramework.add(0x2B72E4);
 // Interceptor.attach(Openssl_Write, {
@@ -137,7 +155,5 @@ Interceptor.attach(v2, {
 // 81 0A 00 54
 
 //
-// frida -U -n Instagram -l agent/inst.js --no-pause
-
 
 // Cheat verifyWithMetrics from proxygen
