@@ -182,7 +182,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	var params = map[string]interface{}{
-		"_uuid":      this.inst.uuid,
+		"_uuid":      this.inst.deviceID,
 		"rank_token": this.RankToken,
 	}
 

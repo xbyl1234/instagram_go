@@ -1,15 +1,12 @@
 package goinsta
 
 import (
-	"encoding/json"
 	"makemoney/common"
 	"makemoney/common/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
 	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -19,10 +16,10 @@ var (
 var ProxyCallBack func(id string) (*proxy.Proxy, error)
 
 type Instagram struct {
-	User                string
-	Pass                string
-	androidID           string
-	uuid                string
+	User string
+	Pass string
+	//androidID           string
+	deviceID            string
 	token               string
 	familyID            string
 	adid                string
@@ -67,10 +64,10 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	// this call never returns error
 	jar, _ := cookiejar.New(nil)
 	inst := &Instagram{
-		User:      username,
-		Pass:      password,
-		androidID: generateDeviceID(),
-		uuid:      common.GenUUID(), // both uuid must be differents
+		User: username,
+		Pass: password,
+		//androidID: generateDeviceID(),
+		deviceID:  common.GenUUID(), // both deviceID must be differents
 		familyID:  common.GenUUID(),
 		wid:       common.GenUUID(),
 		adid:      common.GenUUID(),
@@ -144,77 +141,16 @@ func (this *Instagram) ReadHeader(key string) string {
 }
 
 func (this *Instagram) PrepareNewClient() {
-	//facebook_dod
-
-	_ = this.LogAttribution()
+	_ = this.contactPrefill()
+	_ = this.qeSync()
 	_ = this.launcherSync()
-	_ = this.QeSync()
-	_ = this.ZrToken()
-	_ = this.PrefillCandidates()
-	//_ = this.LoggingClientEvents()
+	_ = this.getNamePrefill()
 }
 
-//func (this *Instagram) readMsisdnHeader() error {
-//	_, err := this.HttpRequest(
-//		&reqOptions{
-//			ApiPath: urlMsisdnHeader,
-//			IsPost:  true,
-//			Query: map[string]interface{}{
-//				"device_id": this.uuid,
-//			},
-//		},
-//	)
-//	return err
-//}
-
-func (this *Instagram) ZrToken() error {
-	_, err := this.HttpRequest(
-		&reqOptions{
-			ApiPath: urlZrToken,
-			IsPost:  false,
-			IsApiB:  true,
-			Query: map[string]interface{}{
-				"device_id":        this.androidID,
-				"token_hash":       "",
-				"custom_device_id": this.uuid,
-				"fetch_reason":     "token_expired",
-			},
-		},
-	)
-	return err
-}
-
-//早于注册登录?
-func (this *Instagram) LogAttribution() error {
-	_, err := this.HttpRequest(
-		&reqOptions{
-			ApiPath: urlLogAttribution,
-			IsPost:  true,
-			IsApiB:  true,
-			Signed:  true,
-			Query: map[string]interface{}{
-				"adid": this.adid,
-			},
-		},
-	)
-	return err
-}
-
-func (this *Instagram) QeSync() error {
-	var params map[string]interface{}
-	if this.IsLogin {
-		params = map[string]interface{}{
-			"id":          this.ID,
-			"_uid":        this.ID,
-			"_uuid":       this.uuid,
-			"experiments": InstagramExperiments,
-		}
-	} else {
-		params = map[string]interface{}{
-			"id":                      this.uuid,
-			"experiments":             InstagramExperiments,
-			"server_config_retrieval": "1",
-		}
+func (this *Instagram) qeSync() error {
+	var params = map[string]interface{}{
+		"id":                      this.deviceID,
+		"server_config_retrieval": "1",
 	}
 	_, err := this.HttpRequest(
 		&reqOptions{
@@ -222,36 +158,20 @@ func (this *Instagram) QeSync() error {
 			Query:   params,
 			IsPost:  true,
 			Signed:  true,
-			IsApiB:  true,
 		},
 	)
 	return err
 }
 
 func (this *Instagram) launcherSync() error {
-	var query map[string]interface{}
-	var isApiB bool
-	if this.IsLogin {
-		query = map[string]interface{}{
-			"id":                      this.ID,
-			"_uid":                    this.ID,
-			"_uuid":                   this.uuid,
-			"server_config_retrieval": "1",
-		}
-		isApiB = false
-	} else {
-		query = map[string]interface{}{
-			"id":                      this.uuid,
-			"server_config_retrieval": "1",
-		}
-		isApiB = true
+	var query = map[string]interface{}{
+		"id":                      this.deviceID,
+		"server_config_retrieval": "1",
 	}
-
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlLauncherSync,
 			IsPost:  true,
-			IsApiB:  isApiB,
 			Signed:  true,
 			Query:   query,
 		},
@@ -259,75 +179,34 @@ func (this *Instagram) launcherSync() error {
 	return err
 }
 
-func (this *Instagram) PrefillCandidates() error {
+func (this *Instagram) getNamePrefill() error {
+	var query = map[string]interface{}{
+		"phone_id":  this.deviceID,
+		"device_id": this.deviceID,
+	}
 	_, err := this.HttpRequest(
 		&reqOptions{
-			ApiPath: urlPrefillCandidates,
+			ApiPath: urlGetNamePrefill,
 			IsPost:  true,
-			IsApiB:  true,
 			Signed:  true,
-			Query: map[string]interface{}{
-				"android_device_id": this.androidID,
-				//"phone_id":          this.familyID,
-				"usages":    "[\"account_recovery_omnibox\"]",
-				"device_id": this.uuid,
-			},
+			Query:   query,
 		},
 	)
 	return err
 }
 
-func (this *Instagram) LoggingClientEvents() error {
-	type DataItem struct {
-		Name         string `json:"name"`
-		Time         string `json:"time"`
-		SamplingRate int    `json:"sampling_rate"`
-		Extra        struct {
-			CurrentVersion int    `json:"current_version"`
-			Pk             string `json:"pk"`
-			ReleaseChannel string `json:"release_channel"`
-			RadioType      string `json:"radio_type"`
-		} `json:"extra"`
+func (this *Instagram) contactPrefill() error {
+	var query = map[string]interface{}{
+		"phone_id": this.deviceID,
 	}
-	data := make([]DataItem, 2)
-	data[0].Name = "ig_emergency_push_did_set_initial_version"
-	data[0].Time = strconv.FormatInt(time.Now().Unix(), 10) + ".021"
-	data[0].SamplingRate = 1
-	data[0].Extra.Pk = "0"
-	data[0].Extra.CurrentVersion = 48
-	data[0].Extra.ReleaseChannel = "prod"
-	data[0].Extra.RadioType = "wifi-none"
-	data[1] = data[0]
 
-	params := map[string]interface{}{
-		"seq":              1,
-		"app_id":           "567067343352427",
-		"app_ver":          InstagramVersion,
-		"build_num":        InstagramBuildNum,
-		"device_id":        this.uuid,
-		"family_device_id": this.familyID,
-		"session_id":       this.sessionID,
-		"channel":          "zero_latency",
-		"app_uid":          "0",
-		"claims":           "[\"0\"]",
-		"config_version":   "v2",
-		"config_checksum":  "null",
-		"data":             data,
-		"log_type":         "client_event",
-	}
-	tmp, _ := json.Marshal(params)
 	_, err := this.HttpRequest(
 		&reqOptions{
-			ApiPath:    urlLoggingClientEvents,
-			IsPost:     true,
-			IsApiGraph: true,
-			Query: map[string]interface{}{
-				"access_token": "567067343352427|f249176f09e26ce54212b472dbab8fa8",
-				"format":       "json",
-				"compressed":   "0",
-				"sent_time":    strconv.FormatInt(time.Now().Unix(), 10) + ".021",
-				"message":      tmp,
-			},
+			ApiPath: urlContactPrefill,
+			IsPost:  true,
+			IsApiB:  false,
+			Signed:  true,
+			Query:   query,
 		},
 	)
 	return err
@@ -345,7 +224,7 @@ type RespLogin struct {
 		CanSeeOrganicInsights          bool          `json:"can_see_organic_insights"`
 		CanSeePrimaryCountryInSettings bool          `json:"can_see_primary_country_in_settings"`
 		CountryCode                    int           `json:"country_code"`
-		FbidV2                         int64         `json:"fbid_v_2"`
+		FbidV2                         int64         `json:"fbid_v2"`
 		FollowFrictionType             int           `json:"follow_friction_type"`
 		FullName                       string        `json:"full_name"`
 		HasAnonymousProfilePicture     bool          `json:"has_anonymous_profile_picture"`
@@ -380,16 +259,13 @@ type RespLogin struct {
 func (this *Instagram) Login() error {
 	encodePasswd, _ := encryptPassword(this.Pass, this.ReadHeader(IGHeader_EncryptionId), this.ReadHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
-		"jazoest":             genJazoest(this.familyID),
-		"country_codes":       "[{\"country_code\":\"" + strings.ReplaceAll(this.RegisterPhoneArea, "+", "") + "\",\"source\":[\"default\"]}]",
-		"phone_id":            this.familyID,
-		"enc_password":        encodePasswd,
+		"phone_id":            this.deviceID,
+		"reg_login":           "0",
+		"device_id":           this.deviceID,
+		"has_seen_aart_on":    "0",
 		"username":            this.User,
-		"adid":                this.adid,
-		"guid":                this.uuid,
-		"device_id":           this.androidID,
-		"google_tokens":       "[]",
 		"login_attempt_count": "0",
+		"enc_password":        encodePasswd,
 	}
 	resp := &RespLogin{}
 	err := this.HttpRequestJson(&reqOptions{
@@ -411,32 +287,40 @@ func (this *Instagram) Login() error {
 	return err
 }
 
-//注册成功后触发
-func (this *Instagram) contactPrefill() error {
-	var query map[string]interface{}
+type LookResp struct {
+	BaseApiResp
+	MultipleUsersFound bool   `json:"multiple_users_found"`
+	EmailSent          bool   `json:"email_sent"`
+	SmsSent            bool   `json:"sms_sent"`
+	LookupSource       string `json:"lookup_source"`
+	CorrectedInput     string `json:"corrected_input"`
+	ObfuscatedPhone    string `json:"obfuscated_phone"`
+	User               User   `json:"user"`
+	HasValidPhone      bool   `json:"has_valid_phone"`
+	CanEmailReset      bool   `json:"can_email_reset"`
+	CanSmsReset        bool   `json:"can_sms_reset"`
+	CanWaReset         bool   `json:"can_wa_reset"`
+	UserId             int64  `json:"user_id"`
+	Email              string `json:"email"`
+	PhoneNumber        string `json:"phone_number"`
+	FbLoginOption      bool   `json:"fb_login_option"`
+	IsAutoconfTestUser bool   `json:"is_autoconf_test_user"`
+}
 
-	if this.IsLogin {
-		query = map[string]interface{}{
-			"_uid":      this.ID,
-			"device_id": this.uuid,
-			"_uuid":     this.uuid,
-			"usage":     "auto_confirmation",
-		}
-	} else {
-		query = map[string]interface{}{
-			"phone_id": this.familyID,
-			"usage":    "prefill",
-		}
-	}
-
-	_, err := this.HttpRequest(
+func (this *Instagram) UserLookup() (*LookResp, error) {
+	resp := &LookResp{}
+	err := this.HttpRequestJson(
 		&reqOptions{
-			ApiPath: urlContactPrefill,
+			ApiPath: urlLookup,
 			IsPost:  true,
-			IsApiB:  true,
 			Signed:  true,
-			Query:   query,
-		},
-	)
-	return err
+			Query: map[string]interface{}{
+				"q":             this.deviceID,
+				"skip_recovery": this.deviceID,
+				"waterfall_id":  this.wid,
+			},
+		}, resp)
+
+	err = resp.CheckError(err)
+	return resp, err
 }

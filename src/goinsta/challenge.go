@@ -44,7 +44,7 @@ package goinsta
 //	insta := challenge.insta
 //
 //	data, err := insta.prepareData(map[string]interface{}{
-//		"guid":      insta.uuid,
+//		"guid":      insta.deviceID,
 //		"device_id": insta.androidID,
 //	})
 //	if err != nil {
@@ -79,7 +79,7 @@ package goinsta
 //
 //	data, err := insta.prepareData(map[string]interface{}{
 //		"choice":    choice,
-//		"guid":      insta.uuid,
+//		"guid":      insta.deviceID,
 //		"device_id": insta.androidID,
 //	})
 //	if err != nil {
@@ -111,7 +111,7 @@ package goinsta
 //
 //	data, err := insta.prepareData(map[string]interface{}{
 //		"security_code": code,
-//		"guid":          insta.uuid,
+//		"guid":          insta.deviceID,
 //		"device_id":     insta.androidID,
 //	})
 //	if err != nil {

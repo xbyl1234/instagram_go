@@ -102,6 +102,8 @@ type User struct {
 	ProfilePicId               string        `json:"profile_pic_id"`
 	ProfilePicUrl              string        `json:"profile_pic_url"`
 	Username                   string        `json:"username"`
+	ShowPrivacyScreen          bool          `json:"show_privacy_screen"`
+	HasHighlightReels          bool          `json:"has_highlight_reels"`
 	Detail                     *UserDetail
 }
 

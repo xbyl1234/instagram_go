@@ -98,7 +98,7 @@ type AccountCookies struct {
 	ProxyID             string            `json:"proxy_id"`
 	IsLogin             bool              `json:"is_login"`
 	AndroidID           string            `json:"android_id"`
-	UUID                string            `json:"uuid"`
+	UUID                string            `json:"deviceID"`
 	Token               string            `json:"token"`
 	FamilyID            string            `json:"family_id"`
 	Cookies             []*http.Cookie    `json:"cookies"`
@@ -151,7 +151,7 @@ func SaveInstToDB(inst *Instagram) error {
 		Username:            inst.User,
 		Passwd:              inst.Pass,
 		AndroidID:           inst.androidID,
-		UUID:                inst.uuid,
+		UUID:                inst.deviceID,
 		Token:               inst.token,
 		FamilyID:            inst.familyID,
 		Cookies:             inst.c.Jar.Cookies(url),
@@ -210,7 +210,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		User:                config.Username,
 		Pass:                config.Passwd,
 		androidID:           config.AndroidID,
-		uuid:                config.UUID,
+		deviceID:            config.UUID,
 		token:               config.Token,
 		familyID:            config.FamilyID,
 		adid:                config.Adid,

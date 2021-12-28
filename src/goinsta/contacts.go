@@ -64,7 +64,7 @@ package goinsta
 //		Login:    true,
 //		UseV2:    false,
 //		Query: map[string]string{
-//			"_uuid":      c.inst.uuid,
+//			"_uuid":      c.inst.deviceID,
 //			"_csrftoken": c.inst.token,
 //			"contacts":   string(byteContacts),
 //		},
@@ -84,7 +84,7 @@ package goinsta
 //	toSign := map[string]string{
 //		"_csrftoken": c.inst.token,
 //		"_uid":       strconv.Itoa(int(c.inst.Account.ID)),
-//		"_uuid":      c.inst.uuid,
+//		"_uuid":      c.inst.deviceID,
 //	}
 //
 //	bytesS, _ := json.Marshal(toSign)

@@ -7,7 +7,6 @@ import (
 	"makemoney/common/phone"
 	proxy2 "makemoney/common/proxy"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -52,7 +51,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 
 	log.Info("get phone number: %s", number)
 	this.number = number
-	err = this.checkPhoneNumber()
+	//err = this.checkPhoneNumber()
 	//if err != nil {
 	//	return nil, err
 	//}
@@ -121,9 +120,9 @@ func (this *Register) genUsername(username string) (string, error) {
 	usernameSuggestions, err := this.usernameSuggestions(username)
 	err = usernameSuggestions.CheckError(err)
 
-	if usernameSuggestions.SuggestionsWithMetadata.Suggestions != nil {
-		for sugNameIdx := range usernameSuggestions.SuggestionsWithMetadata.Suggestions {
-			sugName := usernameSuggestions.SuggestionsWithMetadata.Suggestions[sugNameIdx].Username
+	if usernameSuggestions.Suggestions.Suggestions != nil {
+		for sugNameIdx := range usernameSuggestions.Suggestions.Suggestions {
+			sugName := usernameSuggestions.Suggestions.Suggestions[sugNameIdx].Username
 			checkUsername, err := this.checkUsername(sugName)
 			if err != nil {
 				return "", err
@@ -144,7 +143,7 @@ func (this *Register) checkPhoneNumber() error {
 		"phone_id":        this.inst.familyID,
 		"login_nonce_map": "{}",
 		"phone_number":    this.number,
-		"guid":            this.inst.uuid,
+		"guid":            this.inst.deviceID,
 		"device_id":       this.inst.androidID,
 		"prefill_shown":   "False",
 	}
@@ -167,12 +166,10 @@ type RespSendSignupSmsCode struct {
 
 func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	params := map[string]interface{}{
-		"phone_id":           this.inst.familyID,
-		"phone_number":       this.phone.GetArea() + this.number,
-		"guid":               this.inst.uuid,
-		"device_id":          this.inst.androidID,
-		"android_build_type": "release",
-		"waterfall_id":       this.inst.wid,
+		"device_id":    this.inst.deviceID,
+		"phone_number": this.phone.GetArea() + this.number,
+		"phone_id":     this.inst.deviceID,
+		"source":       "regular",
 	}
 	resp := &RespSendSignupSmsCode{}
 	err := this.inst.HttpRequestJson(
@@ -187,27 +184,18 @@ func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	return resp, err
 }
 
-type RespValidateSignupSmsCodeError struct {
-	ErrorType string `json:"error_type"`
-	Errors    struct {
-		Nonce []string `json:"nonce"`
-	} `json:"errors"`
-}
-
 type RespValidateSignupSmsCode struct {
 	BaseApiResp
-	RespValidateSignupSmsCodeError
-	NonceValid bool `json:"nonce_valid"`
-	Verified   bool `json:"verified"`
+	PnTaken  bool `json:"pn_taken"`
+	Verified bool `json:"verified"`
 }
 
 func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSmsCode, error) {
 	params := map[string]interface{}{
-		"verification_code": code,
+		"device_id":         this.inst.deviceID,
 		"phone_number":      this.phone.GetArea() + this.number,
-		"guid":              this.inst.uuid,
-		"device_id":         this.inst.androidID,
 		"waterfall_id":      this.inst.wid,
+		"verification_code": code,
 	}
 	resp := &RespValidateSignupSmsCode{}
 
@@ -225,21 +213,13 @@ func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSms
 
 type RespUsernameSuggestions struct {
 	BaseApiResp
-	SuggestionsWithMetadata struct {
-		Suggestions []struct {
-			Prototype string `json:"prototype"`
-			Username  string `json:"username"`
-		} `json:"suggestions"`
-	} `json:"suggestions_with_metadata"`
+	Suggestions []string `json:"suggestions"`
 }
 
 func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggestions, error) {
 	params := map[string]interface{}{
-		"phone_id":     this.inst.familyID,
-		"guid":         this.inst.uuid,
 		"name":         username,
-		"device_id":    this.inst.androidID,
-		"email":        "",
+		"device_id":    this.inst.deviceID,
 		"waterfall_id": this.inst.wid,
 	}
 	resp := &RespUsernameSuggestions{}
@@ -281,21 +261,6 @@ func (this *Register) checkAgeEligibility(year string, month string, day string)
 	return resp, err
 }
 
-//{
-//	"username": "zha",
-//	"available": false,
-//	"existing_user_password": false,
-//	"error": "帐号 zha 不可用",
-//	"status": "ok",
-//	"error_type": "username_is_taken"
-//}
-//{
-//	"username": "zhanghao7549",
-//	"available": true,
-//	"existing_user_password": false,
-//	"status": "ok"
-//}
-
 type RespCheckUsernameError struct {
 	Error string `json:"error"`
 }
@@ -308,14 +273,19 @@ type RespCheckUsername struct {
 	ExistingUserPassword bool   `json:"existing_user_password"`
 }
 
-func (this *Register) checkUsername(username string) (*RespCheckUsername, error) {
+func (this *Register) checkUsername(username string, password string) (*RespCheckUsername, error) {
+	encodePasswd, err := encryptPassword(password, this.inst.ReadHeader(IGHeader_EncryptionId), this.inst.ReadHeader(IGHeader_EncryptionKey))
+	if err != nil {
+		return nil, err
+	}
 	params := map[string]interface{}{
-		"_uuid":    this.inst.uuid,
-		"username": username,
+		"enc_password": encodePasswd,
+		"username":     username,
+		"device_id":    this.inst.deviceID,
 	}
 	resp := &RespCheckUsername{}
 
-	err := this.inst.HttpRequestJson(
+	err = this.inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlCheckUsername,
 			IsPost:  true,
@@ -329,7 +299,7 @@ func (this *Register) checkUsername(username string) (*RespCheckUsername, error)
 
 func (this *Register) NewUserFlowBegins() (*BaseApiResp, error) {
 	params := map[string]interface{}{
-		"device_id": this.inst.uuid,
+		"device_id": this.inst.deviceID,
 	}
 	resp := &BaseApiResp{}
 
@@ -344,51 +314,6 @@ func (this *Register) NewUserFlowBegins() (*BaseApiResp, error) {
 	err = resp.CheckError(err)
 	return resp, err
 }
-
-func (this *Register) GetSteps() (*BaseApiResp, error) {
-	params := map[string]interface{}{
-		"is_secondary_account_creation": "false",
-		"fb_connected":                  "false",
-		"seen_steps":                    "[]",
-		"progress_state":                "prefetch",
-		"phone_id":                      this.inst.familyID,
-		"fb_installed":                  "false",
-		"locale":                        InstagramLocation,
-		"timezone_offset":               "-18000",
-		"network_type":                  "WIFI-UNKNOWN",
-		"guid":                          this.inst.uuid,
-		"is_ci":                         "false",
-		"android_id":                    this.inst.androidID,
-		"waterfall_id":                  this.inst.wid,
-		"reg_flow_taken":                "phone",
-		"tos_accepted":                  "false",
-	}
-	resp := &BaseApiResp{}
-
-	err := this.inst.HttpRequestJson(
-		&reqOptions{
-			ApiPath: urlGetSteps,
-			IsPost:  true,
-			Signed:  true,
-			Query:   params,
-		}, resp)
-
-	err = resp.CheckError(err)
-	return resp, err
-}
-
-//{
-//    "account_created": false,
-//    "allow_contacts_sync": true,
-//    "error_type": "username_is_taken",
-//    "errors": {
-//        "username": [
-//            "\u8fd9\u4e2a\u5e10\u53f7\u7528\u4e0d\u4e86\uff0c\u6362\u4e00\u4e2a\u8bd5\u8bd5\u5457\u3002"
-//        ]
-//    },
-//    "existing_user": false,
-//    "status": "ok"
-//}
 
 type RespCreateValidatedError struct {
 	AllowContactsSync bool   `json:"allow_contacts_sync"`
@@ -424,37 +349,53 @@ func (this *Register) createValidated(
 
 	rand.Seed(time.Now().UnixNano())
 	params := map[string]interface{}{
-		"is_secondary_account_creation":          "false",
-		"jazoest":                                genJazoest(this.inst.familyID),
 		"tos_version":                            tosVersion,
-		"suggestedUsername":                      "",
 		"verification_code":                      code,
-		"sn_result":                              "VERIFICATION_PENDING: request time is " + strconv.FormatInt(time.Now().Unix(), 10),
-		"do_not_auto_login_if_credentials_match": "true",
-		"phone_id":                               this.inst.familyID,
+		"do_not_auto_login_if_credentials_match": "0",
+		"phone_id":                               this.inst.deviceID,
 		"enc_password":                           encodePasswd,
 		"phone_number":                           this.phone.GetArea() + this.number,
 		"username":                               username,
 		"first_name":                             firstname,
 		"day":                                    day,
-		"adid":                                   this.inst.adid,
-		"guid":                                   this.inst.uuid,
 		"year":                                   year,
-		"device_id":                              this.inst.androidID,
-		"_uuid":                                  this.inst.uuid,
+		"device_id":                              this.inst.deviceID,
 		"month":                                  month,
-		"sn_nonce":                               genSnNonce(this.phone.GetArea() + this.number),
-		"force_sign_up_code":                     "",
+		"has_seen_aart_on":                       "0",
+		"force_create_account":                   "0",
 		"waterfall_id":                           this.inst.wid,
-		"qs_stamp":                               "",
+		"ck_error":                               "CKErrorDomain: 9",
 		"has_sms_consent":                        "true",
-		"one_tap_opt_in":                         "true",
+		"ck_environment":                         "production",
+		"ck_container":                           "iCloud.com.burbn.instagram",
 	}
 	resp := &RespCreateValidated{}
 
 	err = this.inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlCreateValidated,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
+		}, resp)
+
+	err = resp.CheckError(err)
+	return resp, err
+}
+
+func (this *Register) GetSteps() (*BaseApiResp, error) {
+	params := map[string]interface{}{
+		"device_id":                     this.inst.deviceID,
+		"is_secondary_account_creation": "0",
+		"push_permission_requested":     "0",
+		"network_type":                  "wifi-none",
+		"is_account_linking_flow":       "0",
+	}
+	resp := &BaseApiResp{}
+
+	err := this.inst.HttpRequestJson(
+		&reqOptions{
+			ApiPath: urlGetSteps,
 			IsPost:  true,
 			Signed:  true,
 			Query:   params,

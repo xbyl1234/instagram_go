@@ -50,7 +50,7 @@ type Section struct {
 //				"rank_token":     insta.rankToken,
 //				"ranked_content": "true",
 //				"_csrftoken":     insta.token,
-//				"_uuid":          insta.uuid,
+//				"_uuid":          insta.deviceID,
 //			},
 //			IsPost: true,
 //		},

@@ -46,7 +46,7 @@ func (this *Account) ChangeProfilePicture(path string) error {
 	err = this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: urlChangeProfilePicture,
 		Query: map[string]interface{}{
-			"_uuid":          this.inst.uuid,
+			"_uuid":          this.inst.deviceID,
 			"upload_id":      upID,
 			"use_fbuploader": "true",
 		},
