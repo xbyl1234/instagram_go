@@ -353,7 +353,7 @@ func (this *Register) GetSteps() (*BaseApiResp, error) {
 		"progress_state":                "prefetch",
 		"phone_id":                      this.inst.familyID,
 		"fb_installed":                  "false",
-		"locale":                        goInstaLocation,
+		"locale":                        InstagramLocation,
 		"timezone_offset":               "-18000",
 		"network_type":                  "WIFI-UNKNOWN",
 		"guid":                          this.inst.uuid,

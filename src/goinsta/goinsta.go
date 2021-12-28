@@ -52,7 +52,7 @@ type Instagram struct {
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
-	url, err := neturl.Parse(goInstaHost)
+	url, err := neturl.Parse(InstagramHost)
 	if err != nil {
 		return err
 	}
@@ -207,12 +207,12 @@ func (this *Instagram) QeSync() error {
 			"id":          this.ID,
 			"_uid":        this.ID,
 			"_uuid":       this.uuid,
-			"experiments": goInstaExperiments,
+			"experiments": InstagramExperiments,
 		}
 	} else {
 		params = map[string]interface{}{
 			"id":                      this.uuid,
-			"experiments":             goInstaExperiments,
+			"experiments":             InstagramExperiments,
 			"server_config_retrieval": "1",
 		}
 	}
@@ -302,8 +302,8 @@ func (this *Instagram) LoggingClientEvents() error {
 	params := map[string]interface{}{
 		"seq":              1,
 		"app_id":           "567067343352427",
-		"app_ver":          goInstaVersion,
-		"build_num":        goInstaBuildNum,
+		"app_ver":          InstagramVersion,
+		"build_num":        InstagramBuildNum,
 		"device_id":        this.uuid,
 		"family_device_id": this.familyID,
 		"session_id":       this.sessionID,

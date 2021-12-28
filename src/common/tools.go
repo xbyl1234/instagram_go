@@ -1,14 +1,17 @@
 package common
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/klauspost/compress/gzip"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/proxy"
 	"io"
@@ -105,6 +108,7 @@ func PathExists(path string) bool {
 	}
 	return false
 }
+
 func NewUUID() (string, error) {
 	uuid := make([]byte, 16)
 	n, err := io.ReadFull(rand.Reader, uuid)
@@ -161,4 +165,28 @@ func Json2String(params map[string]string) (string, error) {
 func GenNumber(min, max int) int {
 	math_rand.Seed(time.Now().Unix())
 	return math_rand.Intn(max-min) + min
+}
+
+func GZipCompress(in []byte) []byte {
+	var input bytes.Buffer
+	_gzip := gzip.NewWriter(&input)
+	_gzip.Write(in)
+	_gzip.Close()
+	return input.Bytes()
+}
+
+func GZipDecompress(in []byte) ([]byte, error) {
+	input := bytes.NewReader(in)
+	_gzip, err := gzip.NewReader(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var output bytes.Buffer
+	_, err = _gzip.WriteTo(&output)
+	return output.Bytes(), err
+}
+
+func Base64Encode(in []byte) string {
+	return base64.StdEncoding.EncodeToString(in)
 }

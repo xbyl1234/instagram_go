@@ -1,6 +1,12 @@
 package goinsta
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"makemoney/common"
+	"makemoney/common/log"
+	"time"
+)
 
 type Graph struct {
 	inst *Instagram
@@ -8,27 +14,60 @@ type Graph struct {
 }
 
 func (this *Graph) SendBeforeSendSMS() {
-	request1 := this.makeRequest(beforeSendSMS1, nil)
-	request2 := this.makeRequest(beforeSendSMS2, nil)
+	err := this.SendRequest(beforeSendSMS1, nil)
+	if err != nil {
+		log.Warn("graph send beforeSendSMS1 err: %v", err)
+	}
+	err = this.SendRequest(beforeSendSMS2, nil)
+	if err != nil {
+		log.Warn("graph send beforeSendSMS2 err: %v", err)
+	}
+	err = this.SendRequest(beforeSendSMS3, nil)
+	if err != nil {
+		log.Warn("graph send beforeSendSMS3 err: %v", err)
+	}
 }
 
 func (this *Graph) SendRequest(action []string, params []map[string]interface{}) error {
-	request := this.makeRequest(action, params)
+	bmsg, err := json.Marshal(this.makeRequest(action, params))
+	if err != nil {
+		log.Error("Marshal GraphMsg error: %v", err)
+		return err
+	}
+
 	resp := &GraphResp{}
-	this.inst.HttpRequestJson(&reqOptions{
-		ApiPath:       "",
-		IsPost:        true,
-		IsApiGraph:    true,
-		Signed:        false,
-		Query:         nil,
-		Body:          nil,
-		Header:        nil,
-		DisAutoHeader: false,
+	err = this.inst.HttpRequestJson(&reqOptions{
+		ApiPath:    urlLoggingClientEvents,
+		IsPost:     true,
+		IsApiGraph: true,
+		Signed:     false,
+		Query: map[string]interface{}{
+			"format":        "json",
+			"message":       common.Base64Encode(common.GZipCompress(bmsg)),
+			"system_uptime": "",
+			"compressed":    "1",
+			"access_token":  InstagramAccessToken,
+			"sent_time":     fmt.Sprintf("%d", time.Now().Unix()) + ".00000",
+		},
+		Header: map[string]string{
+			"User-Agent":                this.inst.UserAgent,
+			"X-Ig-Bandwidth-Speed-Kbps": "0.000",
+			"Accept-Language":           "en-US;q=1.0",
+			"Content-Type":              "application/x-www-form-urlencoded; charset=UTF-8",
+			"X-Tigon-Is-Retry":          "False",
+			"Accept-Encoding":           "gzip, deflate",
+			"X-Fb-Http-Engine":          "Liger",
+			"X-Fb-Client-Ip":            "True",
+			"X-Fb-Server-Cluster":       "True",
+		},
+		DisAutoHeader: true,
 	}, resp)
+
+	return err
 }
 
-func (this *Graph) makeRequest(action []string, params []map[string]interface{}) *GraphRequest {
-	var request = &GraphRequest{}
+func (this *Graph) makeRequest(action []string, params []map[string]interface{}) *GraphMsg {
+	var request = &GraphMsg{}
 	var graphData = make([]*GraphData, len(action))
 	for index := range action {
 		var param map[string]interface{} = nil
@@ -41,10 +80,10 @@ func (this *Graph) makeRequest(action []string, params []map[string]interface{})
 		graphData[index].Time = float32(time.Now().Unix())
 	}
 	request.Data = graphData
-	request.AppId = AppID
+	request.AppId = InstagramAppID
 	request.Channel = "regular"
 	request.Time = float32(time.Now().Unix())
-	request.AppVer = goInstaVersion
+	request.AppVer = InstagramVersion
 	request.DeviceId = this.inst.uuid
 	request.FamilyDeviceId = this.inst.familyID
 	request.SessionId = this.inst.sessionID
@@ -63,7 +102,7 @@ type GraphResp struct {
 	QplVersion    string `json:"qpl_version"`
 }
 
-type GraphRequest struct {
+type GraphMsg struct {
 	AppId          string       `json:"app_id"`
 	Channel        string       `json:"channel"`
 	Time           float32      `json:"time"`

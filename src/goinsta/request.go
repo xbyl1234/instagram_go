@@ -105,7 +105,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 
 	//SetHeader(req, "x-ig-family-device-id", this.familyID)
 	//SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
-	SetHeader(req, "x-ig-app-id", AppID)
+	SetHeader(req, "x-ig-app-id", InstagramAppID)
 	SetHeader(req, "x-ig-capabilities", "3brTvx0=")
 	SetHeader(req, "x-ig-connection-type", "WIFI")
 	SetHeader(req, "x-ig-device-id", this.uuid)
@@ -116,16 +116,15 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	//	igwwwClaim = "0"
 	//}
 	//SetHeader(req, IGHeader_igwwwClaim, igwwwClaim)
-
 	//SetHeader(req, "x-ig-timezone-offset", "true")
 
-	SetHeader(req, "x-bloks-version-id", BloksVersionID)
+	SetHeader(req, "x-bloks-version-id", InstagramBloksVersionID)
 	SetHeader(req, "x-bloks-is-layout-rtl", "false")
 	//SetHeader(req, "x-bloks-is-panorama-enabled", "true")
 
-	SetHeader(req, "x-ig-app-locale", goInstaLocation)
-	SetHeader(req, "x-ig-device-locale", goInstaLocation)
-	SetHeader(req, "x-ig-mapped-locale", goInstaLocation)
+	SetHeader(req, "x-ig-app-locale", InstagramLocation)
+	SetHeader(req, "x-ig-device-locale", InstagramLocation)
+	SetHeader(req, "x-ig-mapped-locale", InstagramLocation)
 
 	SetHeader(req, "x-ig-connection-speed", fmt.Sprintf("%dkbps", common.GenNumber(1000, 3700)))
 	SetHeader(req, "x-ig-bandwidth-speed-kbps", "-1.000")
@@ -162,7 +161,7 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 }
 
 func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
-	_url, _ := url.Parse(goInstaHost)
+	_url, _ := url.Parse(InstagramHost)
 	for _, value := range this.c.Jar.Cookies(_url) {
 		if strings.Contains(value.Name, "csrftoken") {
 			this.token = value.Value
@@ -185,11 +184,11 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 
 	var baseUrl string
 	if reqOpt.IsApiB {
-		baseUrl = goInstaHost_B
+		baseUrl = InstagramHost_B
 	} else if reqOpt.IsApiGraph {
-		baseUrl = goInstaHost_Graph
+		baseUrl = InstagramHost_Graph
 	} else {
-		baseUrl = goInstaHost
+		baseUrl = InstagramHost
 	}
 
 	_url, err := url.Parse(baseUrl + reqOpt.ApiPath)
@@ -236,7 +235,9 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		return nil, err
 	}
 
-	this.setHeader(reqOpt, req)
+	if reqOpt.DisAutoHeader {
+		this.setHeader(reqOpt, req)
+	}
 	for key, vul := range reqOpt.Header {
 		SetHeader(req, key, vul)
 	}
@@ -250,8 +251,9 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
-	this.afterRequest(_url, resp)
-
+	if reqOpt.DisAutoHeader {
+		this.afterRequest(_url, resp)
+	}
 	encoding := resp.Header.Get("Content-Encoding")
 
 	var body io.Reader
