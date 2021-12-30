@@ -18,10 +18,9 @@ func (this *Account) Sync() error {
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlUserInfo, this.ID),
 		Query: map[string]interface{}{
-			"edit": true,
-			//	from_module=self_profile
-		}},
-		&resp)
+			"device": this.inst.deviceID,
+		},
+		IsPost: false}, &resp)
 
 	if err == nil {
 		this.Detail = &resp.User

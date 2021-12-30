@@ -81,7 +81,7 @@ const (
 	urlGetSteps            = "api/v1/dynamic_onboarding/get_steps/"
 	urlGetNamePrefill      = "api/v1/accounts/get_name_prefill/"
 	urlLookup              = "api/v1/users/lookup/"
-
+	urlNewAccountNuxSeen   = "api/v1/nux/new_account_nux_seen/"
 	// account
 	urlCurrentUser          = "api/v1/accounts/current_user/"
 	urlChangePass           = "api/v1/accounts/change_password/"

@@ -199,7 +199,9 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		var query string
 
 		if reqOpt.IsPost && this.IsLogin && !reqOpt.IsApiGraph {
-			reqOpt.Query["_csrftoken"] = this.token
+			if this.token != "" {
+				reqOpt.Query["_csrftoken"] = this.token
+			}
 			reqOpt.Query["_uuid"] = this.deviceID
 			reqOpt.Query["_uid"] = this.ID
 		}

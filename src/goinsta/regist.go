@@ -88,10 +88,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 		return nil, err
 	}
 
-	realUsername, err := this.genUsername(username)
-	if err != nil {
-		return nil, err
-	}
+	realUsername := this.genUsername(username)
 	this.inst.User = realUsername
 
 	year := fmt.Sprintf("%d", common.GenNumber(1995, 2000))
@@ -103,60 +100,52 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	}
 
 	_, err = this.NewUserFlowBegins()
-	_, err = this.GetSteps()
+	_, err = this.checkUsername(realUsername, password)
 
 	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion, year, month, day)
 	if err != nil {
 		return nil, err
 	}
-
 	this.inst.IsLogin = true
 	this.inst.ID = createValidated.CreatedUser.ID
+
+	_, err = this.NewAccountNuxSeen()
+	_, err = this.GetSteps()
 	flag = true
 	return this.inst, err
 }
 
-func (this *Register) genUsername(username string) (string, error) {
+func (this *Register) genUsername(username string) string {
 	usernameSuggestions, err := this.usernameSuggestions(username)
-	err = usernameSuggestions.CheckError(err)
-
-	if usernameSuggestions.Suggestions.Suggestions != nil {
-		for sugNameIdx := range usernameSuggestions.Suggestions.Suggestions {
-			sugName := usernameSuggestions.Suggestions.Suggestions[sugNameIdx].Username
-			checkUsername, err := this.checkUsername(sugName)
-			if err != nil {
-				return "", err
-			}
-			if checkUsername.Available {
-				return sugName, nil
-			}
-		}
+	if err == nil || len(usernameSuggestions.Suggestions) == 0 {
+		return username + fmt.Sprintf("%d%d%d",
+			common.GenNumber(1990, 2020),
+			common.GenNumber(1, 12),
+			common.GenNumber(1, 27))
+	} else {
+		return usernameSuggestions.Suggestions[0]
 	}
-	return username + fmt.Sprintf("%d%d%d",
-		common.GenNumber(1990, 2020),
-		common.GenNumber(1, 12),
-		common.GenNumber(1, 27)), nil
 }
 
-func (this *Register) checkPhoneNumber() error {
-	params := map[string]interface{}{
-		"phone_id":        this.inst.familyID,
-		"login_nonce_map": "{}",
-		"phone_number":    this.number,
-		"guid":            this.inst.deviceID,
-		"device_id":       this.inst.androidID,
-		"prefill_shown":   "False",
-	}
-
-	_, err := this.inst.HttpRequest(&reqOptions{
-		ApiPath: urlCheckPhoneNumber,
-		IsPost:  true,
-		Signed:  true,
-		Query:   params,
-	})
-
-	return err
-}
+//func (this *Register) checkPhoneNumber() error {
+//	params := map[string]interface{}{
+//		"phone_id":        this.inst.familyID,
+//		"login_nonce_map": "{}",
+//		"phone_number":    this.number,
+//		"guid":            this.inst.deviceID,
+//		"device_id":       this.inst.androidID,
+//		"prefill_shown":   "False",
+//	}
+//
+//	_, err := this.inst.HttpRequest(&reqOptions{
+//		ApiPath: urlCheckPhoneNumber,
+//		IsPost:  true,
+//		Signed:  true,
+//		Query:   params,
+//	})
+//
+//	return err
+//}
 
 type RespSendSignupSmsCode struct {
 	BaseApiResp
@@ -374,6 +363,24 @@ func (this *Register) createValidated(
 	err = this.inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlCreateValidated,
+			IsPost:  true,
+			Signed:  true,
+			Query:   params,
+		}, resp)
+
+	err = resp.CheckError(err)
+	return resp, err
+}
+
+func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
+	params := map[string]interface{}{
+		"is_fb_installed": false,
+	}
+	resp := &BaseApiResp{}
+
+	err := this.inst.HttpRequestJson(
+		&reqOptions{
+			ApiPath: urlNewAccountNuxSeen,
 			IsPost:  true,
 			Signed:  true,
 			Query:   params,
