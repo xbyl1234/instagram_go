@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"fmt"
-	"makemoney/common"
 	"makemoney/common/http_helper"
 	"makemoney/common/log"
 	"net/http"
@@ -32,7 +31,7 @@ func InitDovePool(url string) (ProxyPoolt, error) {
 	}
 	pool.url = url
 	pool.client = &http.Client{}
-	common.DebugHttpClient(pool.client)
+	//common.DebugHttpClient(pool.client)
 	return pool, nil
 }
 

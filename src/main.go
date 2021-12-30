@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -23,6 +24,13 @@ func main() {
 	b := t.FieldByName("flow")
 	s := b.CanSet()
 
-	fmt.Printf("%v", b)
+	imageCompression, _ := json.Marshal(map[string]interface{}{
+		"lib_name":    "uikit",
+		"lib_version": "1575.230000",
+		"quality":     99.9,
+		"colorspace":  "kCGColorSpaceDeviceRGB",
+		"ssim":        1,
+	})
+	fmt.Printf("%v", string(imageCompression))
 	fmt.Printf("%v", s)
 }

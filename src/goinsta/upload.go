@@ -24,80 +24,37 @@ type RespRuploadIgPhoto struct {
 	XsharingNonces interface{} `json:"xsharing_nonces"`
 }
 
-func (this *Upload) RuploadPhoto(data []byte) (string, error) {
-	upId := strconv.FormatInt(time.Now().Unix(), 10)
-	entityName := upId + "_0_" + common.GenString(common.CharSet_123, 10)
-
-	imageCompression, _ := json.Marshal(map[string]string{
-		"lib_name":    "moz",
-		"lib_version": "3.1.m",
-		"quality":     "70",
-	})
-
-	params, _ := json.Marshal(map[string]string{
-		"upload_id":         upId,
-		"media_type":        "1",
-		"image_compression": string(imageCompression),
-	})
-	paramsStr := string(params)
-
-	body := bytes.NewBuffer(data)
-
-	var resp = &RespRuploadIgPhoto{}
-	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: urlUploadPhone + entityName,
-		IsPost:  true,
-		Header: map[string]string{
-			"x_fb_photo_waterfall_id":    this.inst.wid,
-			"x-instagram-rupload-params": paramsStr,
-			"content-type":               "application/octet-stream",
-			"x-entity-type":              "image/jpeg",
-			"offset":                     "0",
-			"x-entity-name":              entityName,
-			"x-entity-length":            strconv.Itoa(len(data)),
-		},
-		Body: body,
-	}, &resp)
-	err = resp.CheckError(err)
-	return upId, err
-}
-
-func (this *Upload) RuploadIgPhoto(path string, uploadID string) (string, error) {
-	//upId := strconv.FormatInt(time.Now().Unix(), 10)
-	entityName := uploadID + "_0_" + common.GenString(common.CharSet_123, 10)
-
-	imageCompression, _ := json.Marshal(map[string]string{
-		"lib_name":    "moz",
-		"lib_version": "3.1.m",
-		"quality":     "70",
-	})
-
-	params, _ := json.Marshal(map[string]string{
-		"upload_id":         uploadID,
-		"media_type":        "1",
-		"image_compression": string(imageCompression),
-	})
-	paramsStr := string(params)
-	var resp = &RespRuploadIgPhoto{}
-	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: urlUploadPhone + entityName,
-		Header: map[string]string{
-			"x_fb_photo_waterfall_id":    this.inst.wid,
-			"x-instagram-rupload-params": paramsStr,
-		},
-	}, resp)
-
-	if err != nil {
-		return "", err
-	}
-
+func (this *Upload) RuploadPhotoFromPath(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
+	return this.RuploadPhoto(data)
+}
+
+func (this *Upload) RuploadPhoto(data []byte) (string, error) {
+	upId := strconv.FormatInt(time.Now().UnixMicro(), 10)
+	entityName := common.GenString(common.CharSet_16_Num, 32)
+
+	imageCompression, _ := json.Marshal(map[string]interface{}{
+		"lib_name":    "uikit",
+		"lib_version": "1575.230000",
+		"quality":     99.9,
+		"colorspace":  "kCGColorSpaceDeviceRGB",
+		"ssim":        1,
+	})
+
+	params, _ := json.Marshal(map[string]interface{}{
+		"upload_id":         upId,
+		"media_type":        1,
+		"image_compression": string(imageCompression),
+	})
+	paramsStr := string(params)
+
 	body := bytes.NewBuffer(data)
 
-	err = this.inst.HttpRequestJson(&reqOptions{
+	var resp = &RespRuploadIgPhoto{}
+	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: urlUploadPhone + entityName,
 		IsPost:  true,
 		Header: map[string]string{
@@ -105,14 +62,14 @@ func (this *Upload) RuploadIgPhoto(path string, uploadID string) (string, error)
 			"x-instagram-rupload-params": paramsStr,
 			"content-type":               "application/octet-stream",
 			"x-entity-type":              "image/jpeg",
-			"offset":                     "0",
-			"x-entity-name":              entityName,
+			"x-entity-name":              "image.jpeg",
 			"x-entity-length":            strconv.Itoa(len(data)),
+			"offset":                     "0",
 		},
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return uploadID, err
+	return upId, err
 }
 
 func (this *Upload) RuploadVideo(path string) (string, error) {
@@ -163,7 +120,7 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 			"x-entity-length":            strconv.Itoa(len(data)),
 		},
 		Body: body,
-	}, &resp)
+	}, resp)
 	err = resp.CheckError(err)
 	return upId, err
 }

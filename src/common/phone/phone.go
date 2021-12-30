@@ -60,7 +60,7 @@ func NewPhoneVerificationCode(provider string) (PhoneVerificationCode, error) {
 			ret.retryTimeout = time.Duration(ret.RetryTimeout) * time.Second
 			ret.client = &http.Client{}
 			//ret.reqLock = &sync.Mutex{}
-			common.DebugHttpClient(ret.client)
+			//common.DebugHttpClient(ret.client)
 		}
 		return ret, err
 	} else if provider == "taxin" {
@@ -71,7 +71,7 @@ func NewPhoneVerificationCode(provider string) (PhoneVerificationCode, error) {
 			ret.retryTimeout = time.Duration(ret.RetryTimeout) * time.Second
 			ret.client = &http.Client{}
 			//ret.reqLock = &sync.Mutex{}
-			common.DebugHttpClient(ret.client)
+			//common.DebugHttpClient(ret.client)
 
 			if ret.Token == "" {
 				err = ret.Login()

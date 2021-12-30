@@ -9,18 +9,16 @@ var (
 	InstagramHost       = "https://i.instagram.com/"
 	InstagramHost_B     = "https://b.i.instagram.com/"
 	InstagramHost_Graph = "https://graph.instagram.com/"
-	InstagramUserAgent  = "Instagram 190.0.0.26.119 (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; 294609445) AppleWebKit/420+"
-	//InstagramExperiments = "ig_android_fci_onboarding_friend_search,ig_android_device_detection_info_upload,ig_android_account_linking_upsell_universe,ig_android_direct_main_tab_universe_v2,ig_android_sign_in_help_only_one_account_family_universe,ig_android_sms_retriever_backtest_universe,ig_android_direct_add_direct_to_android_native_photo_share_sheet,ig_growth_android_profile_pic_prefill_with_fb_pic_2,ig_account_identity_logged_out_signals_global_holdout_universe,ig_android_login_identifier_fuzzy_match,ig_android_mas_remove_close_friends_entrypoint,ig_android_video_render_codec_low_memory_gc,ig_android_email_fuzzy_matching_universe,ig_android_direct_send_like_from_notification,ig_android_suma_landing_page,ig_android_prefetch_debug_dialog,ig_android_smartlock_hints_universe,ig_activation_global_discretionary_sms_holdout,ig_android_video_ffmpegutil_pts_fix,ig_android_multi_tap_login_new,ig_android_caption_typeahead_fix_on_o_universe,ig_android_enable_keyboardlistener_redesign,ig_android_nux_add_email_device,ig_android_direct_remove_view_mode_stickiness_universe,ig_android_new_users_one_tap_holdout_universe,ig_android_mas_notification_badging_universe,ig_android_secondary_account_creation_universe,ig_android_account_recovery_auto_login,ig_android_sim_info_upload,ig_android_mobile_http_flow_device_universe,ig_android_gmail_oauth_in_reg,ig_android_vc_interop_use_test_igid_universe,ig_android_notification_unpack_universe,ig_android_quickcapture_keep_screen_on,ig_android_device_based_country_verification,ig_android_reg_modularization_universe,ig_android_device_verification_separate_endpoint,ig_android_one_login_toast_universe,ig_android_retry_create_account_universe,ig_android_family_apps_user_values_provider_universe,ig_android_reg_nux_headers_cleanup_universe,ig_android_get_cookie_with_concurrent_session_universe,ig_android_device_info_foreground_reporting,ig_android_shortcuts_2019,ig_android_device_verification_fb_signup,ig_android_passwordless_account_password_creation_universe,ig_android_black_out_toggle_universe,ig_video_debug_overlay,ig_android_ask_for_permissions_on_reg,ig_assisted_login_universe,ig_android_security_intent_switchoff,ig_android_passwordless_auth,ig_android_recovery_one_tap_holdout_universe,ig_android_modularized_dynamic_nux_universe,ig_android_fb_account_linking_sampling_freq_universe,ig_android_fix_sms_read_lollipop,ig_android_access_flow_prefill"
-	InstagramVersion = "190.0.0.26.119"
-	//InstagramBuildNum   = "289692181"
-	InstagramLocation = "en_US"
+	InstagramUserAgent  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
+	InstagramVersion    = "190.0.0.26.119"
+	InstagramLocation   = "en_US"
 	//InstagramDeviceList = []string{"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G935F; hero2lte; samsungexynos8890",
 	//	"24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom",
 	//	"23/6.0.1; 640dpi; 1440x2392; LGE/lge; RS988; h1; h1",
 	//	"24/7.0; 640dpi; 1440x2560; HUAWEI; LON-L29; HWLON; hi3660",
 	//	"23/6.0.1; 640dpi; 1440x2560; ZTE; ZTE A2017U; ailsa_ii; qcom",
 	//	"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G930F; herolte; samsungexynos8890"}
-	InstagramBloksVersionID = "86c34f155dca8ca7dbc95d745dc4e3f1842e2f461436c9bcee8da491acb35a46"
+	InstagramBloksVersionID = "5538d18f11cad2fa88efa530f8a717c5d5339d1d53fc5140af9125216d1f7a89"
 	InstagramAppID          = "124024574287414"
 	InstagramAccessToken    = "124024574287414|84a456d620314b6e92a16d8ff1c792dc"
 )
@@ -28,7 +26,7 @@ var (
 func GenUserAgent() string {
 	//return InstagramUserAgent
 	//return fmt.Sprintf("Instagram %s Android (%s; %s)", InstagramVersion, InstagramDeviceList[rand.Intn(len(InstagramDeviceList))], InstagramLocation)
-	return fmt.Sprintf(InstagramUserAgent, common.GenString(common.CharSet_123, 9))
+	return fmt.Sprintf(InstagramUserAgent, InstagramVersion, common.GenString(common.CharSet_123, 9))
 }
 
 type muteOption string
@@ -90,10 +88,9 @@ const (
 	urlRemoveProfPic        = "api/v1/accounts/remove_profile_picture/"
 	urlFeedSaved            = "api/v1/feed/saved/"
 	urlSetBiography         = "api/v1/accounts/set_biography/"
-	urlEditProfile          = "api/v1/accounts/edit_profile"
 	urlFeedLiked            = "api/v1/feed/liked/"
 	urlChangeProfilePicture = "api/v1/accounts/change_profile_picture/"
-
+	urlEditProfile          = "api/v1/accounts/edit_profile/"
 	// account and profile
 	urlFollowers = "api/v1/friendships/%d/followers/"
 	urlFollowing = "api/v1/friendships/%d/following/"

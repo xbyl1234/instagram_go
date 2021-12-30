@@ -90,12 +90,12 @@ var (
 )
 
 func SetHeader(req *http.Request, key string, vul string) {
-	req.Header[key] = []string{vul}
+	//req.Header[key] = []string{vul}
+	req.Header.Set(key, vul)
 }
 
 func (this *Instagram) setBaseHeader(req *http.Request) {
 	//req.Header.Set("accept-encoding", "zstd, gzip, deflate")
-	//SetHeader(req, "x-ig-android-id", this.androidID)
 	//igwwwClaim := this.ReadHeader(IGHeader_igwwwClaim)
 	//if igwwwClaim == "" {
 	//	igwwwClaim = "0"
@@ -238,7 +238,7 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		return nil, err
 	}
 
-	if reqOpt.DisAutoHeader && !reqOpt.IsApiGraph {
+	if !reqOpt.DisAutoHeader && !reqOpt.IsApiGraph {
 		this.setHeader(reqOpt, req)
 	}
 	for key, vul := range reqOpt.Header {
@@ -254,7 +254,7 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	}
 
 	defer resp.Body.Close()
-	if reqOpt.DisAutoHeader && !reqOpt.IsApiGraph {
+	if !reqOpt.DisAutoHeader && !reqOpt.IsApiGraph {
 		this.afterRequest(_url, resp)
 	}
 	encoding := resp.Header.Get("Content-Encoding")

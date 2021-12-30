@@ -45,14 +45,12 @@ func Register() {
 		if curCount > int32(*RegisterCount) {
 			break
 		}
-
 		_proxy := proxy.ProxyPool.GetNoRisk(true, true)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break
 		}
 		log.Info("get proxy ip: %s", _proxy.Rip)
-
 		regisert := goinsta.NewRegister(_proxy, PhoneProvider)
 		username := common.Resource.ChoiceUsername()
 		password := common.GenString(common.CharSet_ABC, 4) +
@@ -62,22 +60,28 @@ func Register() {
 		inst, err := regisert.Do(username, username, password)
 		if err == nil {
 			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
-			//inst.IsLogin = true
-			//_ = inst.ZrToken()
-			//_ = inst.LogAttribution()
-			err = inst.GetAccount().ChangeProfilePicture(common.Resource.ChoiceIco())
-			if err != nil {
-				if common.IsError(err, common.ChallengeRequiredError) {
-					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
-					ErrorChallengeRequired++
+			err = inst.GetAccount().Sync()
+			if err == nil {
+				var uploadID string
+				uploadID, err = inst.GetUpload().RuploadPhotoFromPath(common.Resource.ChoiceIco())
+				err = inst.GetAccount().EditProfile(&goinsta.UserProfile{
+					UploadId: uploadID,
+				})
+				if err != nil {
+					if common.IsError(err, common.ChallengeRequiredError) {
+						proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
+						ErrorChallengeRequired++
+					}
+					log.Error("user: %s, change ico error: %v", inst.User, err)
+					inst.Status = err.Error()
+				} else {
+					SuccessCount++
 				}
-				log.Error("user: %s, change ico error: %v", inst.User, err)
-				//inst.IsLogin = false
-				inst.Status = err.Error()
 			} else {
-				SuccessCount++
-				inst.IsLogin = true
+				ErrorOtherCount++
+				log.Error("username %s, account sync error: %v", inst.User, inst.Pass, err)
 			}
+
 			err = goinsta.SaveInstToDB(inst)
 			if err != nil {
 				log.Error("save inst: %s %s error: %v", inst.User, inst.Pass, err)
@@ -140,8 +144,8 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = false
-	config2.UseTruncation = true
+	config2.UseCharles = true
+	config2.UseTruncation = false
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)

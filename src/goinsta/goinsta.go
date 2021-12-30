@@ -7,6 +7,7 @@ import (
 	"net/http/cookiejar"
 	neturl "net/url"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -19,10 +20,10 @@ type Instagram struct {
 	User string
 	Pass string
 	//androidID           string
-	deviceID            string
-	token               string
-	familyID            string
-	adid                string
+	deviceID string
+	token    string
+	familyID string
+	//adid                string
 	wid                 string
 	challengeURL        string
 	ID                  int64
@@ -46,6 +47,7 @@ type Instagram struct {
 	Proxy     *proxy.Proxy
 	c         *http.Client
 	graph     *Graph
+	account   *Account
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -53,7 +55,7 @@ func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 	if err != nil {
 		return err
 	}
-	// First grab the cookies from the existing jar and we'll put it in the new jar.
+
 	cookies := this.c.Jar.Cookies(url)
 	this.c.Jar = jar
 	this.c.Jar.SetCookies(url, cookies)
@@ -61,28 +63,27 @@ func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 }
 
 func New(username, password string, _proxy *proxy.Proxy) *Instagram {
-	// this call never returns error
 	jar, _ := cookiejar.New(nil)
 	inst := &Instagram{
-		User: username,
-		Pass: password,
-		//androidID: generateDeviceID(),
-		deviceID:  common.GenUUID(), // both deviceID must be differents
-		familyID:  common.GenUUID(),
-		wid:       common.GenUUID(),
-		adid:      common.GenUUID(),
+		User:     username,
+		Pass:     password,
+		deviceID: strings.ToUpper(common.GenUUID()),
+		familyID: common.GenUUID(),
+		//adid:      common.GenUUID(),
 		UserAgent: GenUserAgent(),
-		sessionID: common.GenUUID(),
+		sessionID: strings.ToUpper(common.GenUUID()),
 		c: &http.Client{
 			Jar:       jar,
 			Transport: _proxy.GetProxy(),
 		},
 	}
+
+	inst.wid = inst.deviceID
 	inst.graph = &Graph{inst: inst}
 	inst.Proxy = _proxy
 	inst.httpHeader = make(map[string]string)
-	common.DebugHttpClient(inst.c)
 
+	common.DebugHttpClient(inst.c)
 	return inst
 }
 
@@ -95,7 +96,10 @@ func (this *Instagram) GetUpload() *Upload {
 }
 
 func (this *Instagram) GetAccount() *Account {
-	return &Account{ID: this.ID, inst: this}
+	if this.account == nil {
+		this.account = &Account{ID: this.ID, inst: this}
+	}
+	return this.account
 }
 
 func (this *Instagram) GetUser(id string) *User {

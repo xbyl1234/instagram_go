@@ -83,16 +83,16 @@ func DebugHttpClient(clinet *http.Client) {
 		if err != nil {
 			log.Error("ConfigureTransport error: %v", err)
 		}
-		tr.TLSClientConfig = &tls.Config{
-			NextProtos: []string{"h2", "h2-fb", "http/1.1"},
-			MinVersion: tls.VersionTLS13,
-			MaxVersion: tls.VersionTLS13,
-			CipherSuites: []uint16{
-				tls.TLS_AES_128_GCM_SHA256,
-				tls.TLS_AES_256_GCM_SHA384,
-				tls.TLS_CHACHA20_POLY1305_SHA256,
-			},
-		}
+		//tr.TLSClientConfig = &tls.Config{
+		//	NextProtos: []string{"h2", "h2-fb", "http/1.1"},
+		//	MinVersion: tls.VersionTLS10,
+		//	MaxVersion: tls.VersionTLS13,
+		//	CipherSuites: []uint16{
+		//		tls.TLS_AES_128_GCM_SHA256,
+		//		tls.TLS_AES_256_GCM_SHA384,
+		//		tls.TLS_CHACHA20_POLY1305_SHA256,
+		//	},
+		//}
 
 		clinet.Transport = tr
 	}

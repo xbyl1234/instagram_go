@@ -13,15 +13,14 @@ var TabTop = "top"
 
 type Tags struct {
 	inst          *Instagram
-	Name          string `json:"name"`
-	Id            int64  `json:"id"`
-	MediaCount    int    `json:"media_count"`
-	ProfilePicUrl string `json:"profile_pic_url"`
-
-	RankToken     string  `json:"rank_token"`
+	Name          string  `json:"name"`
+	Id            int64   `json:"id"`
+	MediaCount    int     `json:"media_count"`
+	ProfilePicUrl string  `json:"profile_pic_url"`
+	Session       string  `json:"session"`
 	Tab           string  `json:"tab"`
 	MoreAvailable bool    `json:"more_available"`
-	NextID        string  `json:"next_id"`
+	NextID        string  `json:"next_max_id"`
 	NextPage      int     `json:"next_page"`
 	NextMediaIds  []int64 `json:"next_media_ids"`
 }
@@ -182,23 +181,18 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	var params = map[string]interface{}{
-		"_uuid":      this.inst.deviceID,
-		"rank_token": this.RankToken,
+		"_uuid":              this.inst.deviceID,
+		"include_persistent": 0,
+		"supported_tabs":     "[\"recent\",\"top\",\"igtv\",\"places\",\"shopping\"]",
+		"tab":                TabTop,
+		"surface":            "grid",
+		"seen_media_ids":     "",
+		"session_id":         this.Session,
 	}
 
-	if this.NextID == "" {
-		if this.Tab == TabTop {
-			params["tab"] = TabTop
-		} else {
-			params["supported_tabs"] = "[\"top\", \"recent\"]"
-		}
-		params["include_persistent"] = true
-		params["rank_token"] = this.RankToken
-	} else {
+	if this.NextID != "" {
 		params["max_id"] = this.NextID
-		params["tab"] = this.Tab
 		params["page"] = this.NextPage
-		params["include_persistent"] = false
 		tmp, _ := json.Marshal(this.NextMediaIds)
 		params["next_media_ids"] = common.B2s(tmp)
 	}

@@ -85,7 +85,7 @@ func (this *SearchResult) GetTags() []Tags {
 	for index := range this.Tags {
 		this.Tags[index].inst = this.search.Inst
 		this.Tags[index].MoreAvailable = true
-		this.Tags[index].RankToken = common.GenUUID()
+		this.Tags[index].Session = "0_" + common.GenUUID()
 	}
 	return this.Tags
 }
@@ -131,13 +131,14 @@ func (this *Search) NextTags() (*SearchResult, error) {
 	res := &SearchResult{}
 	var params = map[string]interface{}{
 		"search_surface":  "hashtag_search_page",
-		"timezone_offset": -18000,
+		"timezone_offset": -28800,
 		"count":           30,
 		"q":               this.Q,
+		"is_typeahead":    true,
 	}
 
 	if this.PageToken != "" {
-		params["rank_token"] = this.RankToken
+		//params["rank_token"] = this.RankToken
 		params["page_token"] = this.PageToken
 	}
 
@@ -167,14 +168,12 @@ func (this *Search) NextLocation() (*SearchResult, error) {
 	insta := this.Inst
 	params := map[string]interface{}{
 		"places_search_page": "places_search_page",
-		"timezone_offset":    -18000,
-		"lat":                nil,
-		"lng":                nil,
-		"count":              30,
+		"timezone_offset":    -28800,
 		"query":              this.Q,
+		"is_typeahead":       true,
 	}
 	if this.PageToken != "" {
-		params["rank_token"] = this.RankToken
+		//params["rank_token"] = this.RankToken
 		params["page_token"] = this.PageToken
 	}
 

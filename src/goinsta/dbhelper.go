@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
+	"strings"
 	"time"
 )
 
@@ -89,26 +90,26 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 }
 
 type AccountCookies struct {
-	ID                  int64             `json:"id"`
-	Username            string            `json:"username"`
-	Passwd              string            `json:"passwd"`
-	Adid                string            `json:"adid"`
-	Wid                 string            `json:"wid"`
-	HttpHeader          map[string]string `json:"http_header"`
-	ProxyID             string            `json:"proxy_id"`
-	IsLogin             bool              `json:"is_login"`
-	AndroidID           string            `json:"android_id"`
-	UUID                string            `json:"deviceID"`
-	Token               string            `json:"token"`
-	FamilyID            string            `json:"family_id"`
-	Cookies             []*http.Cookie    `json:"cookies"`
-	CookiesB            []*http.Cookie    `json:"cookies_b"`
-	RegisterPhoneNumber string            `json:"register_phone_number"`
-	RegisterPhoneArea   string            `json:"register_phone_area"`
-	RegisterIpCountry   string            `json:"register_ip_country"`
-	Status              string            `json:"status"`
-	UserAgent           string            `json:"user_agent"`
-	LastSendMsgTime     int               `json:"last_send_msg_time"`
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+	Passwd   string `json:"passwd"`
+	//Adid                string            `json:"adid"`
+	Wid        string            `json:"wid"`
+	HttpHeader map[string]string `json:"http_header"`
+	ProxyID    string            `json:"proxy_id"`
+	IsLogin    bool              `json:"is_login"`
+	//AndroidID           string            `json:"android_id"`
+	UUID                string         `json:"deviceID"`
+	Token               string         `json:"token"`
+	FamilyID            string         `json:"family_id"`
+	Cookies             []*http.Cookie `json:"cookies"`
+	CookiesB            []*http.Cookie `json:"cookies_b"`
+	RegisterPhoneNumber string         `json:"register_phone_number"`
+	RegisterPhoneArea   string         `json:"register_phone_area"`
+	RegisterIpCountry   string         `json:"register_ip_country"`
+	Status              string         `json:"status"`
+	UserAgent           string         `json:"user_agent"`
+	LastSendMsgTime     int            `json:"last_send_msg_time"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -147,16 +148,16 @@ func SaveInstToDB(inst *Instagram) error {
 	urlb, _ := neturl.Parse(InstagramHost_B)
 
 	Cookies := AccountCookies{
-		ID:                  inst.ID,
-		Username:            inst.User,
-		Passwd:              inst.Pass,
-		AndroidID:           inst.androidID,
-		UUID:                inst.deviceID,
-		Token:               inst.token,
-		FamilyID:            inst.familyID,
-		Cookies:             inst.c.Jar.Cookies(url),
-		CookiesB:            inst.c.Jar.Cookies(urlb),
-		Adid:                inst.adid,
+		ID:       inst.ID,
+		Username: inst.User,
+		Passwd:   inst.Pass,
+		//AndroidID:           inst.androidID,
+		UUID:     inst.deviceID,
+		Token:    inst.token,
+		FamilyID: inst.familyID,
+		Cookies:  inst.c.Jar.Cookies(url),
+		CookiesB: inst.c.Jar.Cookies(urlb),
+		//Adid:                inst.adid,
 		Wid:                 inst.wid,
 		HttpHeader:          inst.httpHeader,
 		ProxyID:             inst.Proxy.ID,
@@ -206,14 +207,14 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	jar.SetCookies(urlb, config.CookiesB)
 
 	inst := &Instagram{
-		ID:                  config.ID,
-		User:                config.Username,
-		Pass:                config.Passwd,
-		androidID:           config.AndroidID,
-		deviceID:            config.UUID,
-		token:               config.Token,
-		familyID:            config.FamilyID,
-		adid:                config.Adid,
+		ID:   config.ID,
+		User: config.Username,
+		Pass: config.Passwd,
+		//androidID:           config.AndroidID,
+		deviceID: config.UUID,
+		token:    config.Token,
+		familyID: config.FamilyID,
+		//adid:                config.Adid,
 		wid:                 config.Wid,
 		httpHeader:          config.HttpHeader,
 		IsLogin:             config.IsLogin,
@@ -222,7 +223,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		RegisterIpCountry:   config.RegisterIpCountry,
 		Status:              config.Status,
 		UserAgent:           config.UserAgent,
-		sessionID:           common.GenUUID(),
+		sessionID:           strings.ToUpper(common.GenUUID()),
 		LastSendMsgTime:     config.LastSendMsgTime,
 		c: &http.Client{
 			Jar: jar,
