@@ -65,6 +65,9 @@ func (this *BaseApiResp) CheckError(err error) error {
 		if this.Message == InsAccountError_ChallengeRequired {
 			this.inst.Status = InsAccountError_ChallengeRequired
 			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ChallengeRequiredError}
+		} else if this.Message == InsAccountError_Feedback {
+			this.inst.Status = InsAccountError_Feedback
+			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.FeedbackError}
 		} else if this.Message == InsAccountError_LoginRequired {
 			this.inst.Status = InsAccountError_LoginRequired
 			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.LoginRequiredError}
@@ -150,7 +153,9 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 		this.setLoginHeader(req)
 	}
 	for key := range this.httpHeader {
-		SetHeader(req, key, this.httpHeader[key])
+		if key != IGHeader_EncryptionId && key != IGHeader_EncryptionKey {
+			SetHeader(req, key, this.httpHeader[key])
+		}
 	}
 	//SetHeader(req,"x-ads-opt-out", "0")
 	//SetHeader(req,"x-cm-latency", "-1.000")

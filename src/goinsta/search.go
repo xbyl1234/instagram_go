@@ -83,7 +83,7 @@ func (this *SearchResult) GetTags() []Tags {
 	}
 
 	for index := range this.Tags {
-		this.Tags[index].inst = this.search.Inst
+		this.Tags[index].Inst = this.search.Inst
 		this.Tags[index].MoreAvailable = true
 		this.Tags[index].Session = "0_" + common.GenUUID()
 	}

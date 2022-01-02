@@ -59,8 +59,8 @@ func Register() {
 			common.GenString(common.CharSet_123, 4)
 
 		inst, err := regisert.Do(username, username, password)
+		var statErr = err
 		if err == nil {
-			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
 			err = inst.GetAccount().Sync()
 			if err == nil {
 				var uploadID string
@@ -74,12 +74,9 @@ func Register() {
 						ErrorChallengeRequired++
 					}
 					log.Error("user: %s, change ico error: %v", inst.User, err)
-					inst.Status = err.Error()
-				} else {
-					SuccessCount++
 				}
 			} else {
-				ErrorOtherCount++
+				statErr = err
 				log.Error("username %s, account sync error: %v", inst.User, inst.Pass, err)
 			}
 
@@ -90,11 +87,11 @@ func Register() {
 			}
 		}
 
-		if err != nil {
-			if common.IsError(err, common.ApiError) {
-				if strings.Index(err.Error(), "wait a few minutes") != -1 || strings.Index(err.Error(), "请稍等几分钟再试") != -1 {
+		if statErr != nil {
+			if common.IsError(statErr, common.ApiError) {
+				if strings.Index(statErr.Error(), "wait a few minutes") != -1 || strings.Index(statErr.Error(), "请稍等几分钟再试") != -1 {
 					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
-				} else if strings.Index(err.Error(), "feedback_required") != -1 {
+				} else if strings.Index(statErr.Error(), "feedback_required") != -1 {
 					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
 				}
 			}
@@ -108,11 +105,11 @@ func Register() {
 			} else {
 				ErrorOtherCount++
 			}
-			//challenge_required
-			//feedback_required
 			log.Warn("register error, %v", err)
+		} else {
+			SuccessCount++
+			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
 		}
-		//time.Sleep(time.Minute * 2)
 	}
 	WaitAll.Done()
 }

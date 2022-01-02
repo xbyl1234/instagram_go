@@ -13,7 +13,9 @@ import (
 var (
 	InsAccountError_ChallengeRequired = "challenge_required"
 	InsAccountError_LoginRequired     = "login_required"
+	InsAccountError_Feedback          = "feedback_required"
 )
+
 var ProxyCallBack func(id string) (*proxy.Proxy, error)
 
 type Instagram struct {
@@ -59,24 +61,28 @@ func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 }
 
 func New(username, password string, _proxy *proxy.Proxy) *Instagram {
+	var tr *http.Transport
+	if _proxy != nil {
+		tr = _proxy.GetProxy()
+	}
+
 	jar, _ := cookiejar.New(nil)
 	inst := &Instagram{
-		User:     username,
-		Pass:     password,
-		deviceID: strings.ToUpper(common.GenUUID()),
-		familyID: common.GenUUID(),
-		//adid:      common.GenUUID(),
+		User:      username,
+		Pass:      password,
+		deviceID:  strings.ToUpper(common.GenUUID()),
+		wid:       common.GenUUID(),
+		Proxy:     _proxy,
 		UserAgent: GenUserAgent(),
 		sessionID: strings.ToUpper(common.GenUUID()),
 		c: &http.Client{
 			Jar:       jar,
-			Transport: _proxy.GetProxy(),
+			Transport: tr,
 		},
 	}
 
-	inst.wid = inst.deviceID
+	inst.familyID = inst.deviceID
 	inst.graph = &Graph{inst: inst}
-	inst.Proxy = _proxy
 	inst.httpHeader = make(map[string]string)
 
 	common.DebugHttpClient(inst.c)
@@ -124,9 +130,9 @@ func (this *Instagram) NeedReplace() bool {
 		return true
 	}
 
-	if this.ReqContError >= 3 {
-		return true
-	}
+	//if this.ReqContError >= 3 {
+	//	return true
+	//}
 	return false
 }
 

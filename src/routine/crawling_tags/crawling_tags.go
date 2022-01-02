@@ -136,21 +136,27 @@ func CrawTags() {
 
 func CrawMedias() {
 	defer WaitAll.Done()
-	inst, err := routine.ReqAccount(false)
-	if err != nil {
-		log.Error("CrawMedias req account error: %v", err)
-		return
-	}
 
-	//defer func() {
-	//	if inst != nil {
-	//		goinsta.AccountPool.ReleaseOne(inst)
-	//	}
-	//}()
+	var SetOrReplaceTagAccont = func(tag *goinsta.Tags) bool {
+		var oldUser string
+		if tag.Inst != nil {
+			oldUser = tag.Inst.User
+			if tag.Inst.NeedReplace() {
+				goinsta.AccountPool.BlackOne(tag.Inst)
+			} else {
+				goinsta.AccountPool.ReleaseOne(tag.Inst)
+			}
+		}
 
-	for tag := range TagsChan {
+		inst, err := routine.ReqAccount(false)
+		if err != nil {
+			log.Error("CrawMedias req account error: %v", err)
+			return false
+		}
 		tag.SetAccount(inst)
-		err := tag.Sync(goinsta.TabRecent)
+		log.Warn("CrawMedias replace account %s->%s", oldUser, inst.User)
+
+		err = tag.Sync(goinsta.TabRecent)
 		if err != nil {
 			log.Error("tag sync error: %v", err)
 		}
@@ -158,8 +164,26 @@ func CrawMedias() {
 		if err != nil {
 			log.Error("tag stories error: %v", err)
 		}
+		return true
+	}
+
+	var reqCount = 0
+	for tag := range TagsChan {
+		if tag.Inst == nil {
+			if !SetOrReplaceTagAccont(tag) {
+				return
+			}
+		}
 
 		for true {
+			if reqCount > 200 {
+				reqCount = 0
+				if !SetOrReplaceTagAccont(tag) {
+					return
+				}
+			}
+
+			reqCount++
 			tagResult, err := tag.Next()
 			if err != nil {
 				if common.IsNoMoreError(err) {
@@ -170,25 +194,19 @@ func CrawMedias() {
 					log.Info("tags %s medias has craw finish!", tag.Name)
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
-					goinsta.AccountPool.BlackOne(inst)
-					_inst, errAcc := routine.ReqAccount(false)
-					if errAcc != nil {
-						log.Error("CrawTags req account error: %v!", errAcc)
-						inst = nil
+					if !SetOrReplaceTagAccont(tag) {
 						return
 					}
-					log.Warn("CrawMedias replace account %s->%s", inst.User, _inst.User)
-					inst = _inst
-					tag.SetAccount(_inst)
 					continue
 				} else if common.IsError(err, common.RequestError) {
-					log.Warn("CrawMedias retrying...user: %s, err: %v", inst.User, err)
+					log.Warn("CrawMedias retrying...user: %s, err: %v", tag.Inst.User, err)
 					continue
 				} else {
 					log.Error("next media unknow error: %v", err)
 					break
 				}
 			}
+
 			var OncePrint = false
 			var stop = false
 			medias := tagResult.GetAllMedias()
@@ -250,66 +268,67 @@ func SendTags() {
 
 func CrawCommentUser() {
 	defer WaitAll.Done()
-	var inst *goinsta.Instagram
-
-	//defer func() {
-	//	if inst != nil {
-	//		goinsta.AccountPool.ReleaseOne(inst)
-	//	}
-	//}()
-
+	var ginst *goinsta.Instagram
 	reqCount := 0
-	for mediaComb := range MediaChan {
-		if mediaComb.Media.CommentCount == 0 {
-			continue
-		}
-		if reqCount > 350 || inst == nil {
-			//goinsta.AccountPool.ReleaseOne(inst)
-			reqCount = 0
-			oldUserName := ""
-			if inst != nil {
-				oldUserName = inst.User
+
+	var SetOrReplaceMediaAccont = func(mediaComb *routine.MediaComb) bool {
+		oldUserName := ""
+		var needReplace bool = false
+		if ginst != nil {
+			oldUserName = ginst.User
+			if ginst.NeedReplace() {
+				goinsta.AccountPool.BlackOne(ginst)
+				needReplace = true
+				reqCount = 0
+			} else if reqCount > 100 {
+				goinsta.AccountPool.ReleaseOne(ginst)
+				needReplace = true
+				reqCount = 0
 			}
+		}
+
+		if needReplace || ginst == nil {
 			var err error
-			inst, err = routine.ReqAccount(false)
+			ginst, err = routine.ReqAccount(false)
 			if err != nil {
 				log.Error("CrawCommentUser req account error: %v!", err)
-				inst = nil
-				return
+				return false
 			}
-			log.Warn("account: %s,CrawCommentUser request count more than 350, replace account to %s", oldUserName, inst.User)
+			log.Warn("account: %s,CrawCommentUser request count more than 350, replace account to %s", oldUserName, ginst.User)
 		}
 
-		mediaComb.Media.SetAccount(inst)
+		mediaComb.Media.SetAccount(ginst)
 		if mediaComb.Comments != nil {
-			mediaComb.Comments.SetAccount(inst)
-		} else {
+			mediaComb.Comments.SetAccount(ginst)
+		}
+		return true
+	}
+
+	for mediaComb := range MediaChan {
+		if mediaComb.Media.CommentCount == 0 {
+			mediaComb.Comments.HasMore = false
+			routine.SaveComments(mediaComb)
+			continue
+		}
+		SetOrReplaceMediaAccont(mediaComb)
+
+		if mediaComb.Comments == nil {
 			mediaComb.Comments = mediaComb.Media.GetComments()
 		}
 
 		for true {
-			respComm, err := mediaComb.Comments.NextComments()
 			reqCount++
+
+			respComm, err := mediaComb.Comments.NextComments()
 			if err != nil {
 				if common.IsNoMoreError(err) {
 					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
-					goinsta.AccountPool.BlackOne(inst)
-					reqCount = 0
-					_inst, errAcc := routine.ReqAccount(false)
-					if errAcc != nil {
-						log.Error("CrawCommentUser req account error: %v!", errAcc)
-						inst = nil
-						return
-					}
-					log.Warn("CrawCommentUser replace account %s->%s", inst.User, _inst.User)
-					inst = _inst
-					mediaComb.Media.SetAccount(_inst)
-					mediaComb.Comments.SetAccount(_inst)
+					SetOrReplaceMediaAccont(mediaComb)
 					continue
 				} else if common.IsError(err, common.RequestError) {
-					log.Warn("CrawCommentUser retrying...user: %s, err: %v", inst.User, err)
+					log.Warn("CrawCommentUser retrying...user: %s, err: %v", mediaComb.Comments.Inst.User, err)
 					continue
 				} else if strings.Index(err.Error(), "Media is unavailable") >= 0 {
 					log.Warn("NextComments error:%v", err)

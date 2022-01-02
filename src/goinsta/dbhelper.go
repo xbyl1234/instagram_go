@@ -90,27 +90,25 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 }
 
 type AccountCookies struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Passwd   string `json:"passwd"`
-	//Adid                string            `json:"adid"`
-	Wid        string            `json:"wid"`
-	HttpHeader map[string]string `json:"http_header"`
-	ProxyID    string            `json:"proxy_id"`
-	IsLogin    bool              `json:"is_login"`
-	//AndroidID           string            `json:"android_id"`
-	UUID                string         `json:"deviceID"`
-	Token               string         `json:"token"`
-	FamilyID            string         `json:"family_id"`
-	Cookies             []*http.Cookie `json:"cookies"`
-	CookiesB            []*http.Cookie `json:"cookies_b"`
-	RegisterPhoneNumber string         `json:"register_phone_number"`
-	RegisterPhoneArea   string         `json:"register_phone_area"`
-	RegisterIpCountry   string         `json:"register_ip_country"`
-	RegisterTime        int64          `json:"register_time"`
-	Status              string         `json:"status"`
-	UserAgent           string         `json:"user_agent"`
-	LastSendMsgTime     int            `json:"last_send_msg_time"`
+	ID                  int64             `json:"id"`
+	Username            string            `json:"username"`
+	Passwd              string            `json:"passwd"`
+	Wid                 string            `json:"wid"`
+	HttpHeader          map[string]string `json:"http_header"`
+	ProxyID             string            `json:"proxy_id"`
+	IsLogin             bool              `json:"is_login"`
+	Token               string            `json:"token"`
+	DeviceID            string            `json:"deviceID"`
+	FamilyID            string            `json:"family_id"`
+	Cookies             []*http.Cookie    `json:"cookies"`
+	CookiesB            []*http.Cookie    `json:"cookies_b"`
+	RegisterPhoneNumber string            `json:"register_phone_number"`
+	RegisterPhoneArea   string            `json:"register_phone_area"`
+	RegisterIpCountry   string            `json:"register_ip_country"`
+	RegisterTime        int64             `json:"register_time"`
+	Status              string            `json:"status"`
+	UserAgent           string            `json:"user_agent"`
+	LastSendMsgTime     int               `json:"last_send_msg_time"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -152,7 +150,7 @@ func SaveInstToDB(inst *Instagram) error {
 		ID:                  inst.ID,
 		Username:            inst.User,
 		Passwd:              inst.Pass,
-		UUID:                inst.deviceID,
+		DeviceID:            inst.deviceID,
 		Token:               inst.token,
 		FamilyID:            inst.familyID,
 		Cookies:             inst.c.Jar.Cookies(url),
@@ -210,7 +208,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		ID:                  config.ID,
 		User:                config.Username,
 		Pass:                config.Passwd,
-		deviceID:            config.UUID,
+		deviceID:            config.DeviceID,
 		token:               config.Token,
 		familyID:            config.FamilyID,
 		wid:                 config.Wid,

@@ -47,6 +47,9 @@ var (
 	RequestError           ErrType = 4
 	ChallengeRequiredError ErrType = 5
 	LoginRequiredError     ErrType = 6
+	RecvPhoneCodeError     ErrType = 7
+	RequirePhoneError      ErrType = 8
+	FeedbackError          ErrType = 9
 )
 
 func IsNoMoreError(err error) bool {

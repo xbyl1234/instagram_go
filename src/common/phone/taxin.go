@@ -68,7 +68,7 @@ func (this *PhoneTaxin) RequirePhoneNumber() (string, error) {
 		return "", err
 	}
 	if respJson.Message != "ok" {
-		return "", &common.MakeMoneyError{ErrStr: respJson.Message}
+		return "", &common.MakeMoneyError{ErrStr: respJson.Message, ErrType: common.RequirePhoneError}
 	}
 
 	return respJson.Data, err
@@ -101,7 +101,7 @@ func (this *PhoneTaxin) RequirePhoneCode(number string) (string, error) {
 		time.Sleep(this.retryDelay)
 	}
 
-	return "", &common.MakeMoneyError{ErrStr: "require code timeout"}
+	return "", &common.MakeMoneyError{ErrStr: "require code timeout", ErrType: common.RecvPhoneCodeError}
 }
 
 type PhoneTaxin_ReleasePhone struct {

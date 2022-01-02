@@ -14,10 +14,8 @@ import (
 )
 
 type TestLoginResult struct {
-	inst   *goinsta.Instagram
-	status bool
-	err    error
-	str    string
+	inst *goinsta.Instagram
+	err  error
 }
 type Config struct {
 	ProxyPath  string `json:"proxy_path"`
@@ -38,12 +36,13 @@ var TestResultList []*TestLoginResult
 var WaitTask sync.WaitGroup
 var WaitExit sync.WaitGroup
 var (
-	TaskLogin       = "login"
+	TaskLogin       = "relogin"
 	TaskRefreshInfo = "refresh_info"
 	TaskTestAccount = "test"
 )
 var (
 	SendAll       = "all"
+	SendGood      = "good"
 	SendBad       = "bad"
 	SendNoLogin   = "nologin"
 	SendStatusErr = "badstat"
@@ -72,42 +71,43 @@ func initParams() {
 	}
 }
 
-func Login(inst *goinsta.Instagram) error {
-	err := inst.Login()
-	if err != nil {
-		log.Warn("username: %s, login error: %v", inst.User, err.Error())
-		return err
+func Login(username string, password string) (*goinsta.Instagram, error) {
+	var inst = goinsta.New(username, password, nil)
+	var err error
+
+	if routine.SetProxy(inst) {
+		inst.PrepareNewClient()
+		err = inst.Login()
+		if err != nil {
+			log.Warn("username: %s, login error: %v", inst.User, err.Error())
+			return inst, err
+		}
+		log.Info("username: %s, login success", inst.User)
+		return inst, nil
+	} else {
+		return inst, &common.MakeMoneyError{
+			ErrStr:    "no proxy",
+			ErrType:   0,
+			ExternErr: nil,
+		}
 	}
-	log.Info("username: %s, login success", inst.User)
-	return nil
 }
 
-func InstCleanAndLogin(inst *goinsta.Instagram) *TestLoginResult {
+func InstRelogin(inst *goinsta.Instagram) *TestLoginResult {
 	result := &TestLoginResult{}
-	result.inst = inst
-	if !inst.IsLogin && inst.Status == "" {
-		if routine.SetProxy(inst) {
-			//inst.CleanCookiesAndHeader()
-			//inst.PrepareNewClient()
+	var err error
+	result.inst, err = Login(inst.User, inst.Pass)
 
-			if result.status == false {
-				err := Login(inst)
-				if err != nil {
-					result.str = "login error"
-					result.status = false
-					result.err = err
-				} else {
-					result.status = true
-				}
-			}
-		} else {
-			result.str = "no proxy"
-			result.status = false
-		}
+	if err != nil {
+		result.err = err
 		return result
 	}
 
-	return nil
+	err = result.inst.GetAccount().Sync()
+	if err != nil {
+		result.err = err
+	}
+	return result
 }
 
 func RecvCleanAndLogin() {
@@ -115,14 +115,7 @@ func RecvCleanAndLogin() {
 	for result := range TestResult {
 		TestResultList[index] = result
 		index++
-
-		if result.str != "no proxy" {
-			if common.IsError(result.err, common.ChallengeRequiredError) {
-				result.inst.Status = goinsta.InsAccountError_ChallengeRequired
-			}
-			//result.inst.IsLogin = result.status
-			goinsta.SaveInstToDB(result.inst)
-		}
+		goinsta.SaveInstToDB(result.inst)
 	}
 	PrintResult(TestResultList[:index])
 	WaitExit.Done()
@@ -141,14 +134,10 @@ func InstRefreshAccountInfo(inst *goinsta.Instagram) *TestLoginResult {
 			}
 			result.inst = inst
 			if err == nil {
-				result.status = true
 			} else {
-				result.status = false
 				result.err = err
 			}
 		} else {
-			result.str = "no proxy"
-			result.status = false
 		}
 		return result
 	} else {
@@ -161,20 +150,20 @@ func RecvRefreshAccountInfo() {
 	for result := range TestResult {
 		TestResultList[index] = result
 		index++
-		if !result.status {
-			if result.str == "no proxy" {
-				continue
-			}
-
-			if common.IsError(result.err, common.ChallengeRequiredError) {
-				result.inst.Status = "challenge_required"
-				result.inst.IsLogin = false
-				proxy.ProxyPool.Black(result.inst.Proxy, proxy.BlackType_RegisterRisk)
-			}
-		} else {
-			result.inst.Status = ""
-			result.inst.IsLogin = true
-		}
+		//if !result.status {
+		//	if result.err.Error() == "no proxy" {
+		//		continue
+		//	}
+		//
+		//	if common.IsError(result.err, common.ChallengeRequiredError) {
+		//		result.inst.Status = "challenge_required"
+		//		result.inst.IsLogin = false
+		//		proxy.ProxyPool.Black(result.inst.Proxy, proxy.BlackType_RegisterRisk)
+		//	}
+		//} else {
+		//	result.inst.Status = ""
+		//	result.inst.IsLogin = true
+		//}
 		goinsta.SaveInstToDB(result.inst)
 	}
 	PrintResult(TestResultList[:index])
@@ -183,67 +172,40 @@ func RecvRefreshAccountInfo() {
 }
 
 func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
+	var err error
 	var result = &TestLoginResult{}
-	result.status = true
 	result.inst = inst
-	//if inst.Status == "challenge_required" {
-	//	result.status = false
-	//	return result
-	//}
 
 	if routine.SetProxy(inst) {
-		for true {
-			if inst.ID == 0 || inst.IsLogin == false {
-				inst.CleanCookiesAndHeader()
-				inst.PrepareNewClient()
-				err := Login(inst)
-				if err != nil {
-					result.err = err
-					if common.IsError(err, common.ChallengeRequiredError) {
-						result.inst.Status = "challenge_required"
-						return result
-					} else if common.IsError(err, common.RequestError) {
-						log.Error("account: %s, request error: %v", inst.User, err)
-						result.status = false
-						return result
-					} else {
-						log.Error("account: %s, unknow error: %v", inst.User, err)
-						result.inst.Status = err.Error()
-						return result
-					}
-				}
-				result.inst.IsLogin = true
-			}
-			//The password you entered is incorrect
-			//invalid character 'O' looking for beginning of value
-			//The username you entered doesn't appear to belong to an account
-			//invalid character '<' looking
-
-			result.inst.Status = ""
-			err := inst.GetAccount().Sync()
+		if inst.ID == 0 || inst.IsLogin == false {
+			result.inst, err = Login(inst.User, inst.Pass)
 			if err != nil {
 				result.err = err
-				if common.IsError(err, common.ChallengeRequiredError) {
-					result.inst.Status = "challenge_required"
-				} else if common.IsError(err, common.RequestError) {
-					log.Error("account: %s, request error: %v", inst.User, err)
-					result.status = false
-				} else if strings.Index(err.Error(), "invalid character") != -1 {
-					log.Error("account: %s, cookies error: %v", inst.User, err)
-					inst.CleanCookiesAndHeader()
-					continue
-				} else {
-					log.Error("account: %s, unknow error: %v", inst.User, err)
-					result.inst.Status = err.Error()
-				}
-			} else {
-				inst.Status = ""
+				return result
 			}
-			break
+		}
+
+		//The password you entered is incorrect
+		//invalid character 'O' looking for beginning of value
+		//The username you entered doesn't appear to belong to an account
+		//invalid character '<' looking
+
+		result.inst.Status = ""
+		err = result.inst.GetAccount().Sync()
+		if err != nil {
+			result.err = err
+			log.Error("account: %s, error: %v", inst.User, err)
+			return result
+			//if strings.Index(err.Error(), "invalid character") != -1 {
+			//	log.Error("account: %s, cookies error: %v", inst.User, err)
+			//	inst.CleanCookiesAndHeader()
+			//	continue
+			//}
 		}
 	} else {
-		result.str = "no proxy"
-		result.status = false
+		result.err = &common.MakeMoneyError{
+			ErrStr: "no proxy",
+		}
 	}
 
 	return result
@@ -254,7 +216,7 @@ func RecvTestAccount() {
 	for result := range TestResult {
 		TestResultList[index] = result
 		index++
-		if result.status {
+		if result.err.Error() != "no proxy" {
 			goinsta.SaveInstToDB(result.inst)
 		}
 	}
@@ -267,7 +229,7 @@ func DispatchAccount() {
 	var Consumer func(inst *goinsta.Instagram) *TestLoginResult
 	switch *TaskType {
 	case TaskLogin:
-		Consumer = InstCleanAndLogin
+		Consumer = InstRelogin
 		break
 	case TaskRefreshInfo:
 		Consumer = InstRefreshAccountInfo
@@ -292,6 +254,10 @@ func send(inst *goinsta.Instagram) {
 	case SendAll:
 		TestAccount <- inst
 		break
+	case SendGood:
+		if inst.IsLogin && inst.ID != 0 && inst.Status == "" {
+			TestAccount <- inst
+		}
 	case SendBad:
 		if !inst.IsLogin || inst.ID == 0 || inst.Status != "" {
 			TestAccount <- inst
@@ -330,23 +296,24 @@ func SendAccount(insts []*goinsta.Instagram) {
 func PrintResult(result []*TestLoginResult) {
 	log.Info("---------------  success   ---------------")
 	for index := range result {
-		if result[index].status {
+		if result[index].err == nil {
 			log.Info("username: %s", result[index].inst.User)
 		}
 	}
 	log.Info("-------------    failed   --------------")
 	for index := range result {
-		if !result[index].status {
-			log.Error("username: %s, %s, err: %v", result[index].inst.User, result[index].str, result[index].err)
+		if result[index].err != nil && result[index].err.Error() != "no proxy" {
+			log.Error("username: %s, err: %v", result[index].inst.User, result[index].err)
 		}
 	}
 	log.Info("--------------- proxy error --------------")
 	for index := range result {
-		if result[index].str == "no proxy" {
-			log.Warn("username: %s, %s", result[index].inst.User, result[index].str)
+		if result[index].err.Error() == "no proxy" {
+			log.Warn("username: %s", result[index].inst.User)
 		}
 	}
 }
+
 func testOne(insts []*goinsta.Instagram, username string) {
 	var inst *goinsta.Instagram
 	for index := range insts {
@@ -361,16 +328,13 @@ func testOne(insts []*goinsta.Instagram, username string) {
 	}
 
 	result := InstTestAccount(inst)
-	if result.status {
-		if result.err == nil {
-			log.Info("islogin: %v, acc status: %s", result.inst.IsLogin, result.inst.Status)
-		} else {
-			log.Info("acc: %s, str: %s, err: %v", result.inst.Status, result.str, result.err)
-		}
-		goinsta.SaveInstToDB(inst)
+
+	if result.err == nil {
+		log.Info("islogin: %v, acc status: %s", result.inst.IsLogin, result.inst.Status)
 	} else {
-		log.Info("result status is false, str: %s, err: %v", result.str, result.err)
+		log.Info("account: %s, err: %v", result.inst.Status, result.err)
 	}
+	goinsta.SaveInstToDB(inst)
 }
 
 func main() {

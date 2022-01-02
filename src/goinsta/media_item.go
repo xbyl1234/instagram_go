@@ -166,5 +166,5 @@ func (this *Item) SetAccount(inst *Instagram) {
 }
 
 func (this *Item) GetComments() *Comments {
-	return &Comments{media: this, inst: this.inst, MediaID: this.ID, HasMore: true}
+	return &Comments{media: this, Inst: this.inst, MediaID: this.ID, HasMore: true}
 }

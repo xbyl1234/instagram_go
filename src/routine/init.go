@@ -53,10 +53,12 @@ func ReqAccount(block bool) (*goinsta.Instagram, error) {
 
 func SetProxy(inst *goinsta.Instagram) bool {
 	var _proxy *proxy.Proxy
-	if inst.Proxy.ID != "" {
-		_proxy = proxy.ProxyPool.Get(inst.Proxy.ID)
-		if _proxy == nil {
-			log.Warn("find insta proxy %s error!", inst.Proxy.ID)
+	if inst.Proxy != nil {
+		if inst.Proxy.ID != "" {
+			_proxy = proxy.ProxyPool.Get(inst.Proxy.ID)
+			if _proxy == nil {
+				log.Warn("find insta proxy %s error!", inst.Proxy.ID)
+			}
 		}
 	}
 

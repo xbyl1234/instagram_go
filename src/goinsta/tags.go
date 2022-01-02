@@ -12,7 +12,7 @@ var TabRecent = "recent"
 var TabTop = "top"
 
 type Tags struct {
-	inst          *Instagram
+	Inst          *Instagram
 	Name          string  `json:"name"`
 	Id            int64   `json:"id"`
 	MediaCount    int     `json:"media_count"`
@@ -142,7 +142,7 @@ type RespTagsInfo struct {
 }
 
 func (this *Tags) SetAccount(inst *Instagram) {
-	this.inst = inst
+	this.Inst = inst
 }
 
 // Sync updates Tags information preparing it to Next call.
@@ -150,7 +150,7 @@ func (this *Tags) Sync(tab string) error {
 	this.Tab = tab
 
 	resp := &RespTagsInfo{}
-	err := this.inst.HttpRequestJson(&reqOptions{
+	err := this.Inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlTagSync, this.Name),
 	}, resp)
 	err = resp.CheckError(err)
@@ -164,7 +164,7 @@ func (this *Tags) Stories() (*StoryMedia, error) {
 		Story StoryMedia `json:"story"`
 	}
 
-	err := this.inst.HttpRequestJson(&reqOptions{
+	err := this.Inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlTagStories, this.Name),
 	}, &resp)
 
@@ -181,7 +181,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	var params = map[string]interface{}{
-		"_uuid":              this.inst.deviceID,
+		"_uuid":              this.Inst.deviceID,
 		"include_persistent": 0,
 		"supported_tabs":     "[\"recent\",\"top\",\"igtv\",\"places\",\"shopping\"]",
 		"tab":                TabTop,
@@ -198,7 +198,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	ht := &RespHashtag{}
-	err := this.inst.HttpRequestJson(
+	err := this.Inst.HttpRequestJson(
 		&reqOptions{
 			Query:   params,
 			ApiPath: fmt.Sprintf(urlTagSections, this.Name),
@@ -212,7 +212,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 		this.NextPage = ht.NextPage
 		this.NextMediaIds = ht.NextMediaIds
 		this.MoreAvailable = ht.MoreAvailable
-		ht.inst = this.inst
+		ht.inst = this.Inst
 	}
 
 	return ht, err

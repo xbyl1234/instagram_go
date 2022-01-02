@@ -8,7 +8,7 @@ import (
 
 type Comments struct {
 	media   *Item
-	inst    *Instagram
+	Inst    *Instagram
 	MediaID string `json:"media_id"`
 	//Next    struct {
 	//	CachedCommentsCursor string `json:"cached_comments_cursor"`
@@ -19,7 +19,7 @@ type Comments struct {
 }
 
 func (this *Comments) SetAccount(inst *Instagram) {
-	this.inst = inst
+	this.Inst = inst
 }
 
 type RespComments struct {
@@ -61,7 +61,7 @@ func (this *Comments) NextComments() (*RespComments, error) {
 	}
 
 	ret := &RespComments{}
-	err := this.inst.HttpRequestJson(&reqOptions{
+	err := this.Inst.HttpRequestJson(&reqOptions{
 		IsPost:  false,
 		ApiPath: fmt.Sprintf(urlComment, this.MediaID),
 		Query:   params,
