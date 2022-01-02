@@ -117,7 +117,7 @@ func (this *User) Sync() error {
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlUserInfo, this.ID),
 		Query: map[string]interface{}{
-			"from_module": "feed_contextual_chain",
+			"device_id": this.inst.deviceID,
 		}},
 		resp)
 
@@ -155,21 +155,25 @@ func (this *Followers) Next() ([]User, error) {
 		}
 	}
 
-	params := map[string]interface{}{
-		"search_surface": "follow_list_page",
-		"query":          "",
-		"enable_groups":  true,
-		"rank_token":     this.rankToken,
-	}
+	var params map[string]interface{}
 
 	if this.maxId != "" {
-		params["max_id"] = this.maxId
+		params = map[string]interface{}{
+			"max_id": this.maxId,
+		}
+	} else {
+		params = map[string]interface{}{
+			"rank_mutual": 0,
+			"target_id":   this.User,
+			"rank_token":  this.rankToken,
+		}
 	}
 
 	resp := &RespNexFollowers{}
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlFriendFollowers, this.User),
 		IsPost:  false,
+		Query:   params,
 	}, resp)
 	err = resp.CheckError(err)
 

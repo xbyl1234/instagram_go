@@ -53,16 +53,10 @@ func (this *Comments) NextComments() (*RespComments, error) {
 	}
 
 	params := map[string]interface{}{
-		"inventory_source":        "media_or_ad",
-		"analytics_module":        "comments_v2_feed_timeline",
-		"can_support_threading":   true,
-		"is_carousel_bumped_post": true,
-		"feed_position":           0,
+		"can_support_threading": true,
 	}
 
 	if this.Next != "" {
-		//minId, _ := json.Marshal(this.Next)
-		//params["min_id"] = common.B2s(minId)
 		params["min_id"] = this.Next
 	}
 
@@ -78,7 +72,6 @@ func (this *Comments) NextComments() (*RespComments, error) {
 		this.HasMore = ret.HasMoreHeadloadComments
 		if this.HasMore {
 			this.Next = strings.ReplaceAll(ret.NextMinId, "\\", "\"")
-			//err = json.Unmarshal([]byte(next), &this.Next)
 		}
 	}
 	return ret, err

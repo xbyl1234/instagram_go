@@ -17,37 +17,33 @@ var (
 var ProxyCallBack func(id string) (*proxy.Proxy, error)
 
 type Instagram struct {
-	User string
-	Pass string
-	//androidID           string
-	deviceID string
-	token    string
-	familyID string
-	//adid                string
+	User                string
+	Pass                string
+	deviceID            string
+	token               string
+	familyID            string
 	wid                 string
 	challengeURL        string
 	ID                  int64
 	httpHeader          map[string]string
-	RegisterPhoneNumber string
-	RegisterPhoneArea   string
-	RegisterIpCountry   string
 	IsLogin             bool
 	UserAgent           string
 	Status              string
 	sessionID           string
-
-	ReqSuccessCount  int
-	ReqErrorCount    int
-	ReqApiErrorCount int
-	ReqContError     int
-
-	LastSendMsgTime int
-
-	MatePoint interface{}
-	Proxy     *proxy.Proxy
-	c         *http.Client
-	graph     *Graph
-	account   *Account
+	RegisterPhoneNumber string
+	RegisterPhoneArea   string
+	RegisterIpCountry   string
+	RegisterTime        int64
+	ReqSuccessCount     int
+	ReqErrorCount       int
+	ReqApiErrorCount    int
+	ReqContError        int
+	LastSendMsgTime     int
+	MatePoint           interface{}
+	Proxy               *proxy.Proxy
+	c                   *http.Client
+	graph               *Graph
+	account             *Account
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {

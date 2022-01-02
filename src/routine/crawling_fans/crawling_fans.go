@@ -33,7 +33,7 @@ func CrawlingFans() {
 	defer WaitAll.Done()
 
 	unknowErrorCount := 0
-	inst, err := routine.ReqAccount()
+	inst, err := routine.ReqAccount(false)
 	if err != nil {
 		log.Error("CrawlingFans req account error: %v", err)
 		return
@@ -58,7 +58,7 @@ func CrawlingFans() {
 				} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
 					if inst.NeedReplace() {
 						goinsta.AccountPool.BlackOne(inst)
-						_inst, errAcc := routine.ReqAccount()
+						_inst, errAcc := routine.ReqAccount(false)
 						if errAcc != nil {
 							inst = nil
 							log.Error("CrawlingFans req account error: %v!", errAcc)

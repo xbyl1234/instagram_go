@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type Config struct {
@@ -82,6 +83,7 @@ func Register() {
 				log.Error("username %s, account sync error: %v", inst.User, inst.Pass, err)
 			}
 
+			inst.RegisterTime = time.Now().Unix()
 			err = goinsta.SaveInstToDB(inst)
 			if err != nil {
 				log.Error("save inst: %s %s error: %v", inst.User, inst.Pass, err)
@@ -144,7 +146,7 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	config2.UseTruncation = false
 
 	initParams()

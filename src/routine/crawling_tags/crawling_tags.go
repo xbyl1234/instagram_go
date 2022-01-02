@@ -59,7 +59,7 @@ func LoadTags() {
 func CrawTags() {
 	var search *goinsta.Search
 	var err error
-	inst, err := routine.ReqAccount()
+	inst, err := routine.ReqAccount(false)
 	if err != nil {
 		log.Error("CrawTags req account error: %v!", err)
 		return
@@ -97,7 +97,7 @@ func CrawTags() {
 				break
 			} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 				goinsta.AccountPool.BlackOne(inst)
-				_inst, errAcc := routine.ReqAccount()
+				_inst, errAcc := routine.ReqAccount(false)
 				if errAcc != nil {
 					log.Error("CrawTags req account error: %v!", errAcc)
 					inst = nil
@@ -136,7 +136,7 @@ func CrawTags() {
 
 func CrawMedias() {
 	defer WaitAll.Done()
-	inst, err := routine.ReqAccount()
+	inst, err := routine.ReqAccount(false)
 	if err != nil {
 		log.Error("CrawMedias req account error: %v", err)
 		return
@@ -171,7 +171,7 @@ func CrawMedias() {
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 					goinsta.AccountPool.BlackOne(inst)
-					_inst, errAcc := routine.ReqAccount()
+					_inst, errAcc := routine.ReqAccount(false)
 					if errAcc != nil {
 						log.Error("CrawTags req account error: %v!", errAcc)
 						inst = nil
@@ -271,7 +271,7 @@ func CrawCommentUser() {
 				oldUserName = inst.User
 			}
 			var err error
-			inst, err = routine.ReqAccount()
+			inst, err = routine.ReqAccount(false)
 			if err != nil {
 				log.Error("CrawCommentUser req account error: %v!", err)
 				inst = nil
@@ -297,7 +297,7 @@ func CrawCommentUser() {
 				} else if common.IsError(err, common.ChallengeRequiredError) || common.IsError(err, common.LoginRequiredError) {
 					goinsta.AccountPool.BlackOne(inst)
 					reqCount = 0
-					_inst, errAcc := routine.ReqAccount()
+					_inst, errAcc := routine.ReqAccount(false)
 					if errAcc != nil {
 						log.Error("CrawCommentUser req account error: %v!", errAcc)
 						inst = nil

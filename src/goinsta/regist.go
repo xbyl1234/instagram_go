@@ -117,7 +117,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 
 func (this *Register) genUsername(username string) string {
 	usernameSuggestions, err := this.usernameSuggestions(username)
-	if err == nil || len(usernameSuggestions.Suggestions) == 0 {
+	if err != nil || len(usernameSuggestions.Suggestions) == 0 {
 		return username + fmt.Sprintf("%d%d%d",
 			common.GenNumber(1990, 2020),
 			common.GenNumber(1, 12),
