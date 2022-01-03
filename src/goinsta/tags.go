@@ -181,7 +181,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	var params = map[string]interface{}{
-		"_uuid":              this.Inst.deviceID,
+		"_uuid":              this.Inst.DeviceID,
 		"include_persistent": 0,
 		"supported_tabs":     "[\"recent\",\"top\",\"igtv\",\"places\",\"shopping\"]",
 		"tab":                TabTop,

@@ -90,7 +90,7 @@ func (this *Graph) makeRequest(action []string, params []map[string]interface{})
 	request.Channel = "regular"
 	request.Time = float32(time.Now().Unix())
 	request.AppVer = InstagramVersion
-	request.DeviceId = this.inst.deviceID
+	request.DeviceId = this.inst.DeviceID
 	request.FamilyDeviceId = this.inst.familyID
 	request.SessionId = this.inst.sessionID
 	request.LogType = "client_event"

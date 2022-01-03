@@ -18,10 +18,10 @@ var (
 	ProxyHttp   ProxyType = 0
 	ProxySocket ProxyType = 1
 
-	BlackType_NoBlack      BlackType = 0
-	BlackType_Risk         BlackType = 1
-	BlackType_Conn         BlackType = 2
-	BlackType_RegisterRisk BlackType = 3
+	BlacktypeNoblack      BlackType = 0
+	BlacktypeRisk         BlackType = 1
+	BlacktypeConn         BlackType = 2
+	BlacktypeRegisterrisk BlackType = 3
 )
 
 type Proxy struct {
@@ -87,7 +87,7 @@ func (this *Proxy) GetProxy() *http.Transport {
 	return tr
 }
 
-type ProxyPoolt interface {
+type ProxyImpl interface {
 	GetNoRisk(busy bool, used bool) *Proxy
 	Get(id string) *Proxy
 	Black(proxy *Proxy, _type BlackType)
@@ -95,33 +95,67 @@ type ProxyPoolt interface {
 	Dumps()
 }
 
-var ProxyPool ProxyPoolt
-
 type ProxyConfigt struct {
-	Provider string `json:"provider"`
-	Url      string `json:"url"`
-	//ProxyType ProxyType `json:"proxy_type"`
+	Providers []struct {
+		ProviderName string    `json:"provider"`
+		Url          string    `json:"url"`
+		Country      string    `json:"country"`
+		ProxyType    ProxyType `json:"proxy_type"`
+	} `json:"providers"`
 }
 
+type ProxyPoolt struct {
+	proxys map[string]ProxyImpl
+}
+
+func (this *ProxyPoolt) Get(country string, id string) *Proxy {
+	p := this.proxys[country]
+	if p == nil {
+		return nil
+	}
+	return p.Get(id)
+}
+
+func (this *ProxyPoolt) GetNoRisk(country string, busy bool, used bool) *Proxy {
+	p := this.proxys[country]
+	if p == nil {
+		return nil
+	}
+	return p.GetNoRisk(busy, used)
+}
+
+var ProxyPool ProxyPoolt
 var ProxyConfig ProxyConfigt
 
 func InitProxyPool(configPath string) error {
 	err := common.LoadJsonFile(configPath, &ProxyConfig)
-	if err != nil {
+	if err != nil || len(ProxyConfig.Providers) == 0 {
 		log.Error("load proxy config error: %v", err)
 		return err
 	}
 
-	switch ProxyConfig.Provider {
-	case "dove":
-		ProxyPool, err = InitDovePool(ProxyConfig.Url)
-		break
-	case "luminati":
-		ProxyPool, err = InitLuminatiPool(ProxyConfig.Url)
-		break
-	default:
-		return &common.MakeMoneyError{ErrStr: fmt.Sprintf("proxy config provider error: %s",
-			ProxyConfig.Provider), ErrType: common.OtherError}
+	ProxyPool.proxys = make(map[string]ProxyImpl)
+	for _, provider := range ProxyConfig.Providers {
+		var _proxy ProxyImpl
+		var err error
+
+		switch provider.ProviderName {
+		case "dove":
+			_proxy, err = InitDovePool(provider.Url)
+			break
+		case "luminati":
+			_proxy, err = InitLuminatiPool(provider.Url)
+			break
+		default:
+			return &common.MakeMoneyError{ErrStr: fmt.Sprintf("proxy config provider error: %s",
+				provider.ProviderName), ErrType: common.OtherError}
+		}
+		if err != nil {
+			return &common.MakeMoneyError{ErrStr: fmt.Sprintf("proxy config provider error: %s",
+				provider.ProviderName), ErrType: common.OtherError}
+		}
+
+		ProxyPool.proxys[provider.Country] = _proxy
 	}
 	return err
 }

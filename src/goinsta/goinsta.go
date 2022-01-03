@@ -17,12 +17,12 @@ var (
 	InsAccountError_RateLimitError    = "rate_limit_error"
 )
 
-var ProxyCallBack func(id string) (*proxy.Proxy, error)
+var ProxyCallBack func(country string, id string) (*proxy.Proxy, error)
 
 type Instagram struct {
 	User                string
 	Pass                string
-	deviceID            string
+	DeviceID            string
 	token               string
 	familyID            string
 	wid                 string
@@ -71,7 +71,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	inst := &Instagram{
 		User:      username,
 		Pass:      password,
-		deviceID:  strings.ToUpper(common.GenUUID()),
+		DeviceID:  strings.ToUpper(common.GenUUID()),
 		wid:       common.GenString(common.CharSet_16_Num, 32),
 		Proxy:     _proxy,
 		UserAgent: GenUserAgent(),
@@ -82,7 +82,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 		},
 	}
 
-	inst.familyID = inst.deviceID
+	inst.familyID = inst.DeviceID
 	inst.graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
 
@@ -160,7 +160,7 @@ func (this *Instagram) PrepareNewClient() {
 
 func (this *Instagram) qeSync() error {
 	var params = map[string]interface{}{
-		"id":                      this.deviceID,
+		"id":                      this.DeviceID,
 		"server_config_retrieval": "1",
 	}
 	_, err := this.HttpRequest(
@@ -176,7 +176,7 @@ func (this *Instagram) qeSync() error {
 
 func (this *Instagram) launcherSync() error {
 	var query = map[string]interface{}{
-		"id":                      this.deviceID,
+		"id":                      this.DeviceID,
 		"server_config_retrieval": "1",
 	}
 	_, err := this.HttpRequest(
@@ -192,8 +192,8 @@ func (this *Instagram) launcherSync() error {
 
 func (this *Instagram) getNamePrefill() error {
 	var query = map[string]interface{}{
-		"phone_id":  this.deviceID,
-		"device_id": this.deviceID,
+		"phone_id":  this.DeviceID,
+		"device_id": this.DeviceID,
 	}
 	_, err := this.HttpRequest(
 		&reqOptions{
@@ -208,7 +208,7 @@ func (this *Instagram) getNamePrefill() error {
 
 func (this *Instagram) contactPrefill() error {
 	var query = map[string]interface{}{
-		"phone_id": this.deviceID,
+		"phone_id": this.DeviceID,
 	}
 
 	_, err := this.HttpRequest(
@@ -270,9 +270,9 @@ type RespLogin struct {
 func (this *Instagram) Login() error {
 	encodePasswd, _ := encryptPassword(this.Pass, this.ReadHeader(IGHeader_EncryptionId), this.ReadHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
-		"phone_id":            this.deviceID,
+		"phone_id":            this.DeviceID,
 		"reg_login":           "0",
-		"device_id":           this.deviceID,
+		"device_id":           this.DeviceID,
 		"has_seen_aart_on":    "0",
 		"username":            this.User,
 		"login_attempt_count": "0",
@@ -326,8 +326,8 @@ func (this *Instagram) UserLookup() (*LookResp, error) {
 			IsPost:  true,
 			Signed:  true,
 			Query: map[string]interface{}{
-				"q":             this.deviceID,
-				"skip_recovery": this.deviceID,
+				"q":             this.DeviceID,
+				"skip_recovery": this.DeviceID,
 				"waterfall_id":  this.wid,
 			},
 		}, resp)

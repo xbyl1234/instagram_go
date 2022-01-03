@@ -21,6 +21,7 @@ type Config struct {
 	ResIcoPath      string `json:"res_ico_path"`
 	ResUsernamePath string `json:"res_username_path"`
 	Coro            int    `json:"coro"`
+	Country         string `json:"country"`
 }
 
 var ConfigPath = flag.String("config", "./config/register.json", "")
@@ -40,21 +41,35 @@ var PhoneProvider phone.PhoneVerificationCode
 
 var WaitAll sync.WaitGroup
 
+var logTicker *time.Ticker
+
+func LogStatus() {
+	for _ = range logTicker.C {
+		log.Info("success: %d,challenge err: %d ,create err: %d, send msg err: %d, recv msg err: %d, other err: %d",
+			SuccessCount,
+			ErrorChallengeRequired,
+			ErrorCreateCount,
+			ErrorSendSMSCount,
+			ErrorRecvSMSCount,
+			ErrorOtherCount)
+	}
+}
+
 func Register() {
 	for true {
 		curCount := atomic.AddInt32(&Count, 1)
 		if curCount > int32(*RegisterCount) {
 			break
 		}
-		_proxy := proxy.ProxyPool.GetNoRisk(true, true)
+		_proxy := proxy.ProxyPool.GetNoRisk(config.Country, true, true)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break
 		}
 		log.Info("get proxy ip: %s", _proxy.Rip)
 		regisert := goinsta.NewRegister(_proxy, PhoneProvider)
-		//username := common.Resource.ChoiceUsername()
-		username := common.GenString(common.CharSet_abc, 10)
+		username := common.Resource.ChoiceUsername()
+		//username := common.GenString(common.CharSet_abc, 10)
 		password := common.GenString(common.CharSet_ABC, 4) +
 			common.GenString(common.CharSet_abc, 4) +
 			common.GenString(common.CharSet_123, 4)
@@ -62,6 +77,7 @@ func Register() {
 		inst, err := regisert.Do(username, username, password)
 		var statErr = err
 		if err == nil {
+			inst.PrepareNewClient()
 			err = inst.GetAccount().Sync()
 			if err == nil {
 				var uploadID string
@@ -71,7 +87,7 @@ func Register() {
 				})
 				if err != nil {
 					if common.IsError(err, common.ChallengeRequiredError) {
-						proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
+						//proxy.ProxyPool.Black(_proxy, proxy.BlacktypeRegisterrisk)
 						ErrorChallengeRequired++
 					}
 					log.Error("user: %s, change ico error: %v", inst.User, err)
@@ -91,10 +107,14 @@ func Register() {
 		if statErr != nil {
 			if common.IsError(statErr, common.ApiError) {
 				if strings.Index(statErr.Error(), "wait a few minutes") != -1 || strings.Index(statErr.Error(), "请稍等几分钟再试") != -1 {
-					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
+					//proxy.ProxyPool.Black(_proxy, proxy.BlacktypeRegisterrisk)
 				} else if strings.Index(statErr.Error(), "feedback_required") != -1 {
-					proxy.ProxyPool.Black(_proxy, proxy.BlackType_RegisterRisk)
+					//proxy.ProxyPool.Black(_proxy, proxy.BlacktypeRegisterrisk)
 				}
+			}
+
+			if common.IsError(statErr, common.ChallengeRequiredError) {
+				ErrorChallengeRequired++
 			}
 
 			if !regisert.HadSendSMS {
@@ -106,7 +126,7 @@ func Register() {
 			} else {
 				ErrorOtherCount++
 			}
-			log.Warn("register error,username: %s, proxy ip: %s, error: %v", username, _proxy.Rip, err)
+			log.Warn("register error,username: %s, proxy ip: %s, error: %v", username, _proxy.Rip, statErr)
 		} else {
 			SuccessCount++
 			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)
@@ -145,7 +165,7 @@ func initParams() {
 //a123456789
 func main() {
 	config2.UseCharles = false
-	config2.UseTruncation = false
+	config2.UseTruncation = true
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
@@ -166,7 +186,11 @@ func main() {
 	for i := 0; i < config.Coro; i++ {
 		go Register()
 	}
+
+	logTicker = time.NewTicker(time.Second * 10)
+	go LogStatus()
 	WaitAll.Wait()
+	logTicker.Stop()
 	log.Info("success: %d,challenge err: %d ,create err: %d, send msg err: %d, recv msg err: %d, other err: %d",
 		SuccessCount,
 		ErrorChallengeRequired,

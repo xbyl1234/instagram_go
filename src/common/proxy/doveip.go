@@ -5,13 +5,13 @@ import (
 	"makemoney/common/http_helper"
 	"makemoney/common/log"
 	"net/http"
-	"strings"
+	url2 "net/url"
 	"sync"
 	"time"
 )
 
 type DovePool struct {
-	ProxyPoolt
+	ProxyImpl
 	url         string
 	proxyType   ProxyType
 	lastReqTime time.Time
@@ -19,16 +19,29 @@ type DovePool struct {
 	proxyList   []*Proxy
 	proxyMask   []bool
 	client      *http.Client
+	Country     string
 }
 
 //https://dvapi.doveip.com/cmapi.php?rq=distribute&user=safrg534524&token=RklaOXZUbFp6WTFZQjBSUzVJTkt4QT09&auth=1&geo=US&city=all&agreement=0&timeout=35&num=10
-func InitDovePool(url string) (ProxyPoolt, error) {
+func InitDovePool(url string) (ProxyImpl, error) {
 	var pool = &DovePool{}
-	if strings.Index(url, "agreement=0") != -1 {
-		pool.proxyType = ProxySocket
-	} else {
-		pool.proxyType = ProxyHttp
+	purl, err := url2.Parse(url)
+	if err != nil {
+		return nil, err
 	}
+
+	for key, value := range purl.Query() {
+		if key == "agreement" {
+			if value[0] == "0" {
+				pool.proxyType = ProxySocket
+			} else {
+				pool.proxyType = ProxyHttp
+			}
+		} else if key == "geo" {
+			pool.Country = value[0]
+		}
+	}
+
 	pool.url = url
 	pool.client = &http.Client{}
 	//common.DebugHttpClient(pool.client)
@@ -94,7 +107,7 @@ func (this *DovePool) RequestProxy() bool {
 			Rip:             dp.DIp,
 			ProxyType:       this.proxyType,
 			NeedAuth:        true,
-			Country:         "us",
+			Country:         this.Country,
 			IsUsed:          false,
 			IsBusy:          false,
 			RegisterSuccess: 0,

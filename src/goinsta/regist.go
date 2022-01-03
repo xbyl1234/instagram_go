@@ -41,6 +41,7 @@ func (this *Register) Do(username string, firstname string, password string) (*I
 
 func (this *Register) do(username string, firstname string, password string) (*Instagram, error) {
 	this.inst = New(username, password, this.proxy)
+	this.inst.RegisterIpCountry = this.proxy.Country
 	this.inst.PrepareNewClient()
 
 	number, err := this.phone.RequirePhoneNumber()
@@ -164,9 +165,9 @@ type RespSendSignupSmsCode struct {
 
 func (this *Register) sendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	params := map[string]interface{}{
-		"device_id":    this.inst.deviceID,
+		"device_id":    this.inst.DeviceID,
 		"phone_number": this.phone.GetArea() + this.number,
-		"phone_id":     this.inst.deviceID,
+		"phone_id":     this.inst.DeviceID,
 		"source":       "regular",
 	}
 	resp := &RespSendSignupSmsCode{}
@@ -190,7 +191,7 @@ type RespValidateSignupSmsCode struct {
 
 func (this *Register) validateSignupSmsCode(code string) (*RespValidateSignupSmsCode, error) {
 	params := map[string]interface{}{
-		"device_id":         this.inst.deviceID,
+		"device_id":         this.inst.DeviceID,
 		"phone_number":      this.phone.GetArea() + this.number,
 		"waterfall_id":      this.inst.wid,
 		"verification_code": code,
@@ -217,7 +218,7 @@ type RespUsernameSuggestions struct {
 func (this *Register) usernameSuggestions(username string) (*RespUsernameSuggestions, error) {
 	params := map[string]interface{}{
 		"name":         username,
-		"device_id":    this.inst.deviceID,
+		"device_id":    this.inst.DeviceID,
 		"waterfall_id": this.inst.wid,
 	}
 	resp := &RespUsernameSuggestions{}
@@ -279,7 +280,7 @@ func (this *Register) checkUsername(username string, password string) (*RespChec
 	params := map[string]interface{}{
 		"enc_password": encodePasswd,
 		"username":     username,
-		"device_id":    this.inst.deviceID,
+		"device_id":    this.inst.DeviceID,
 	}
 	resp := &RespCheckUsername{}
 
@@ -297,7 +298,7 @@ func (this *Register) checkUsername(username string, password string) (*RespChec
 
 func (this *Register) NewUserFlowBegins() (*BaseApiResp, error) {
 	params := map[string]interface{}{
-		"device_id": this.inst.deviceID,
+		"device_id": this.inst.DeviceID,
 	}
 	resp := &BaseApiResp{}
 
@@ -350,14 +351,14 @@ func (this *Register) createValidated(
 		"tos_version":                            tosVersion,
 		"verification_code":                      code,
 		"do_not_auto_login_if_credentials_match": "0",
-		"phone_id":                               this.inst.deviceID,
+		"phone_id":                               this.inst.DeviceID,
 		"enc_password":                           encodePasswd,
 		"phone_number":                           this.phone.GetArea() + this.number,
 		"username":                               username,
 		"first_name":                             firstname,
 		"day":                                    day,
 		"year":                                   year,
-		"device_id":                              this.inst.deviceID,
+		"device_id":                              this.inst.DeviceID,
 		"month":                                  month,
 		"has_seen_aart_on":                       "0",
 		"force_create_account":                   "0",
@@ -401,7 +402,7 @@ func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
 
 func (this *Register) GetSteps() (*BaseApiResp, error) {
 	params := map[string]interface{}{
-		"device_id":                     this.inst.deviceID,
+		"device_id":                     this.inst.DeviceID,
 		"is_secondary_account_creation": "0",
 		"push_permission_requested":     "0",
 		"network_type":                  "4G",

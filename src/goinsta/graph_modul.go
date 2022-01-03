@@ -81,7 +81,7 @@ func initBaseExtra(inst *Instagram, extra interface{}) {
 
 	field = extraValue.FieldByName("AppDeviceId")
 	if field.CanSet() {
-		field.SetString(inst.deviceID)
+		field.SetString(inst.DeviceID)
 	}
 
 	field = extraValue.FieldByName("ContainerModule")

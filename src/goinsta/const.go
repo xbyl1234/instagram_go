@@ -9,9 +9,10 @@ var (
 	InstagramHost       = "https://i.instagram.com/"
 	InstagramHost_B     = "https://b.i.instagram.com/"
 	InstagramHost_Graph = "https://graph.instagram.com/"
-	InstagramUserAgent  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
-	InstagramVersion    = "190.0.0.26.119"
-	InstagramLocation   = "en_US"
+	//InstagramUserAgent  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
+	InstagramUserAgent = "Instagram %s (iPhone9; iOS 11_4; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/605+"
+	InstagramVersion   = "190.0.0.26.119"
+	InstagramLocation  = "en_US"
 	//InstagramDeviceList = []string{"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G935F; hero2lte; samsungexynos8890",
 	//	"24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom",
 	//	"23/6.0.1; 640dpi; 1440x2392; LGE/lge; RS988; h1; h1",

@@ -112,7 +112,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	req.Header.Set("connection", "keep-alive")
 	SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
 	SetHeader(req, "x-ig-connection-speed", "38kbps")
-	SetHeader(req, "x-ig-device-id", this.deviceID)
+	SetHeader(req, "x-ig-device-id", this.DeviceID)
 	SetHeader(req, "x-ig-timezone-offset", "-28800")
 	SetHeader(req, "x-ig-capabilities", "36r/Fx8=")
 	SetHeader(req, "x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10)+".000000")
@@ -210,7 +210,7 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 			if this.token != "" {
 				reqOpt.Query["_csrftoken"] = this.token
 			}
-			reqOpt.Query["_uuid"] = this.deviceID
+			reqOpt.Query["_uuid"] = this.DeviceID
 			reqOpt.Query["_uid"] = this.ID
 		}
 
@@ -331,7 +331,7 @@ func (this *Instagram) PrepareProxy() error {
 	if this.Proxy != nil {
 		id = this.Proxy.ID
 	}
-	proxy, errProxy := ProxyCallBack(id)
+	proxy, errProxy := ProxyCallBack(this.RegisterIpCountry, id)
 	if errProxy != nil {
 		log.Error("account: %s, get proxy error: %v", this.User, errProxy)
 		return errProxy

@@ -70,7 +70,7 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 		"biography":        profile.Biography,
 		"first_name":       profile.FirstName,
 		"username":         this.inst.User,
-		"device_id":        this.inst.deviceID,
+		"device_id":        this.inst.DeviceID,
 		"email":            profile.Email,
 	}
 

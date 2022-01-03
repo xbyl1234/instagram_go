@@ -9,7 +9,7 @@ import (
 )
 
 type LuminatiPool struct {
-	ProxyPoolt
+	ProxyImpl
 	allCount  int
 	allProxys map[string]*Proxy
 	ProxyList []*Proxy
@@ -18,7 +18,7 @@ type LuminatiPool struct {
 	dumpsPath string
 }
 
-func InitLuminatiPool(path string) (ProxyPoolt, error) {
+func InitLuminatiPool(path string) (ProxyImpl, error) {
 	var pool = &LuminatiPool{}
 	pool.path = path
 	pool.dumpsPath = strings.ReplaceAll(path, ".json", "_dumps.json")
@@ -35,7 +35,7 @@ func InitLuminatiPool(path string) (ProxyPoolt, error) {
 	ProxyList := make([]*Proxy, len(ProxyMap))
 	var index = 0
 	for _, vul := range ProxyMap {
-		if vul.BlackType != BlackType_NoBlack {
+		if vul.BlackType != BlacktypeNoblack {
 			continue
 		}
 		ProxyList[index] = vul
@@ -55,9 +55,8 @@ func (this *LuminatiPool) GetNoRisk(busy bool, used bool) *Proxy {
 	this.proxyLock.Lock()
 	defer this.proxyLock.Unlock()
 	for true {
-		//math_rand.Seed(time.Now().Unix())
 		index := math_rand.Intn(len(this.ProxyList))
-		if this.ProxyList[index].BlackType == BlackType_NoBlack {
+		if this.ProxyList[index].BlackType == BlacktypeNoblack {
 			if busy {
 				if this.ProxyList[index].IsBusy {
 					continue

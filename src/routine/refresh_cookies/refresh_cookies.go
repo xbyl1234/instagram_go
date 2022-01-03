@@ -47,6 +47,7 @@ var (
 	SendNoLogin   = "nologin"
 	SendStatusErr = "badstat"
 	SendReqErr    = "badreq"
+	SendNoDevice  = "nodevice"
 )
 
 func initParams() {
@@ -258,6 +259,10 @@ func send(inst *goinsta.Instagram) {
 		if inst.IsLogin && inst.ID != 0 && inst.Status == "" {
 			TestAccount <- inst
 		}
+	case SendNoDevice:
+		if inst.IsLogin && inst.ID != 0 && inst.Status == "" && inst.DeviceID == "" {
+			TestAccount <- inst
+		}
 	case SendBad:
 		if !inst.IsLogin || inst.ID == 0 || inst.Status != "" {
 			TestAccount <- inst
@@ -308,7 +313,7 @@ func PrintResult(result []*TestLoginResult) {
 	}
 	log.Info("--------------- proxy error --------------")
 	for index := range result {
-		if result[index].err.Error() == "no proxy" {
+		if result[index].err != nil && result[index].err.Error() == "no proxy" {
 			log.Warn("username: %s", result[index].inst.User)
 		}
 	}
