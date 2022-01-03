@@ -125,7 +125,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	}
 	req.Header.Set("user-agent", this.UserAgent)
 	SetHeader(req, "x-ig-app-locale", InstagramLocation)
-	SetHeader(req, "x-ig-bandwidth-speed-kbps", "0.000")
+	SetHeader(req, "x-ig-bandwidth-speed-kbps", "100.000")
 	SetHeader(req, "x-ig-mapped-locale", InstagramLocation)
 	SetHeader(req, IGHeader_XMid, this.ReadHeader(IGHeader_XMid))
 	SetHeader(req, "x-bloks-is-panorama-enabled", "true")

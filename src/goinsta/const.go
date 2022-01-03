@@ -9,25 +9,97 @@ var (
 	InstagramHost       = "https://i.instagram.com/"
 	InstagramHost_B     = "https://b.i.instagram.com/"
 	InstagramHost_Graph = "https://graph.instagram.com/"
-	//InstagramUserAgent  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
-	InstagramUserAgent = "Instagram %s (iPhone9; iOS 11_4; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/605+"
-	InstagramVersion   = "190.0.0.26.119"
-	InstagramLocation  = "en_US"
-	//InstagramDeviceList = []string{"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G935F; hero2lte; samsungexynos8890",
-	//	"24/7.0; 380dpi; 1080x1920; OnePlus; ONEPLUS A3010; OnePlus3T; qcom",
-	//	"23/6.0.1; 640dpi; 1440x2392; LGE/lge; RS988; h1; h1",
-	//	"24/7.0; 640dpi; 1440x2560; HUAWEI; LON-L29; HWLON; hi3660",
-	//	"23/6.0.1; 640dpi; 1440x2560; ZTE; ZTE A2017U; ailsa_ii; qcom",
-	//	"23/6.0.1; 640dpi; 1440x2560; samsung; SM-G930F; herolte; samsungexynos8890"}
+	InstagramUserAgent2 = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
+	InstagramUserAgent  = "Instagram %s (%s; iOS %s; en_US; en-US; %s; %s; %s) AppleWebKit/%s"
+	InstagramVersion    = "190.0.0.26.200"
+	InstagramLocation   = "en_US"
+	InstagramDeviceList = []string{
+		"iPhone10,1 15_2 scale=2.00 750x1334",
+		"iPhone10,1 14_8_1 scale=2.00 750x1334",
+		"iPhone10,3 15_1 scale=3.00 1125x2436",
+		"iPhone10,4 15_0 scale=2.00 750x1334",
+		"iPhone10,4 14_8_1 scale=2.00 750x1334",
+		"iPhone10,4 15_1 scale=2.00 750x1334",
+		"iPhone10,4 14_7_1 scale=2.00 750x1334",
+		"iPhone10,4 15_0_2 scale=2.00 750x1334",
+		"iPhone10,5 15_1 scale=2.88 1080x1920",
+		"iPhone10,5 15_0_1 scale=2.61 1080x1920",
+		"iPhone10,5 13_5_1 scale=2.61 1080x1920",
+		"iPhone10,6 15_2 scale=3.00 1125x2436",
+		"iPhone10,6 15_1 scale=3.00 1125x2436",
+		"iPhone11,2 14_7_1 scale=3.00 1125x2436",
+		"iPhone11,2 15_1 scale=3.00 1125x2436",
+		"iPhone11,2 14_6 scale=3.00 1125x2436",
+		"iPhone11,6 15_1 scale=3.00 1242x2688",
+		"iPhone11,6 14_8_1 scale=3.00 1242x2688",
+		"iPhone11,8 14_8_1 scale=2.00 828x1792",
+		"iPhone11,8 14_6 scale=2.00 828x1792",
+		"iPhone11,8 15_0_2 scale=2.00 828x1792",
+		"iPhone11,8 15_2 scale=2.00 828x1792",
+		"iPhone11,8 15_1 scale=2.00 828x1792",
+		"iPhone12,1 14_7_1 scale=2.00 828x1792",
+		"iPhone12,1 14_8_1 scale=2.00 828x1792",
+		"iPhone12,1 15_2 scale=2.00 828x1792",
+		"iPhone12,1 15_0 scale=2.00 828x1792",
+		"iPhone12,1 13_7 scale=2.00 828x1792",
+		"iPhone12,1 15_0_2 scale=2.00 828x1792",
+		"iPhone12,3 15_0_2 scale=3.00 1125x2436",
+		"iPhone12,3 14_6 scale=3.00 1125x2436",
+		"iPhone12,3 14_2 scale=3.00 1125x2436",
+		"iPhone12,3 15_1 scale=3.00 1125x2436",
+		"iPhone12,5 14_3 scale=3.00 1242x2688",
+		"iPhone12,5 15_1 scale=3.31 1242x2689",
+		"iPhone12,5 14_6 scale=3.00 1242x2688",
+		"iPhone12,5 13_3_1 scale=3.31 1242x2689",
+		"iPhone12,5 14_7_1 scale=3.00 1242x2688",
+		"iPhone12,5 14_8_1 scale=3.00 1242x2688",
+		"iPhone12,8 15_2 scale=2.00 750x1334",
+		"iPhone12,8 15_1 scale=2.00 750x1334",
+		"iPhone12,8 14_8_1 scale=2.00 750x1334",
+		"iPhone12,8 14_7_1 scale=2.00 750x1334",
+		"iPhone13,1 14_7_1 scale=2.88 1080x2338",
+		"iPhone13,2 15_2 scale=3.00 1170x2532",
+		"iPhone13,2 15_0_2 scale=3.00 1170x2532",
+		"iPhone13,2 15_1_1 scale=3.00 1170x2532",
+		"iPhone13,2 14_6 scale=3.00 1170x2532",
+		"iPhone13,2 14_7_1 scale=3.00 1170x2532",
+		"iPhone13,3 15_1_1 scale=3.00 1170x2532",
+		"iPhone13,3 15_2 scale=3.00 1170x2532",
+		"iPhone13,3 14_8 scale=3.00 1170x2532",
+		"iPhone13,3 14_8_1 scale=3.00 1170x2532",
+		"iPhone13,4 15_1_1 scale=3.00 1284x2778",
+		"iPhone13,4 15_2 scale=3.00 1284x2778",
+		"iPhone14,2 15_1_1 scale=3.00 1170x2532",
+		"iPhone14,3 15_2 scale=3.00 1284x2778",
+		"iPhone14,5 15_0 scale=3.00 1170x2532",
+		"iPhone14,5 15_2 scale=3.00 1170x2532",
+		"iPhone14,5 15_0 scale=3.66 1170x2533",
+		"iPhone14,5 15_1_1 scale=3.00 1170x2532",
+		"iPhone7,1 12_5_5 scale=2.61 1080x1920",
+		"iPhone7,2 12_5_5 scale=2.00 750x1334",
+		"iPhone7,2 11_2_2 scale=2.00 750x1334",
+		"iPhone8,1 13_7 scale=2.00 750x1334",
+		"iPhone8,1 14_6 scale=2.00 750x1334",
+		"iPhone8,1 12_1_4 scale=2.34 750x1331",
+		"iPhone8,1 14_7_1 scale=2.00 750x1334",
+		"iPhone9,1 15_1 scale=2.00 750x1334",
+		"iPhone9,3 15_1 scale=2.00 750x1334",
+		"iPhone9,3 14_8_1 scale=2.00 750x1334",
+		"iPhone9,3 14_1 scale=2.00 750x1334",
+		"iPhone9,4 14_6 scale=2.61 1080x1920",
+		"iPhone9,4 15_1 scale=2.61 1080x1920",
+		"iPhone9,4 14_8_1 scale=2.61 1080x1920",
+	}
 	InstagramBloksVersionID = "5538d18f11cad2fa88efa530f8a717c5d5339d1d53fc5140af9125216d1f7a89"
 	InstagramAppID          = "124024574287414"
 	InstagramAccessToken    = "124024574287414|84a456d620314b6e92a16d8ff1c792dc"
 )
 
 func GenUserAgent() string {
-	//return InstagramUserAgent
-	//return fmt.Sprintf("Instagram %s Android (%s; %s)", InstagramVersion, InstagramDeviceList[rand.Intn(len(InstagramDeviceList))], InstagramLocation)
-	return fmt.Sprintf(InstagramUserAgent, InstagramVersion, common.GenString(common.CharSet_123, 9))
+	return fmt.Sprintf(InstagramUserAgent2, InstagramVersion, common.GenString(common.CharSet_123, 9))
+	//device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
+	//sp := strings.Split(device, " ")
+	//return fmt.Sprintf(InstagramUserAgent, InstagramVersion, sp[0], sp[1], sp[2], sp[3], common.GenString(common.CharSet_123, 9), "420+")
 }
 
 type muteOption string

@@ -1,7 +1,8 @@
 package tests
 
 import (
-	"encoding/json"
+	"fmt"
+	"makemoney/goinsta"
 	"testing"
 )
 
@@ -10,9 +11,18 @@ type name struct {
 }
 
 func TestMediaIDFromShortID(t *testing.T) {
-	ret := &name{}
-	print(json.Unmarshal(([]byte("{ \"cached_comments_cursor\": \"17938678366697942\"}"))[:], ret))
-	print(ret)
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	fmt.Println(goinsta.GenUserAgent())
+	//ret := &name{}
+	//print(json.Unmarshal(([]byte("{ \"cached_comments_cursor\": \"17938678366697942\"}"))[:], ret))
+	//print(ret)
 	//mediaID, err := goinsta.MediaIDFromShortID("BR_repxhx4O")
 	//if err != nil {
 	//	t.Fatal(err)
