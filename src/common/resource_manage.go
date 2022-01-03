@@ -5,7 +5,6 @@ import (
 	math_rand "math/rand"
 	"os"
 	"strings"
-	"time"
 )
 
 type Resourcet struct {
@@ -51,11 +50,10 @@ func InitResource(icoPath string, usernamePath string) error {
 }
 
 func (this *Resourcet) ChoiceUsername() string {
-	math_rand.Seed(time.Now().UnixNano())
+	//math_rand.Seed(time.Now().UnixNano())
 	return this.username[math_rand.Intn(len(this.username))]
 }
 
 func (this *Resourcet) ChoiceIco() string {
-	math_rand.Seed(time.Now().UnixNano())
 	return this.ico[math_rand.Intn(len(this.ico))]
 }

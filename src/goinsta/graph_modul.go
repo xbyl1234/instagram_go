@@ -2,7 +2,9 @@ package goinsta
 
 import (
 	"fmt"
+	"makemoney/common"
 	"reflect"
+	"time"
 )
 
 type ExtraPk struct {
@@ -35,61 +37,63 @@ type ExtraSomeId struct {
 }
 
 func initBaseExtra(inst *Instagram, extra interface{}) {
-	extraValue := reflect.ValueOf(extra)
+	extraValue := reflect.ValueOf(extra).Elem()
 
 	field := extraValue.FieldByName("Pk")
 	if field.CanSet() {
-		field.SetString(fmt.Sprintf("%s", inst.ID))
+		field.SetString(fmt.Sprintf("%d", inst.ID))
 	}
 
-	field = extraValue.FieldByName("radio_type")
+	field = extraValue.FieldByName("RadioType")
 	if field.CanSet() {
 		field.SetString("wifi-none")
 	}
 
-	field = extraValue.FieldByName("containermodule")
+	field = extraValue.FieldByName("WaterfallId")
+	if field.CanSet() {
+		field.SetString(inst.wid)
+	}
+
+	field = extraValue.FieldByName("StartTime")
+	if field.CanSet() {
+		field.SetFloat(float64(time.Now().Unix()))
+	}
+
+	field = extraValue.FieldByName("ElapsedTime")
+	if field.CanSet() {
+		field.SetFloat(float64(common.GenNumber(1000, 2000)))
+	}
+
+	field = extraValue.FieldByName("Flow")
+	if field.CanSet() {
+		field.SetString("phone")
+	}
+
+	field = extraValue.FieldByName("ContactPointType")
+	if field.CanSet() {
+		field.SetString("phone")
+	}
+
+	field = extraValue.FieldByName("FbFamilyDeviceId")
+	if field.CanSet() {
+		field.SetString(inst.familyID)
+	}
+
+	field = extraValue.FieldByName("AppDeviceId")
+	if field.CanSet() {
+		field.SetString(inst.deviceID)
+	}
+
+	field = extraValue.FieldByName("ContainerModule")
 	if field.CanSet() {
 		field.SetString("waterfall_log_in")
 	}
 
-	field = extraValue.FieldByName("waterfall_id")
+	field = extraValue.FieldByName("Step")
 	if field.CanSet() {
-		field.SetString("")
-	}
-	field = extraValue.FieldByName("start_time")
-	if field.CanSet() {
-		field.SetString("")
+		field.SetString("contact_point")
 	}
 
-	field = extraValue.FieldByName("elapsed_time")
-	if field.CanSet() {
-		field.SetString("")
-	}
-
-	field = extraValue.FieldByName("step")
-	if field.CanSet() {
-		field.SetString("")
-	}
-
-	field = extraValue.FieldByName("flow")
-	if field.CanSet() {
-		field.SetString("phone")
-	}
-
-	field = extraValue.FieldByName("contact_point_type")
-	if field.CanSet() {
-		field.SetString("phone")
-	}
-
-	field = extraValue.FieldByName("fb_family_device_id")
-	if field.CanSet() {
-		field.SetString("")
-	}
-
-	field = extraValue.FieldByName("app_device_id")
-	if field.CanSet() {
-		field.SetString("")
-	}
 }
 
 type nextButtonTapped struct {

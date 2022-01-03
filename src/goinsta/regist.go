@@ -6,7 +6,6 @@ import (
 	"makemoney/common/log"
 	"makemoney/common/phone"
 	proxy2 "makemoney/common/proxy"
-	"math/rand"
 	"time"
 )
 
@@ -87,6 +86,7 @@ func (this *Register) do(username string, firstname string, password string) (*I
 	if err != nil {
 		return nil, err
 	}
+	time.Sleep(time.Second * 3)
 
 	realUsername := this.genUsername(username)
 	this.inst.User = realUsername
@@ -99,16 +99,25 @@ func (this *Register) do(username string, firstname string, password string) (*I
 		return nil, err
 	}
 
+	time.Sleep(time.Second * 3)
+
+	//this.inst.GetGraph().SendBeforeSendSMS()
 	_, err = this.NewUserFlowBegins()
 	_, err = this.checkUsername(realUsername, password)
 
+	time.Sleep(time.Second * 3)
+
 	createValidated, err := this.createValidated(realUsername, firstname, password, code, respSendSignupSmsCode.TosVersion, year, month, day)
+	//createValidated, err := this.createValidated(realUsername, firstname, password, "555", "row", year, month, day)
 	if err != nil {
 		return nil, err
 	}
+
+	time.Sleep(time.Second * 3)
+
 	this.inst.IsLogin = true
 	this.inst.ID = createValidated.CreatedUser.ID
-
+	//this.inst.GetGraph().SendAfterSendSMS()
 	_, err = this.NewAccountNuxSeen()
 	_, err = this.GetSteps()
 	flag = true
@@ -336,7 +345,7 @@ func (this *Register) createValidated(
 		return nil, err
 	}
 
-	rand.Seed(time.Now().UnixNano())
+	//rand.Seed(time.Now().UnixNano())
 	params := map[string]interface{}{
 		"tos_version":                            tosVersion,
 		"verification_code":                      code,
@@ -395,7 +404,7 @@ func (this *Register) GetSteps() (*BaseApiResp, error) {
 		"device_id":                     this.inst.deviceID,
 		"is_secondary_account_creation": "0",
 		"push_permission_requested":     "0",
-		"network_type":                  "wifi-none",
+		"network_type":                  "4G",
 		"is_account_linking_flow":       "0",
 	}
 	resp := &BaseApiResp{}

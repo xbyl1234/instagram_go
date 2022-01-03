@@ -14,6 +14,7 @@ var (
 	InsAccountError_ChallengeRequired = "challenge_required"
 	InsAccountError_LoginRequired     = "login_required"
 	InsAccountError_Feedback          = "feedback_required"
+	InsAccountError_RateLimitError    = "rate_limit_error"
 )
 
 var ProxyCallBack func(id string) (*proxy.Proxy, error)
@@ -71,7 +72,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 		User:      username,
 		Pass:      password,
 		deviceID:  strings.ToUpper(common.GenUUID()),
-		wid:       common.GenUUID(),
+		wid:       common.GenString(common.CharSet_16_Num, 32),
 		Proxy:     _proxy,
 		UserAgent: GenUserAgent(),
 		sessionID: strings.ToUpper(common.GenUUID()),
@@ -87,6 +88,10 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 
 	common.DebugHttpClient(inst.c)
 	return inst
+}
+
+func (this *Instagram) GetGraph() *Graph {
+	return this.graph
 }
 
 func (this *Instagram) GetSearch(q string) *Search {
@@ -147,7 +152,7 @@ func (this *Instagram) ReadHeader(key string) string {
 }
 
 func (this *Instagram) PrepareNewClient() {
-	_ = this.contactPrefill()
+	//_ = this.contactPrefill()
 	_ = this.qeSync()
 	_ = this.launcherSync()
 	_ = this.getNamePrefill()

@@ -22,7 +22,6 @@ import (
 	"net/http"
 	neturl "net/url"
 	"os"
-	"time"
 	"unsafe"
 )
 
@@ -124,7 +123,7 @@ func NewUUID() (string, error) {
 
 func GenString(charSet string, length int) string {
 	by := make([]byte, length)
-	math_rand.Seed(time.Now().UnixNano())
+	//math_rand.Seed(time.Now().UnixNano())
 	for index := 0; index < length; index++ {
 		by[index] = charSet[math_rand.Intn(len(charSet))]
 	}
@@ -163,7 +162,7 @@ func Json2String(params map[string]string) (string, error) {
 }
 
 func GenNumber(min, max int) int {
-	math_rand.Seed(time.Now().Unix())
+	//math_rand.Seed(time.Now().Unix())
 	return math_rand.Intn(max-min) + min
 }
 

@@ -53,7 +53,8 @@ func Register() {
 		}
 		log.Info("get proxy ip: %s", _proxy.Rip)
 		regisert := goinsta.NewRegister(_proxy, PhoneProvider)
-		username := common.Resource.ChoiceUsername()
+		//username := common.Resource.ChoiceUsername()
+		username := common.GenString(common.CharSet_abc, 10)
 		password := common.GenString(common.CharSet_ABC, 4) +
 			common.GenString(common.CharSet_abc, 4) +
 			common.GenString(common.CharSet_123, 4)
@@ -105,7 +106,7 @@ func Register() {
 			} else {
 				ErrorOtherCount++
 			}
-			log.Warn("register error, %v", err)
+			log.Warn("register error,username: %s, proxy ip: %s, error: %v", username, _proxy.Rip, err)
 		} else {
 			SuccessCount++
 			log.Info("register success, username %s, passwd %s", inst.User, inst.Pass)

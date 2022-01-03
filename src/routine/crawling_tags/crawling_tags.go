@@ -18,17 +18,19 @@ import (
 )
 
 type CrawConfig struct {
-	TaskName              string `json:"task_name"`
-	SearchTag             string `json:"search_tag"`
-	StartTime             string `json:"start_time"`
-	StopTime              string `json:"last_time"`
-	MediaCoroCount        int    `json:"media_coro_count"`
-	CommentCoroCount      int    `json:"comment_coro_count"`
-	ProxyPath             string `json:"proxy_path"`
-	WorkPath              string `json:"config_path"`
-	CrawTagsStatus        bool   `json:"craw_tags_status"`
-	CrawMediasStatus      bool   `json:"craw_medias_status"`
-	CrawCommentUserStatus bool   `json:"craw_comment_user_status"`
+	TaskName                   string `json:"task_name"`
+	SearchTag                  string `json:"search_tag"`
+	StartTime                  string `json:"start_time"`
+	StopTime                   string `json:"last_time"`
+	MediaCoroCount             int    `json:"media_coro_count"`
+	CommentCoroCount           int    `json:"comment_coro_count"`
+	ProxyPath                  string `json:"proxy_path"`
+	WorkPath                   string `json:"config_path"`
+	CrawTagsStatus             bool   `json:"craw_tags_status"`
+	CrawMediasStatus           bool   `json:"craw_medias_status"`
+	CrawCommentUserStatus      bool   `json:"craw_comment_user_status"`
+	CrawMediaMaxRequestCount   int    `json:"craw_media_max_request_count"`
+	CrawCommentMaxRequestCount int    `json:"craw_comment_max_request_count"`
 }
 
 var config CrawConfig
@@ -176,7 +178,7 @@ func CrawMedias() {
 		}
 
 		for true {
-			if reqCount > 200 {
+			if reqCount > config.CrawMediaMaxRequestCount {
 				reqCount = 0
 				if !SetOrReplaceTagAccont(tag) {
 					return
@@ -280,7 +282,7 @@ func CrawCommentUser() {
 				goinsta.AccountPool.BlackOne(ginst)
 				needReplace = true
 				reqCount = 0
-			} else if reqCount > 100 {
+			} else if reqCount > config.CrawCommentMaxRequestCount {
 				goinsta.AccountPool.ReleaseOne(ginst)
 				needReplace = true
 				reqCount = 0
@@ -318,7 +320,9 @@ func CrawCommentUser() {
 
 		for true {
 			reqCount++
-
+			if reqCount > config.CrawCommentMaxRequestCount {
+				SetOrReplaceMediaAccont(mediaComb)
+			}
 			respComm, err := mediaComb.Comments.NextComments()
 			if err != nil {
 				if common.IsNoMoreError(err) {

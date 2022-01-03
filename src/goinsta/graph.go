@@ -27,6 +27,12 @@ func (this *Graph) SendBeforeSendSMS() {
 		log.Warn("graph send beforeSendSMS3 err: %v", err)
 	}
 }
+func (this *Graph) SendAfterSendSMS() {
+	err := this.SendRequest(afterSendSMS, nil)
+	if err != nil {
+		log.Warn("graph send afterSendSMS err: %v", err)
+	}
+}
 
 func (this *Graph) SendRequest(action []string, params []map[string]interface{}) error {
 	bmsg, err := json.Marshal(this.makeRequest(action, params))
@@ -74,10 +80,10 @@ func (this *Graph) makeRequest(action []string, params []map[string]interface{})
 		if params != nil {
 			param = params[index]
 		}
-		graphData[index].Extra = extraMap[action[index]](this.inst, param)
+		graphData[index] = extraMap[action[index]](this.inst, param)
 		graphData[index].Tags = 1
-		graphData[index].SamplingRate = 1
 		graphData[index].Time = float32(time.Now().Unix())
+		graphData[index].SamplingRate = 1
 	}
 	request.Data = graphData
 	request.AppId = InstagramAppID

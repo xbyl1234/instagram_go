@@ -132,9 +132,11 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	SetHeader(req, "x-bloks-version-id", InstagramBloksVersionID)
 	SetHeader(req, "x-pigeon-session-id", this.sessionID)
 	SetHeader(req, "x-ig-app-id", InstagramAppID)
-	SetHeader(req, "x-ig-connection-type", "WIFI")
+	//SetHeader(req, "x-ig-connection-type", "WIFI")
+	SetHeader(req, "x-ig-connection-type", "4G")
 	SetHeader(req, "X-Tigon-Is-Retry", "False")
-	req.Header.Set("accept-encoding", "zstd, gzip, deflate")
+	//req.Header.Set("accept-encoding", "zstd, gzip, deflate")
+	req.Header.Set("accept-encoding", "gzip, deflate")
 	SetHeader(req, "x-fb-http-engine", "Liger")
 	SetHeader(req, "x-fb-client-ip", "True")
 	SetHeader(req, "x-fb-server-cluster", "True")
@@ -153,10 +155,11 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 		this.setLoginHeader(req)
 	}
 	for key := range this.httpHeader {
-		if key != IGHeader_EncryptionId && key != IGHeader_EncryptionKey {
+		if key != IGHeader_EncryptionId && key != IGHeader_EncryptionKey && this.httpHeader[key] != "" {
 			SetHeader(req, key, this.httpHeader[key])
 		}
 	}
+	//req.Header.
 	//SetHeader(req,"x-ads-opt-out", "0")
 	//SetHeader(req,"x-cm-latency", "-1.000")
 	//SetHeader(req,"x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")

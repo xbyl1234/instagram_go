@@ -5,7 +5,9 @@ import (
 	"makemoney/common/log"
 	"makemoney/common/proxy"
 	"makemoney/goinsta"
+	math_rand "math/rand"
 	"os"
+	"time"
 )
 
 type DataBaseConfig struct {
@@ -15,6 +17,7 @@ type DataBaseConfig struct {
 var dbConfig DataBaseConfig
 
 func InitRoutine(proxyPath string) {
+	math_rand.Seed(time.Now().UnixNano())
 	err := common.LoadJsonFile("./config/dbconfig.json", &dbConfig)
 	if err != nil {
 		log.Error("load db config error:%v", err)
@@ -35,6 +38,7 @@ func InitRoutine(proxyPath string) {
 
 	log.Info("load account count: %d", goinsta.AccountPool.Available.Len())
 	goinsta.ProxyCallBack = ProxyCallBack
+	goinsta.InitGraph()
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 

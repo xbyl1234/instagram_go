@@ -6,7 +6,6 @@ import (
 	math_rand "math/rand"
 	"strings"
 	"sync"
-	"time"
 )
 
 type LuminatiPool struct {
@@ -56,7 +55,7 @@ func (this *LuminatiPool) GetNoRisk(busy bool, used bool) *Proxy {
 	this.proxyLock.Lock()
 	defer this.proxyLock.Unlock()
 	for true {
-		math_rand.Seed(time.Now().Unix())
+		//math_rand.Seed(time.Now().Unix())
 		index := math_rand.Intn(len(this.ProxyList))
 		if this.ProxyList[index].BlackType == BlackType_NoBlack {
 			if busy {

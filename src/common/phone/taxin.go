@@ -61,6 +61,7 @@ func (this *PhoneTaxin) RequirePhoneNumber() (string, error) {
 			"id":    this.ProjectID,
 			//"area":  this.City,
 			"loop": "1",
+			"card": "1",
 			"type": "json",
 		}}, &respJson)
 
