@@ -1,0 +1,15 @@
+{
+  "username": "do889996",
+  "password": "sadsvsrrgs23342",
+  "url_login": "http://api.fghfdf.cn/api/logins",
+  "url_req_phone_number": "http://api.fghfdf.cn/api/get_mobile",
+  "url_req_phone_code": "http://api.fghfdf.cn/api/get_message",
+  "url_req_release_phone": "http://api.fghfdf.cn/api/free_mobile",
+  "url_req_black_phone": "http://api.fghfdf.cn/api/add_blacklist",
+  "url_req_balance": "http://api.fghfdf.cn/api/get_myinfo",
+  "token": "bge7xdKG0iNNvJ8KTcxCGUzq+qgVMfyCeKc2WdoPBWLv2C29HLj+7+zCqLqVrecHthn0+dLxjDw7nOncByiZomYW1eHzQqJwtJCgwNdPNlTMmb0OfgHar3kPE7NFkZCyxaPZcYIHMXI2wrrGUOw1KxaQc5k+0eAmA+LNo5mk/NY=",
+  "project_id": "10058",
+  "retry_timeout": 180,
+  "retry_delay": 3,
+  "area": "+86"
+}

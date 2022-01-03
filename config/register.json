@@ -1,0 +1,7 @@
+{
+  "proxy_path": "./config/proxy_config_ios.json",
+  "res_ico_path": "./data/girl_picture",
+  "res_username_path": "./data/user_nameraw.txt",
+  "country": "ru",
+  "coro": 10
+}
