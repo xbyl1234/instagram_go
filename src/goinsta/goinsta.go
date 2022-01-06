@@ -30,7 +30,7 @@ type Instagram struct {
 	ID                  int64
 	httpHeader          map[string]string
 	IsLogin             bool
-	UserAgent           string
+	version             *InstVersionInfo
 	Status              string
 	sessionID           string
 	RegisterPhoneNumber string
@@ -73,15 +73,15 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 		Pass:      password,
 		DeviceID:  strings.ToUpper(common.GenUUID()),
 		wid:       common.GenString(common.CharSet_16_Num, 32),
-		Proxy:     _proxy,
-		UserAgent: GenUserAgent(),
 		sessionID: strings.ToUpper(common.GenUUID()),
+		Proxy:     _proxy,
 		c: &http.Client{
 			Jar:       jar,
 			Transport: tr,
 		},
 	}
 
+	inst.version = GenInstDeviceInfo()
 	inst.familyID = inst.DeviceID
 	inst.graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)

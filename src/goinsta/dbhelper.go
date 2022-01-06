@@ -102,12 +102,12 @@ type AccountCookies struct {
 	FamilyID            string            `json:"family_id"`
 	Cookies             []*http.Cookie    `json:"cookies"`
 	CookiesB            []*http.Cookie    `json:"cookies_b"`
+	Version             *InstVersionInfo  `json:"version"`
 	RegisterPhoneNumber string            `json:"register_phone_number"`
 	RegisterPhoneArea   string            `json:"register_phone_area"`
 	RegisterIpCountry   string            `json:"register_ip_country"`
 	RegisterTime        int64             `json:"register_time"`
 	Status              string            `json:"status"`
-	UserAgent           string            `json:"user_agent"`
 	LastSendMsgTime     int               `json:"last_send_msg_time"`
 }
 
@@ -155,6 +155,7 @@ func SaveInstToDB(inst *Instagram) error {
 		FamilyID:            inst.familyID,
 		Cookies:             inst.c.Jar.Cookies(url),
 		CookiesB:            inst.c.Jar.Cookies(urlb),
+		Version:             inst.version,
 		Wid:                 inst.wid,
 		HttpHeader:          inst.httpHeader,
 		ProxyID:             inst.Proxy.ID,
@@ -164,7 +165,6 @@ func SaveInstToDB(inst *Instagram) error {
 		RegisterIpCountry:   inst.RegisterIpCountry,
 		RegisterTime:        inst.RegisterTime,
 		Status:              inst.Status,
-		UserAgent:           inst.UserAgent,
 		LastSendMsgTime:     inst.LastSendMsgTime,
 	}
 	return SaveNewAccount(Cookies)
@@ -213,12 +213,12 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		familyID:            config.FamilyID,
 		wid:                 config.Wid,
 		httpHeader:          config.HttpHeader,
+		version:             config.Version,
 		IsLogin:             config.IsLogin,
 		RegisterPhoneNumber: config.RegisterPhoneNumber,
 		RegisterPhoneArea:   config.RegisterPhoneArea,
 		RegisterIpCountry:   config.RegisterIpCountry,
 		Status:              config.Status,
-		UserAgent:           config.UserAgent,
 		sessionID:           strings.ToUpper(common.GenUUID()),
 		LastSendMsgTime:     config.LastSendMsgTime,
 		RegisterTime:        config.RegisterTime,
@@ -226,8 +226,9 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 			Jar: jar,
 		},
 	}
-	if inst.UserAgent == "" {
-		inst.UserAgent = GenUserAgent()
+
+	if inst.version == nil {
+		inst.version = GenInstDeviceInfo()
 	}
 
 	inst.graph = &Graph{inst: inst}
