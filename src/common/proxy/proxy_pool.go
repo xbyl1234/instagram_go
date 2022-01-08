@@ -57,7 +57,7 @@ func (this *Proxy) GetProxy() *http.Transport {
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 	} else {
-		var auth *proxy.Auth = &proxy.Auth{}
+		var auth = &proxy.Auth{}
 		if this.NeedAuth {
 			auth.User = this.Username
 			auth.Password = this.Passwd

@@ -2,3 +2,13 @@
   "provider": "luminati",
   "url": "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\zone3_ips_数据中心_us.json"
 }
+
+{
+  "providers": [
+    {
+      "provider": "luminati",
+      "url": "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\zone3_ips_数据中心_us.json",
+      "country": "us"
+    }
+  ]
+}

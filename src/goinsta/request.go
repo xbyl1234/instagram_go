@@ -121,7 +121,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 
 	SetHeader(req, "X-Ig-Abr-Connection-Speed-Kbps", "0")
 	SetHeader(req, "x-ig-connection-speed", fmt.Sprintf("%dkbps", common.GenNumber(0, 1000)))
-	SetHeader(req, "x-ig-bandwidth-speed-kbps", "100.000")
+	SetHeader(req, "x-ig-bandwidth-speed-kbps", fmt.Sprintf("%dkbps", common.GenNumber(0, 1000)))
 	SetHeader(req, "x-ig-device-locale", InstagramLocation)
 	SetHeader(req, "x-ig-app-locale", InstagramLocation)
 	SetHeader(req, "x-ig-mapped-locale", InstagramLocation)

@@ -164,7 +164,7 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	config2.UseTruncation = true
 
 	initParams()

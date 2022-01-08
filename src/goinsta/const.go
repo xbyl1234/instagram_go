@@ -17,6 +17,8 @@ var (
 	InstagramAppID       = "124024574287414"
 	InstagramAccessToken = "124024574287414|84a456d620314b6e92a16d8ff1c792dc"
 
+	InstagramDeviceList2 = []string{"iPhone7,2 12_5_5 scale=2.00 750x1334"}
+
 	InstagramDeviceList = []string{
 		"iPhone10,1 15_2 scale=2.00 750x1334",
 		"iPhone10,1 14_8_1 scale=2.00 750x1334",
@@ -148,12 +150,14 @@ func GenInstDeviceInfo() *InstVersionInfo {
 	version := InstagramVersions[common.GenNumber(0, len(InstagramVersions))]
 	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
 	sp := strings.Split(device, " ")
-
+	//code := common.GenString(common.CharSet_123, 9)
 	instVersion := &InstVersionInfo{
-		Version:        version.Version,
-		VersionCode:    version.VersionCode,
+		Version:     version.Version,
+		VersionCode: version.VersionCode,
+		//VersionCode:    code,
 		BloksVersionID: version.BloksVersionID,
-		UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
+		//UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], code, "420+"),
+		UserAgent: fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
 	}
 
 	return instVersion
