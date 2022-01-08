@@ -4,7 +4,6 @@ import (
 	"flag"
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/common/proxy"
 	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
@@ -169,7 +168,7 @@ func RecvRefreshAccountInfo() {
 	}
 	PrintResult(TestResultList[:index])
 	WaitExit.Done()
-	proxy.ProxyPool.Dumps()
+	//proxy.ProxyPool.Dumps()
 }
 
 func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {

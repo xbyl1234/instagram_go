@@ -44,7 +44,7 @@ var WaitAll sync.WaitGroup
 var logTicker *time.Ticker
 
 func LogStatus() {
-	for _ = range logTicker.C {
+	for range logTicker.C {
 		log.Info("success: %d,challenge err: %d ,create err: %d, send msg err: %d, recv msg err: %d, other err: %d",
 			SuccessCount,
 			ErrorChallengeRequired,
@@ -164,7 +164,7 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	config2.UseTruncation = true
 
 	initParams()

@@ -29,6 +29,7 @@ func InitRoutine(proxyPath string) {
 		log.Error("init ProxyPool error:%v", err)
 		panic(err)
 	}
+	goinsta.InitInstagramConst()
 	intas := goinsta.LoadAllAccount()
 	if len(intas) == 0 {
 		log.Error("there have no account!")
