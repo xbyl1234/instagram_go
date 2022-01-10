@@ -15,7 +15,7 @@ burp = xml.dom.minidom.parse(file_path)
 root = burp.documentElement
 items = root.getElementsByTagName('item')
 
-iinstagram_header_list = []
+iinstagram_header_list = {}
 for item in items:
     url = item.getElementsByTagName("url")[0].firstChild.data
     purl = urllib.parse.urlparse(url)
@@ -33,5 +33,8 @@ for item in items:
                 headers.append(head([line[:line.find(" ")]], line[line.find(" ") + 1:]))
             else:
                 headers.append(head([line[:line.find(":")]], line[line.find(":") + 1:]))
+        if not iinstagram_header_list.get(purl.path):
+            iinstagram_header_list[purl.path] = []
+        iinstagram_header_list[purl.path].append(headers)
 
-        print(headers)
+print(iinstagram_header_list)
