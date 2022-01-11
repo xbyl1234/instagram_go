@@ -1,23 +1,6 @@
 {
-  "map": {
-    "check_confirmation_code": "nologin_common",
-    "one_tap_app_login": "nologin_common",
-    "api/v1/qe/sync/": "login_common",
-    "api/v1/launcher/sync/": "login_common",
-    "api/v1/feed/reels_tray/": "login_common",
-    "": "login_common",
-    "api/v1/direct_v2/has_interop_upgraded/": "login_common2",
-    "api/v1/qp/get_cooldowns/": "login_common2",
-    "api/v1/wwwgraphql/ig/query/": "login_common2"
-    "": "login_common2"
-  },
-  "headers": [
-    {
-      "nologin_common": "Host\nX-Ig-Timezone-Offset\nIg-Intended-User-Id\nX-Ig-Device-Id\nX-Ig-Connection-Speed\nContent-Length\nX-Ig-Capabilities\nX-Pigeon-Rawclienttime\nX-Ig-Device-Locale\nX-Ig-Abr-Connection-Speed-Kbps\nX-Ig-Family-Device-Id\nAccept-Language\nUser-Agent\nContent-Type\nX-Ig-App-Locale\nX-Ig-Bandwidth-Speed-Kbps\nX-Ig-Mapped-Locale\nX-Mid\nX-Bloks-Is-Panorama-Enabled\nX-Bloks-Version-Id\nX-Pigeon-Session-Id\nX-Ig-App-Id\nX-Ig-Connection-Type\nX-Tigon-Is-Retry\nAccept-Encoding\nX-Fb-Http-Engine\nX-Fb-Client-Ip\nX-Fb-Server-Cluster",
-      "login_common": "Host\nX-Ig-Connection-Speed\nContent-Length\nX-Ig-Device-Id\nIg-Intended-User-Id\nX-Pigeon-Session-Id\nX-Ig-Timezone-Offset\nX-Ig-Capabilities\nX-Pigeon-Rawclienttime\nIg-U-Rur\nX-Ig-Device-Locale\nX-Ig-Family-Device-Id\nIg-U-Ds-User-Id\nX-Ig-Abr-Connection-Speed-Kbps\nAccept-Language\nContent-Type\nUser-Agent\nX-Ig-App-Locale\nX-Ig-Bandwidth-Speed-Kbps\nAuthorization\nX-Ig-Mapped-Locale\nX-Mid\nX-Bloks-Is-Panorama-Enabled\nX-Bloks-Version-Id\nX-Ig-Www-Claim\nX-Ig-App-Id\nX-Ig-Connection-Type\nX-Tigon-Is-Retry\nAccept-Encoding\nX-Fb-Http-Engine\nX-Fb-Client-Ip\nX-Fb-Server-Cluster",
-      "login_common2": "Host\nX-Pigeon-Session-Id\nIg-Intended-User-Id\nX-Ig-Connection-Speed\nX-Ig-Device-Id\nX-Ig-Timezone-Offset\nX-Ig-Capabilities\nX-Pigeon-Rawclienttime\nIg-U-Rur\nX-Ig-Device-Locale\nX-Ig-Family-Device-Id\nIg-U-Ds-User-Id\nX-Ig-Abr-Connection-Speed-Kbps\nAccept-Language\nUser-Agent\nX-Ig-App-Locale\nX-Ig-Bandwidth-Speed-Kbps\nAuthorization\nX-Ig-Mapped-Locale\nX-Mid\nX-Bloks-Is-Panorama-Enabled\nX-Bloks-Version-Id\nX-Ig-Www-Claim\nX-Ig-App-Id\nX-Ig-Connection-Type\nX-Tigon-Is-Retry\nAccept-Encoding\nX-Fb-Http-Engine\nX-Fb-Client-Ip\nX-Fb-Server-Cluster",
-      "api/v1/feed/timeline/": "Host\nX-Ig-Connection-Speed\nContent-Length\nX-Ig-Connection-Type\nX-Ig-Device-Id\nIg-Intended-User-Id\nX-Pigeon-Session-Id\nX-Ig-Timezone-Offset\nX-Ig-Capabilities\nX-Pigeon-Rawclienttime\nIg-U-Rur\nX-Ig-Device-Locale\nX-Ig-Abr-Connection-Speed-Kbps\nIg-U-Ds-User-Id\nX-Ig-Family-Device-Id\nAccept-Language\nContent-Type\nUser-Agent\nX-Ig-App-Locale\nX-Device-Id\nX-Ig-Bandwidth-Speed-Kbps\nX-Ads-Opt-Out\nX-Mid\nAuthorization\nX-Ig-Mapped-Locale\nX-Fb\nX-Bloks-Is-Panorama-Enabled\nX-Bloks-Version-Id\nX-Ig-Www-Claim\nX-Ig-App-Id\nFamily_device_id\nX-Tigon-Is-Retry\nAccept-Encoding\nX-Fb-Http-Engine\nX-Fb-Client-Ip\nX-Fb-Server-Cluster",
-      "api/v1/news/inbox/": "Host\nIg-Intended-User-Id\nX-Ig-Connection-Speed\nX-Ig-Device-Id\nX-Pigeon-Session-Id\nX-Ig-Timezone-Offset\nX-Ig-Prefetch-Request\nX-Ig-Capabilities\nX-Pigeon-Rawclienttime\nIg-U-Rur\nX-Ig-Device-Locale\nX-Ig-Family-Device-Id\nIg-U-Ds-User-Id\nX-Ig-Abr-Connection-Speed-Kbps\nAccept-Language\nUser-Agent\nX-Ig-App-Locale\nX-Ig-Bandwidth-Speed-Kbps\nAuthorization\nX-Ig-Mapped-Locale\nX-Mid\nX-Bloks-Is-Panorama-Enabled\nX-Bloks-Version-Id\nX-Ig-Www-Claim\nX-Ig-App-Id\nX-Ig-Connection-Type\nX-Tigon-Is-Retry\nAccept-Encoding\nX-Fb-Http-Engine\nX-Fb-Client-Ip\nX-Fb-Server-Cluster"
-    }
+  "paths": [
+  ],
+  "md5s": [
   ]
 }
