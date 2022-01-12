@@ -20,15 +20,16 @@ import (
 )
 
 type reqOptions struct {
-	ApiPath       string
-	IsPost        bool
-	IsApiB        bool
-	IsApiGraph    bool
-	Signed        bool
-	Query         map[string]interface{}
-	Body          *bytes.Buffer
-	Header        map[string]string
-	DisAutoHeader bool
+	ApiPath        string
+	IsPost         bool
+	IsApiB         bool
+	IsApiGraph     bool
+	Signed         bool
+	Query          map[string]interface{}
+	Body           *bytes.Buffer
+	Header         map[string]string
+	HeaderSequence []string
+	DisAutoHeader  bool
 }
 
 type BaseApiResp struct {

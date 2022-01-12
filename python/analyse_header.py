@@ -17,7 +17,7 @@ def get_xml(file_path):
     return items
 
 
-def get_header_maps(xml_data):
+def get_header_maps(file_name, xml_data):
     iinstagram_header_list = {}
     for item in xml_data:
         url = item.getElementsByTagName("url")[0].firstChild.data
@@ -37,9 +37,9 @@ def get_header_maps(xml_data):
                     # headers.append(head(line[:line.find(" ")], line[line.find(" ") + 1:]))
                 else:
                     headers.append(head(line[:line.find(":")], line[line.find(":") + 1:]))
-            if not iinstagram_header_list.get(purl.path):
-                iinstagram_header_list[purl.path] = []
-            iinstagram_header_list[purl.path].append(headers)
+            if not iinstagram_header_list.get(purl.path + " - " + file_name):
+                iinstagram_header_list[purl.path + " - " + file_name] = []
+            iinstagram_header_list[purl.path + " - " + file_name].append(headers)
     return iinstagram_header_list
 
 
@@ -144,27 +144,37 @@ def remove_cookies(ppath, pmd5):
                         if nocmd5 in pitem["md5"]:
                             print("find no ", tag, nocmd5)
                             pitem["md5"] = "no-" + tag + item["md5"]
+    pmd5set = set()
     pset = set()
     ret = []
     for item in ppath:
+        sp = item["md5"].split(",")
+        if sp[len(sp) - 1] not in pmd5set:
+            pmd5set.add(sp[len(sp) - 1])
         if item["md5"] + item["path"] not in pset:
             pset.add(item["md5"] + item["path"])
             ret.append(item)
-    return ret
+    return ret, pmd5set
 
 
-file_name = ["2021-12-31-一些操作burp.xml",
-             "2022-01-03-获取评论等.xml",
-             "第一次打开",
-             "登录.xml",
-             "邮箱失败.xml",
-             "邮箱失败2.xml",
-             "注册成功.xml",
-             "第二次安装app.xml"]
+# file_name = ["2021-12-31-一些操作burp.xml",
+#              "2022-01-03-获取评论等.xml",
+#              "第一次打开",
+#              "登录.xml",
+#              "邮箱失败.xml",
+#              "邮箱失败2.xml",
+#              "注册成功.xml",
+#              "第二次安装app.xml"]
+
+file_name = ['2022-01-12-第一次安装第一次打开-注册.xml',
+             '2022-01-12-第一次安装第二次打开-注册.xml',
+             '2022-01-12-第一次安装第二次打开-登录.xml'
+             ]
+
 maps = []
 for file in file_name:
     file_path = "./抓包/" + file
-    header_maps1 = get_header_maps(get_xml(file_path))
+    header_maps1 = get_header_maps(file, get_xml(file_path))
     maps.append(header_maps1)
 
 old = None
@@ -176,6 +186,8 @@ for i in maps:
     old = merge_header_list_map(i, old)
 
 ppath, pmd5 = make_map(old)
-ppath = remove_cookies(ppath, pmd5)
-print(str(ppath).replace("'", '"'))
-print(str(pmd5).replace("'", '"'))
+ppath, md5s = remove_cookies(ppath, pmd5)
+
+print(str(sorted(ppath, key=lambda x: x["path"], reverse=False)).replace("'", '"'))
+print(str(sorted(pmd5, key=lambda x: x["header"], reverse=False)).replace("'", '"'))
+print(str(md5s).replace("'", '"'))
