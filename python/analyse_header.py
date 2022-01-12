@@ -62,7 +62,13 @@ def merge_header_list_map(l1, l2):
 def list_md5(l):
     s = ""
     for head in l:
-        s += head.k
+        s += head.k + ","
+    m = hashlib.md5()
+    m.update(s.encode())
+    return m.hexdigest()
+
+
+def str_md5(s):
     m = hashlib.md5()
     m.update(s.encode())
     return m.hexdigest()
@@ -111,6 +117,42 @@ def make_map(iinstagram_header_list):
     return ppath, pmd5
 
 
+def md5_in_list(md5, l):
+    for item in l:
+        if md5 == item["md5"]:
+            return True
+    return False
+
+
+def remove_cookies(ppath, pmd5):
+    tags = ["X-Ig-Extended-Cdn-Thumbnail-Sizes,", "Cookie,"]
+    for item in pmd5:
+        if tags[0] in item["header"] and tags[1] in item["header"]:
+            nocmd5 = str_md5(item["header"].replace(tags[0], "").replace(tags[1], ""))
+            if md5_in_list(nocmd5, pmd5):
+                for pitem in ppath:
+                    if nocmd5 in pitem["md5"]:
+                        print("find no ", tags[0], tags[1], nocmd5)
+                        pitem["md5"] = "no-" + tags[0] + tags[1] + item["md5"]
+
+    for tag in tags:
+        for item in pmd5:
+            if tag in item["header"]:
+                nocmd5 = str_md5(item["header"].replace(tag, ""))
+                if md5_in_list(nocmd5, pmd5):
+                    for pitem in ppath:
+                        if nocmd5 in pitem["md5"]:
+                            print("find no ", tag, nocmd5)
+                            pitem["md5"] = "no-" + tag + item["md5"]
+    pset = set()
+    ret = []
+    for item in ppath:
+        if item["md5"] + item["path"] not in pset:
+            pset.add(item["md5"] + item["path"])
+            ret.append(item)
+    return ret
+
+
 file_name = ["2021-12-31-一些操作burp.xml",
              "2022-01-03-获取评论等.xml",
              "第一次打开",
@@ -134,5 +176,6 @@ for i in maps:
     old = merge_header_list_map(i, old)
 
 ppath, pmd5 = make_map(old)
-print(ppath)
-print(pmd5)
+ppath = remove_cookies(ppath, pmd5)
+print(str(ppath).replace("'", '"'))
+print(str(pmd5).replace("'", '"'))

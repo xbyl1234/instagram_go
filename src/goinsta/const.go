@@ -230,7 +230,6 @@ const (
 	urlFollowing = "api/v1/friendships/%d/following/"
 
 	// users
-
 	urlUserArchived      = "api/v1/feed/only_me_feed/"
 	urlUserByName        = "api/v1/users/%s/usernameinfo/"
 	urlUserByID          = "api/v1/users/%d/info/"
