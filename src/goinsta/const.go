@@ -3,6 +3,7 @@ package goinsta
 import (
 	"fmt"
 	"makemoney/common"
+	"net/http"
 	"strings"
 )
 
@@ -125,6 +126,18 @@ var (
 		"213.0.0.19.117 330663239 5bf3152c14a8e8651b2ec5a689994b294f4e0a74b86b5652da331aa7035d1c62",
 		"213.1.0.22.117 332048479 5bf3152c14a8e8651b2ec5a689994b294f4e0a74b86b5652da331aa7035d1c62",
 	}
+	InstagramReqSpeed = []string{
+		"35kbps",
+		"29kbps",
+		"42kbps",
+		"45kbps",
+		"58kbps",
+		"78kbps",
+		"9kbps",
+		"46kbps",
+	}
+	ReqHeaderMap  map[string]HeaderSequence
+	ReqHeaderJson reqHeaderJson
 )
 
 type InstVersionInfo struct {
@@ -132,9 +145,35 @@ type InstVersionInfo struct {
 	VersionCode    string `json:"version_code"`
 	BloksVersionID string `json:"bloks_version_id"`
 	UserAgent      string `json:"user_agent"`
+	IDFA           string `json:"idfa"`
+	AppLocale      string `json:"app_locale"`
+	TimezoneOffset string `json:"timezone_offset"`
+	StartupCountry string `json:"startup_country"`
+	AcceptLanguage string `json:"accept_language"`
+	NetWorkType    string `json:"net_work_type"`
 }
 
-func InitInstagramConst() {
+type AutoSetHeaderFun func(inst *Instagram, opt *reqOptions, req *http.Request)
+
+type HeaderSequence struct {
+	HeaderFun []AutoSetHeaderFun
+	HeaderSeq []string
+}
+
+type reqHeaderJson struct {
+	PathsFirst []struct {
+		Path string `json:"path"`
+		Md5  string `json:"md5"`
+	} `json:"paths_first"`
+	Md5S []struct {
+		Desp      string `json:"desp,omitempty"`
+		Md5       string `json:"md5"`
+		Header    string `json:"header"`
+		headerSeq HeaderSequence
+	} `json:"md5s"`
+}
+
+func InitInstagramConst() error {
 	InstagramVersions = make([]*InstVersionInfo, len(InstagramVersionData))
 	for index, item := range InstagramVersionData {
 		sp := strings.Split(item, " ")
@@ -144,20 +183,45 @@ func InitInstagramConst() {
 			BloksVersionID: sp[2],
 		}
 	}
+
+	err := common.LoadJsonFile("config/http_header_sequence.json", &ReqHeaderJson)
+	if err != nil {
+		return err
+	}
+	for _, md5 := range ReqHeaderJson.Md5S {
+		sp := strings.Split(md5.Header, ",")
+		if len(sp) == 0 {
+			return &common.MakeMoneyError{
+				ErrStr: "header is null,md5: " + md5.Md5,
+			}
+		}
+		md5.headerSeq.HeaderFun = GetAutoHeaderFunc(sp)
+		md5.headerSeq.HeaderSeq = sp
+	}
+
+	ReqHeaderMap = make(map[string]HeaderSequence)
+	for _, path := range ReqHeaderJson.PathsFirst {
+		for _, md5 := range ReqHeaderJson.Md5S {
+			if path.Md5 == md5.Md5 {
+				ReqHeaderMap[path.Path] = md5.headerSeq
+				break
+			}
+		}
+	}
+
+	return err
 }
 
 func GenInstDeviceInfo() *InstVersionInfo {
 	version := InstagramVersions[common.GenNumber(0, len(InstagramVersions))]
 	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
 	sp := strings.Split(device, " ")
-	//code := common.GenString(common.CharSet_123, 9)
 	instVersion := &InstVersionInfo{
-		Version:     version.Version,
-		VersionCode: version.VersionCode,
-		//VersionCode:    code,
+		IDFA:           common.GenUUID(),
+		Version:        version.Version,
+		VersionCode:    version.VersionCode,
 		BloksVersionID: version.BloksVersionID,
-		//UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], code, "420+"),
-		UserAgent: fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
+		UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
 	}
 
 	return instVersion

@@ -147,7 +147,7 @@ func (this *Instagram) CleanCookiesAndHeader() {
 	this.IsLogin = false
 }
 
-func (this *Instagram) ReadHeader(key string) string {
+func (this *Instagram) GetHeader(key string) string {
 	return this.httpHeader[key]
 }
 
@@ -268,7 +268,7 @@ type RespLogin struct {
 }
 
 func (this *Instagram) Login() error {
-	encodePasswd, _ := encryptPassword(this.Pass, this.ReadHeader(IGHeader_EncryptionId), this.ReadHeader(IGHeader_EncryptionKey))
+	encodePasswd, _ := encryptPassword(this.Pass, this.GetHeader(IGHeader_EncryptionId), this.GetHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
 		"phone_id":            this.DeviceID,
 		"reg_login":           "0",
@@ -289,7 +289,7 @@ func (this *Instagram) Login() error {
 	err = resp.CheckError(err)
 
 	if err == nil {
-		if this.ReadHeader(IGHeader_Authorization) != "" {
+		if this.GetHeader(IGHeader_Authorization) != "" {
 			this.IsLogin = true
 		}
 		this.ID = resp.LoggedInUser.Pk

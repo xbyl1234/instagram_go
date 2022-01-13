@@ -17,6 +17,10 @@ def get_xml(file_path):
     return items
 
 
+all_header = set()
+header_values = set()
+
+
 def get_header_maps(file_name, xml_data):
     iinstagram_header_list = {}
     for item in xml_data:
@@ -36,7 +40,11 @@ def get_header_maps(file_name, xml_data):
                     pass
                     # headers.append(head(line[:line.find(" ")], line[line.find(" ") + 1:]))
                 else:
-                    headers.append(head(line[:line.find(":")], line[line.find(":") + 1:]))
+                    h = head(line[:line.find(":")], line[line.find(":") + 1:])
+                    if h.k == "X-Ig-Abr-Connection-Speed-Kbps":
+                        header_values.add(h.v)
+                    all_header.add(h.k)
+                    headers.append(h)
             if not iinstagram_header_list.get(purl.path + " - " + file_name):
                 iinstagram_header_list[purl.path + " - " + file_name] = []
             iinstagram_header_list[purl.path + " - " + file_name].append(headers)
@@ -191,3 +199,4 @@ ppath, md5s = remove_cookies(ppath, pmd5)
 print(str(sorted(ppath, key=lambda x: x["path"], reverse=False)).replace("'", '"'))
 print(str(sorted(pmd5, key=lambda x: x["header"], reverse=False)).replace("'", '"'))
 print(str(md5s).replace("'", '"'))
+print(str(header_values).replace("'", '"'))

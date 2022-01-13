@@ -273,7 +273,7 @@ type RespCheckUsername struct {
 }
 
 func (this *Register) checkUsername(username string, password string) (*RespCheckUsername, error) {
-	encodePasswd, err := encryptPassword(password, this.inst.ReadHeader(IGHeader_EncryptionId), this.inst.ReadHeader(IGHeader_EncryptionKey))
+	encodePasswd, err := encryptPassword(password, this.inst.GetHeader(IGHeader_EncryptionId), this.inst.GetHeader(IGHeader_EncryptionKey))
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func (this *Register) createValidated(
 	year string,
 	month string,
 	day string) (*RespCreateValidated, error) {
-	encodePasswd, err := encryptPassword(password, this.inst.ReadHeader(IGHeader_EncryptionId), this.inst.ReadHeader(IGHeader_EncryptionKey))
+	encodePasswd, err := encryptPassword(password, this.inst.GetHeader(IGHeader_EncryptionId), this.inst.GetHeader(IGHeader_EncryptionKey))
 	if err != nil {
 		return nil, err
 	}

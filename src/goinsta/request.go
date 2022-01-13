@@ -99,7 +99,7 @@ func SetHeader(req *http.Request, key string, vul string) {
 }
 
 func (this *Instagram) setBaseHeader(req *http.Request) {
-	//igwwwClaim := this.ReadHeader(IGHeader_igwwwClaim)
+	//igwwwClaim := this.GetHeader(IGHeader_igwwwClaim)
 	//if igwwwClaim == "" {
 	//	igwwwClaim = "0"
 	//}
@@ -127,7 +127,7 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	SetHeader(req, "x-ig-app-locale", InstagramLocation)
 	SetHeader(req, "x-ig-mapped-locale", InstagramLocation)
 
-	SetHeader(req, IGHeader_XMid, this.ReadHeader(IGHeader_XMid))
+	SetHeader(req, IGHeader_XMid, this.GetHeader(IGHeader_XMid))
 	SetHeader(req, "x-bloks-is-panorama-enabled", "true")
 	SetHeader(req, "x-bloks-version-id", this.version.BloksVersionID)
 	SetHeader(req, "x-pigeon-session-id", this.sessionID)
@@ -142,27 +142,13 @@ func (this *Instagram) setBaseHeader(req *http.Request) {
 	SetHeader(req, "x-fb-server-cluster", "True")
 }
 
-func (this *Instagram) setLoginHeader(req *http.Request) {
-	//SetHeader(req, IGHeader_udsUserID, strconv.FormatInt(this.ID, 10))
-	//SetHeader(req, IGHeader_iguRur, this.ReadHeader(IGHeader_iguRur))
-	//SetHeader(req, IGHeader_Authorization, this.ReadHeader(IGHeader_Authorization))
-	//SetHeader(req, "x-ig-app-startup-country", "OR")
-}
-
 func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
-	this.setBaseHeader(req)
-	if this.IsLogin {
-		this.setLoginHeader(req)
-	}
-	for key := range this.httpHeader {
-		if key != IGHeader_EncryptionId && key != IGHeader_EncryptionKey && this.httpHeader[key] != "" {
-			SetHeader(req, key, this.httpHeader[key])
-		}
-	}
-	//req.Header.
-	//SetHeader(req,"x-ads-opt-out", "0")
-	//SetHeader(req,"x-cm-latency", "-1.000")
-	//SetHeader(req,"x-ig-extended-cdn-thumbnail-cache-busting-value", "1000")
+
+	//for key := range this.httpHeader {
+	//	if key != IGHeader_EncryptionId && key != IGHeader_EncryptionKey && this.httpHeader[key] != "" {
+	//		SetHeader(req, key, this.httpHeader[key])
+	//	}
+	//}
 }
 
 func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
