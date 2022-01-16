@@ -259,7 +259,7 @@ func send(inst *goinsta.Instagram) {
 			TestAccount <- inst
 		}
 	case SendNoDevice:
-		if inst.IsLogin && inst.ID != 0 && inst.Status == "" && inst.DeviceID == "" {
+		if inst.IsLogin && inst.ID != 0 && inst.Status == "" && inst.Device.DeviceID == "" {
 			TestAccount <- inst
 		}
 	case SendBad:

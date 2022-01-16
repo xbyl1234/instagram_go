@@ -58,7 +58,7 @@ func (this *Upload) RuploadPhoto(data []byte) (string, error) {
 		ApiPath: urlUploadPhone + entityName,
 		IsPost:  true,
 		Header: map[string]string{
-			"x_fb_photo_waterfall_id":    this.inst.wid,
+			"x_fb_photo_waterfall_id":    this.inst.Device.WaterID,
 			"x-instagram-rupload-params": paramsStr,
 			"content-type":               "application/octet-stream",
 			"x-entity-type":              "image/jpeg",
@@ -110,7 +110,7 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 		ApiPath: urlUploadVideo + entityName,
 		IsPost:  true,
 		Header: map[string]string{
-			"x_fb_video_waterfall_id":    this.inst.wid,
+			"x_fb_video_waterfall_id":    this.inst.Device.WaterID,
 			"x-instagram-rupload-params": paramsStr,
 			"content-type":               "application/octet-stream",
 			"offset":                     "0",

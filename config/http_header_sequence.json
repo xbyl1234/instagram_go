@@ -1,5 +1,5 @@
 {
-  "paths_first": [
+  "paths_no_login": [
     {
       "path": "api/v1/accounts/check_confirmation_code/",
       "md5": "8dbd9c642451291b3c8d3b844457f241"
@@ -65,6 +65,7 @@
       "md5": "8dbd9c642451291b3c8d3b844457f241"
     }
   ],
+  "paths_login": [],
   "md5s": [
     {
       "desp": "第二次打开未登录",

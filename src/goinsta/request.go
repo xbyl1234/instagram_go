@@ -14,9 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"strconv"
 	"strings"
-	"time"
 )
 
 type reqOptions struct {
@@ -98,57 +96,32 @@ func SetHeader(req *http.Request, key string, vul string) {
 	req.Header.Set(key, vul)
 }
 
-func (this *Instagram) setBaseHeader(req *http.Request) {
-	//igwwwClaim := this.GetHeader(IGHeader_igwwwClaim)
-	//if igwwwClaim == "" {
-	//	igwwwClaim = "0"
-	//}
-	//SetHeader(req, IGHeader_igwwwClaim, igwwwClaim)
-	//SetHeader(req, "x-bloks-is-layout-rtl", "false")
-	//SetHeader(req, "x-ig-bandwidth-totalbytes-b", "0")
-	//SetHeader(req, "x-ig-bandwidth-totaltime-ms", "0")
-	req.Header.Set("connection", "keep-alive")
-	SetHeader(req, "ig-intended-user-id", strconv.FormatInt(this.ID, 10))
-	SetHeader(req, "x-ig-device-id", this.DeviceID)
-	SetHeader(req, "x-ig-timezone-offset", "-28800")
-	SetHeader(req, "x-ig-capabilities", "36r/Fx8=")
-	SetHeader(req, "x-pigeon-rawclienttime", strconv.FormatInt(time.Now().Unix(), 10)+".000000")
-	SetHeader(req, "x-ig-family-device-id", this.familyID)
-	req.Header.Set("accept-language", "en-US;q=1.0")
-	if req.Header.Get("content-type") == "" {
-		SetHeader(req, "content-type", "application/x-www-form-urlencoded; charset=UTF-8")
-	}
-	req.Header.Set("user-agent", this.version.UserAgent)
-
-	SetHeader(req, "X-Ig-Abr-Connection-Speed-Kbps", "0")
-	SetHeader(req, "x-ig-connection-speed", fmt.Sprintf("%dkbps", common.GenNumber(0, 1000)))
-	SetHeader(req, "x-ig-bandwidth-speed-kbps", fmt.Sprintf("%dkbps", common.GenNumber(0, 1000)))
-	SetHeader(req, "x-ig-device-locale", InstagramLocation)
-	SetHeader(req, "x-ig-app-locale", InstagramLocation)
-	SetHeader(req, "x-ig-mapped-locale", InstagramLocation)
-
-	SetHeader(req, IGHeader_XMid, this.GetHeader(IGHeader_XMid))
-	SetHeader(req, "x-bloks-is-panorama-enabled", "true")
-	SetHeader(req, "x-bloks-version-id", this.version.BloksVersionID)
-	SetHeader(req, "x-pigeon-session-id", this.sessionID)
-	SetHeader(req, "x-ig-app-id", InstagramAppID)
-	//SetHeader(req, "x-ig-connection-type", "WIFI")
-	SetHeader(req, "x-ig-connection-type", "4G")
-	SetHeader(req, "X-Tigon-Is-Retry", "False")
-	//req.Header.Set("accept-encoding", "zstd, gzip, deflate")
-	req.Header.Set("accept-encoding", "gzip, deflate")
-	SetHeader(req, "x-fb-http-engine", "Liger")
-	SetHeader(req, "x-fb-client-ip", "True")
-	SetHeader(req, "x-fb-server-cluster", "True")
-}
-
 func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
+	var headerMap map[string]*HeaderSequence
+	if this.IsLogin {
+		headerMap = LoginHeaderMap
+	} else {
+		headerMap = NoLoginHeaderMap
+	}
 
-	//for key := range this.httpHeader {
-	//	if key != IGHeader_EncryptionId && key != IGHeader_EncryptionKey && this.httpHeader[key] != "" {
-	//		SetHeader(req, key, this.httpHeader[key])
-	//	}
-	//}
+	if config.IsDebug {
+		if headerMap[reqOpt.ApiPath] == nil {
+			log.Error("api path: %s has no header map!", reqOpt.ApiPath)
+		}
+	}
+	req.HeaderSequence = headerMap[reqOpt.ApiPath].HeaderSeq
+	req.OnlySequence = true
+	for _, fun := range headerMap[reqOpt.ApiPath].HeaderFun {
+		fun(this, reqOpt, req)
+	}
+
+	if config.IsDebug {
+		for _, header := range headerMap[reqOpt.ApiPath].HeaderSeq {
+			if req.Header.Get(header) == "" {
+				log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
+			}
+		}
+	}
 }
 
 func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
@@ -196,7 +169,7 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 			if this.token != "" {
 				reqOpt.Query["_csrftoken"] = this.token
 			}
-			reqOpt.Query["_uuid"] = this.DeviceID
+			reqOpt.Query["_uuid"] = this.Device.DeviceID
 			reqOpt.Query["_uid"] = this.ID
 		}
 

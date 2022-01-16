@@ -20,13 +20,13 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Idfa":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Idfa", inst.version.IDFA)
+				req.Header.Set("X-Idfa", inst.Device.IDFA)
 			}
 			index++
 			break
 		case "X-Ig-App-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-App-Locale", inst.version.AppLocale)
+				req.Header.Set("X-Ig-App-Locale", inst.Device.AppLocale)
 			}
 			index++
 			break
@@ -44,7 +44,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Timezone-Offset":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Timezone-Offset", inst.version.TimezoneOffset)
+				req.Header.Set("X-Ig-Timezone-Offset", inst.Device.TimezoneOffset)
 			}
 			index++
 			break
@@ -56,13 +56,6 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 				} else {
 					log.Warn("user: %s ignore header Ig-U-Ds-User-Id", inst.User)
 				}
-
-			}
-			index++
-			break
-		case "Media_hash":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("Media_hash")
 			}
 			index++
 			break
@@ -113,15 +106,10 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "X-Instagram-Rupload-Params":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X-Instagram-Rupload-Params")
-			}
-			index++
-			break
+
 		case "X-Ig-App-Startup-Country":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-App-Startup-Country", inst.version.StartupCountry)
+				req.Header.Set("X-Ig-App-Startup-Country", inst.Device.StartupCountry)
 			}
 			index++
 			break
@@ -134,12 +122,6 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 		case "Content-Type":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-			}
-			index++
-			break
-		case "X-Ig-Prefetch-Request":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X-Ig-Prefetch-Request")
 			}
 			index++
 			break
@@ -157,13 +139,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Device-Id", inst.DeviceID)
-			}
-			index++
-			break
-		case "X-Fb":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X-Fb")
+				req.Header.Set("X-Ig-Device-Id", inst.Device.DeviceID)
 			}
 			index++
 			break
@@ -181,19 +157,19 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "Accept-Language":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("Accept-Language", inst.version.AcceptLanguage)
+				req.Header.Set("Accept-Language", inst.Device.AcceptLanguage)
 			}
 			index++
 			break
 		case "X-Ig-Connection-Type":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Connection-Type", inst.version.NetWorkType)
+				req.Header.Set("X-Ig-Connection-Type", inst.Device.NetWorkType)
 			}
 			index++
 			break
 		case "X-Bloks-Version-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Bloks-Version-Id", inst.version.BloksVersionID)
+				req.Header.Set("X-Bloks-Version-Id", inst.Device.BloksVersionID)
 			}
 			index++
 			break
@@ -209,27 +185,9 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "Content-Length":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("Content-Length")
-			}
-			index++
-			break
-		case "X-Entity-Type":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X-Entity-Type",)
-			}
-			index++
-			break
-		case "X-Ads-Opt-Out":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X-Ads-Opt-Out")
-			}
-			index++
-			break
 		case "X-Ig-Device-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Device-Locale", inst.version.AppLocale)
+				req.Header.Set("X-Ig-Device-Locale", inst.Device.AppLocale)
 			}
 			index++
 			break
@@ -245,13 +203,13 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Device-Id", inst.DeviceID)
+				req.Header.Set("X-Device-Id", inst.Device.DeviceID)
 			}
 			index++
 			break
 		case "X-Ig-Family-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Family-Device-Id", inst.familyID)
+				req.Header.Set("X-Ig-Family-Device-Id", inst.Device.FamilyID)
 			}
 			index++
 			break
@@ -263,7 +221,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Mapped-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Mapped-Locale", inst.version.AppLocale)
+				req.Header.Set("X-Ig-Mapped-Locale", inst.Device.AppLocale)
 			}
 			index++
 			break
@@ -273,39 +231,21 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "X-Entity-Name":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X-Entity-Name",)
-			}
-			index++
-			break
 		case "X-Ig-Abr-Connection-Speed-Kbps":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Ig-Abr-Connection-Speed-Kbps", "35")
 			}
 			index++
 			break
-		case "Offset":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set()
-			}
-			index++
-			break
 		case "Family_device_id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("Family_device_id", inst.familyID)
-			}
-			index++
-			break
-		case "X_fb_photo_waterfall_id":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				//req.Header.Set("X_fb_photo_waterfall_id",)
+				req.Header.Set("Family_device_id", inst.Device.FamilyID)
 			}
 			index++
 			break
 		case "User-Agent":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("User-Agent", inst.version.UserAgent)
+				req.Header.Set("User-Agent", inst.Device.UserAgent)
 			}
 			index++
 			break
@@ -315,8 +255,62 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		default:
 
+		//case "Media_hash":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X-Ig-Prefetch-Request":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X-Fb":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "Content-Length":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X-Entity-Type":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X-Ads-Opt-Out":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X-Entity-Name":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "Offset":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X_fb_photo_waterfall_id":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		//case "X-Instagram-Rupload-Params":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//	}
+		//	index++
+		//	break
+		default:
+			log.Info("header: %s fun is default!", item)
+			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+			}
+			index++
 		}
 	}
 	return ret

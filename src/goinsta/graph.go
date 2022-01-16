@@ -56,7 +56,7 @@ func (this *Graph) SendRequest(action []string, params []map[string]interface{})
 			"sent_time":     fmt.Sprintf("%d", time.Now().Unix()) + ".00000",
 		},
 		Header: map[string]string{
-			"User-Agent":                this.inst.version.UserAgent,
+			"User-Agent":                this.inst.Device.UserAgent,
 			"X-Ig-Bandwidth-Speed-Kbps": "0.000",
 			"Accept-Language":           "en-US;q=1.0",
 			"Content-Type":              "application/x-www-form-urlencoded; charset=UTF-8",
@@ -89,9 +89,9 @@ func (this *Graph) makeRequest(action []string, params []map[string]interface{})
 	request.AppId = InstagramAppID
 	request.Channel = "regular"
 	request.Time = float32(time.Now().Unix())
-	request.AppVer = this.inst.version.Version
-	request.DeviceId = this.inst.DeviceID
-	request.FamilyDeviceId = this.inst.familyID
+	request.AppVer = this.inst.Device.Version
+	request.DeviceId = this.inst.Device.DeviceID
+	request.FamilyDeviceId = this.inst.Device.FamilyID
 	request.SessionId = this.inst.sessionID
 	request.LogType = "client_event"
 	request.AppUid = ""

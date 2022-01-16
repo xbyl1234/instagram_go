@@ -51,7 +51,7 @@ func initBaseExtra(inst *Instagram, extra interface{}) {
 
 	field = extraValue.FieldByName("WaterfallId")
 	if field.CanSet() {
-		field.SetString(inst.wid)
+		field.SetString(inst.Device.WaterID)
 	}
 
 	field = extraValue.FieldByName("StartTime")
@@ -76,12 +76,12 @@ func initBaseExtra(inst *Instagram, extra interface{}) {
 
 	field = extraValue.FieldByName("FbFamilyDeviceId")
 	if field.CanSet() {
-		field.SetString(inst.familyID)
+		field.SetString(inst.Device.FamilyID)
 	}
 
 	field = extraValue.FieldByName("AppDeviceId")
 	if field.CanSet() {
-		field.SetString(inst.DeviceID)
+		field.SetString(inst.Device.DeviceID)
 	}
 
 	field = extraValue.FieldByName("ContainerModule")

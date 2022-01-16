@@ -90,25 +90,22 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 }
 
 type AccountCookies struct {
-	ID                  int64             `json:"id"`
-	Username            string            `json:"username"`
-	Passwd              string            `json:"passwd"`
-	Wid                 string            `json:"wid"`
-	HttpHeader          map[string]string `json:"http_header"`
-	ProxyID             string            `json:"proxy_id"`
-	IsLogin             bool              `json:"is_login"`
-	Token               string            `json:"token"`
-	DeviceID            string            `json:"deviceID"`
-	FamilyID            string            `json:"family_id"`
-	Cookies             []*http.Cookie    `json:"cookies"`
-	CookiesB            []*http.Cookie    `json:"cookies_b"`
-	Version             *InstVersionInfo  `json:"version"`
-	RegisterPhoneNumber string            `json:"register_phone_number"`
-	RegisterPhoneArea   string            `json:"register_phone_area"`
-	RegisterIpCountry   string            `json:"register_ip_country"`
-	RegisterTime        int64             `json:"register_time"`
-	Status              string            `json:"status"`
-	LastSendMsgTime     int               `json:"last_send_msg_time"`
+	ID                  int64             `json:"id" bson:"id"`
+	Username            string            `json:"username" bson:"username"`
+	Passwd              string            `json:"passwd" bson:"passwd"`
+	HttpHeader          map[string]string `json:"http_header" bson:"http_header"`
+	ProxyID             string            `json:"proxy_id" bson:"proxy_id"`
+	IsLogin             bool              `json:"is_login" bson:"is_login"`
+	Token               string            `json:"token" bson:"token"`
+	Cookies             []*http.Cookie    `json:"cookies" bson:"cookies"`
+	CookiesB            []*http.Cookie    `json:"cookies_b" bson:"cookies_b"`
+	Device              *InstDeviceInfo   `json:"device" bson:"device"`
+	RegisterPhoneNumber string            `json:"register_phone_number" bson:"register_phone_number"`
+	RegisterPhoneArea   string            `json:"register_phone_area" bson:"register_phone_area"`
+	RegisterIpCountry   string            `json:"register_ip_country" bson:"register_ip_country"`
+	RegisterTime        int64             `json:"register_time" bson:"register_time"`
+	Status              string            `json:"status" bson:"status"`
+	LastSendMsgTime     int               `json:"last_send_msg_time" bson:"last_send_msg_time"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -150,13 +147,10 @@ func SaveInstToDB(inst *Instagram) error {
 		ID:                  inst.ID,
 		Username:            inst.User,
 		Passwd:              inst.Pass,
-		DeviceID:            inst.DeviceID,
 		Token:               inst.token,
-		FamilyID:            inst.familyID,
+		Device:              inst.Device,
 		Cookies:             inst.c.Jar.Cookies(url),
 		CookiesB:            inst.c.Jar.Cookies(urlb),
-		Version:             inst.version,
-		Wid:                 inst.wid,
 		HttpHeader:          inst.httpHeader,
 		ProxyID:             inst.Proxy.ID,
 		IsLogin:             inst.IsLogin,
@@ -168,23 +162,6 @@ func SaveInstToDB(inst *Instagram) error {
 		LastSendMsgTime:     inst.LastSendMsgTime,
 	}
 	return SaveNewAccount(Cookies)
-}
-
-func LoadAllAccount() []*Instagram {
-	config, err := LoadDBAllAccount()
-	if err != nil {
-		return nil
-	}
-	var ret []*Instagram
-	for item := range config {
-		inst, err := ConvConfig(&config[item])
-		if err != nil {
-			log.Warn("conv config to inst error:%v", err)
-			continue
-		}
-		ret = append(ret, inst)
-	}
-	return ret
 }
 
 func ConvConfig(config *AccountCookies) (*Instagram, error) {
@@ -208,12 +185,9 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		ID:                  config.ID,
 		User:                config.Username,
 		Pass:                config.Passwd,
-		DeviceID:            config.DeviceID,
 		token:               config.Token,
-		familyID:            config.FamilyID,
-		wid:                 config.Wid,
+		Device:              config.Device,
 		httpHeader:          config.HttpHeader,
-		version:             config.Version,
 		IsLogin:             config.IsLogin,
 		RegisterPhoneNumber: config.RegisterPhoneNumber,
 		RegisterPhoneArea:   config.RegisterPhoneArea,
@@ -227,8 +201,8 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		},
 	}
 
-	if inst.version == nil {
-		inst.version = GenInstDeviceInfo()
+	if inst.Device == nil {
+		inst.Device = GenInstDeviceInfo()
 	}
 
 	inst.graph = &Graph{inst: inst}
@@ -236,6 +210,23 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	common.DebugHttpClient(inst.c)
 
 	return inst, nil
+}
+
+func LoadAllAccount() []*Instagram {
+	config, err := LoadDBAllAccount()
+	if err != nil {
+		return nil
+	}
+	var ret []*Instagram
+	for item := range config {
+		inst, err := ConvConfig(&config[item])
+		if err != nil {
+			log.Warn("conv config to inst error:%v", err)
+			continue
+		}
+		ret = append(ret, inst)
+	}
+	return ret
 }
 
 type UploadIDRecord struct {

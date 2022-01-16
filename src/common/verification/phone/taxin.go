@@ -4,6 +4,7 @@ import (
 	"makemoney/common"
 	"makemoney/common/http_helper"
 	"makemoney/common/log"
+	"makemoney/common/verification"
 	"strings"
 	"time"
 )
@@ -52,7 +53,7 @@ type PhoneTaxin_RequirePhone struct {
 	Data string `json:"data"`
 }
 
-func (this *PhoneTaxin) RequirePhoneNumber() (string, error) {
+func (this *PhoneTaxin) RequireAccount() (string, error) {
 	var respJson PhoneTaxin_RequirePhone
 	err := http_helper.HttpDoJson(this.client, &http_helper.RequestOpt{
 		ReqUrl: this.UrlReqPhoneNumber,
@@ -75,7 +76,7 @@ func (this *PhoneTaxin) RequirePhoneNumber() (string, error) {
 	return respJson.Data, err
 }
 
-func (this *PhoneTaxin) RequirePhoneCode(number string) (string, error) {
+func (this *PhoneTaxin) RequireCode(number string) (string, error) {
 	start := time.Now()
 	for time.Since(start) < this.retryTimeout {
 		resp, err := http_helper.HttpDo(this.client, &http_helper.RequestOpt{ReqUrl: this.UrlReqPhoneCode,
@@ -90,7 +91,7 @@ func (this *PhoneTaxin) RequirePhoneCode(number string) (string, error) {
 		} else if sp[0] == "0" {
 			log.Warn("to getting phone %s code error: %v", number, resp)
 		} else if sp[0] == "1" {
-			code := GetCode(sp[1])
+			code := verification.GetCode(sp[1])
 			if code != "" {
 				return code, nil
 			} else {
@@ -109,7 +110,7 @@ type PhoneTaxin_ReleasePhone struct {
 	BaseRespPhoneTaxin
 }
 
-func (this *PhoneTaxin) ReleasePhone(number string) error {
+func (this *PhoneTaxin) ReleaseAccount(number string) error {
 	var respJson PhoneTaxin_ReleasePhone
 	err := http_helper.HttpDoJson(this.client, &http_helper.RequestOpt{
 		ReqUrl: this.UrlReqReleasePhone,
@@ -133,7 +134,7 @@ type PhoneTaxin_BlackPhone struct {
 	BaseRespPhoneTaxin
 }
 
-func (this *PhoneTaxin) BlackPhone(number string) error {
+func (this *PhoneTaxin) BlackAccount(number string) error {
 	var respJson PhoneTaxin_ReleasePhone
 	err := http_helper.HttpDoJson(this.client, &http_helper.RequestOpt{ReqUrl: this.UrlReqBlackPhone,
 		Params: map[string]string{

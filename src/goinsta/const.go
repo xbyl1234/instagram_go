@@ -14,7 +14,7 @@ var (
 	InstagramUserAgent2  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
 	InstagramUserAgent   = "Instagram %s (%s; iOS %s; en_US; en-US; %s; %s; %s) AppleWebKit/%s"
 	InstagramLocation    = "en_US"
-	InstagramVersions    []*InstVersionInfo
+	InstagramVersions    []*InstDeviceInfo
 	InstagramAppID       = "124024574287414"
 	InstagramAccessToken = "124024574287414|84a456d620314b6e92a16d8ff1c792dc"
 
@@ -136,21 +136,25 @@ var (
 		"9kbps",
 		"46kbps",
 	}
-	ReqHeaderMap  map[string]HeaderSequence
-	ReqHeaderJson reqHeaderJson
+	NoLoginHeaderMap map[string]*HeaderSequence
+	LoginHeaderMap   map[string]*HeaderSequence
+	ReqHeaderJson    reqHeaderJson
 )
 
-type InstVersionInfo struct {
-	Version        string `json:"version"`
-	VersionCode    string `json:"version_code"`
-	BloksVersionID string `json:"bloks_version_id"`
-	UserAgent      string `json:"user_agent"`
-	IDFA           string `json:"idfa"`
-	AppLocale      string `json:"app_locale"`
-	TimezoneOffset string `json:"timezone_offset"`
-	StartupCountry string `json:"startup_country"`
-	AcceptLanguage string `json:"accept_language"`
-	NetWorkType    string `json:"net_work_type"`
+type InstDeviceInfo struct {
+	Version        string `json:"version" bson:"version"`
+	VersionCode    string `json:"version_code" bson:"version_code"`
+	BloksVersionID string `json:"bloks_version_id" bson:"bloks_version_id"`
+	UserAgent      string `json:"user_agent" bson:"user_agent"`
+	IDFA           string `json:"idfa" bson:"idfa"`
+	AppLocale      string `json:"app_locale" bson:"app_locale"`
+	TimezoneOffset string `json:"timezone_offset" bson:"timezone_offset"`
+	StartupCountry string `json:"startup_country" bson:"startup_country"`
+	AcceptLanguage string `json:"accept_language" bson:"accept_language"`
+	NetWorkType    string `json:"net_work_type" bson:"net_work_type"`
+	DeviceID       string `json:"device_id" bson:"device_id"`
+	FamilyID       string `json:"family_id" bson:"family_id"`
+	WaterID        string `json:"water_id" bson:"water_id"`
 }
 
 type AutoSetHeaderFun func(inst *Instagram, opt *reqOptions, req *http.Request)
@@ -160,12 +164,15 @@ type HeaderSequence struct {
 	HeaderSeq []string
 }
 
+type pathsMap struct {
+	Path string `json:"path"`
+	Md5  string `json:"md5"`
+}
+
 type reqHeaderJson struct {
-	PathsFirst []struct {
-		Path string `json:"path"`
-		Md5  string `json:"md5"`
-	} `json:"paths_first"`
-	Md5S []struct {
+	PathsNoLogin []pathsMap `json:"paths_no_login"`
+	PathsLogin   []pathsMap `json:"paths_login"`
+	Md5S         []struct {
 		Desp      string `json:"desp,omitempty"`
 		Md5       string `json:"md5"`
 		Header    string `json:"header"`
@@ -174,10 +181,10 @@ type reqHeaderJson struct {
 }
 
 func InitInstagramConst() error {
-	InstagramVersions = make([]*InstVersionInfo, len(InstagramVersionData))
+	InstagramVersions = make([]*InstDeviceInfo, len(InstagramVersionData))
 	for index, item := range InstagramVersionData {
 		sp := strings.Split(item, " ")
-		InstagramVersions[index] = &InstVersionInfo{
+		InstagramVersions[index] = &InstDeviceInfo{
 			Version:        sp[0],
 			VersionCode:    sp[1],
 			BloksVersionID: sp[2],
@@ -199,31 +206,43 @@ func InitInstagramConst() error {
 		md5.headerSeq.HeaderSeq = sp
 	}
 
-	ReqHeaderMap = make(map[string]HeaderSequence)
-	for _, path := range ReqHeaderJson.PathsFirst {
-		for _, md5 := range ReqHeaderJson.Md5S {
-			if path.Md5 == md5.Md5 {
-				ReqHeaderMap[path.Path] = md5.headerSeq
-				break
+	var makeSeqMap = func(headerMap *map[string]*HeaderSequence, pahts []pathsMap) {
+		*headerMap = make(map[string]*HeaderSequence)
+		for _, path := range pahts {
+			for _, md5 := range ReqHeaderJson.Md5S {
+				if path.Md5 == md5.Md5 {
+					(*headerMap)[path.Path] = &md5.headerSeq
+					break
+				}
 			}
 		}
 	}
 
+	makeSeqMap(&NoLoginHeaderMap, ReqHeaderJson.PathsNoLogin)
+	makeSeqMap(&LoginHeaderMap, ReqHeaderJson.PathsLogin)
 	return err
 }
 
-func GenInstDeviceInfo() *InstVersionInfo {
+func GenInstDeviceInfo() *InstDeviceInfo {
 	version := InstagramVersions[common.GenNumber(0, len(InstagramVersions))]
 	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
 	sp := strings.Split(device, " ")
-	instVersion := &InstVersionInfo{
+	instVersion := &InstDeviceInfo{
 		IDFA:           common.GenUUID(),
 		Version:        version.Version,
 		VersionCode:    version.VersionCode,
 		BloksVersionID: version.BloksVersionID,
 		UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
+		AppLocale:      "en-US",
+		TimezoneOffset: "-28800",
+		StartupCountry: "US",
+		AcceptLanguage: "en-US;q=1.0",
+		NetWorkType:    "4G",
+		DeviceID:       strings.ToUpper(common.GenUUID()),
+		WaterID:        common.GenString(common.CharSet_16_Num, 32),
 	}
 
+	instVersion.FamilyID = instVersion.DeviceID
 	return instVersion
 }
 
@@ -269,15 +288,15 @@ const (
 	urlValidateSignupSmsCode = "api/v1/accounts/validate_signup_sms_code/"
 	urlUsernameSuggestions   = "api/v1/accounts/username_suggestions/"
 	urlCreateValidated       = "api/v1/accounts/create_validated/"
-	//urlCreateValidated       = "api/v1/accounts/create/"
-	urlCheckUsername       = "api/v1/users/check_username/"
-	urlLauncherSync        = "api/v1/launcher/sync/"
-	urlCheckAgeEligibility = "api/v1/consent/check_age_eligibility/"
-	urlNewUserFlowBegins   = "api/v1/consent/new_user_flow_begins/"
-	urlGetSteps            = "api/v1/dynamic_onboarding/get_steps/"
-	urlGetNamePrefill      = "api/v1/accounts/get_name_prefill/"
-	urlLookup              = "api/v1/users/lookup/"
-	urlNewAccountNuxSeen   = "api/v1/nux/new_account_nux_seen/"
+	urlCreate                = "api/v1/accounts/create/"
+	urlCheckUsername         = "api/v1/users/check_username/"
+	urlLauncherSync          = "api/v1/launcher/sync/"
+	urlCheckAgeEligibility   = "api/v1/consent/check_age_eligibility/"
+	urlNewUserFlowBegins     = "api/v1/consent/new_user_flow_begins/"
+	urlGetSteps              = "api/v1/dynamic_onboarding/get_steps/"
+	urlGetNamePrefill        = "api/v1/accounts/get_name_prefill/"
+	urlLookup                = "api/v1/users/lookup/"
+	urlNewAccountNuxSeen     = "api/v1/nux/new_account_nux_seen/"
 	// account
 	urlCurrentUser          = "api/v1/accounts/current_user/"
 	urlChangePass           = "api/v1/accounts/change_password/"
@@ -290,8 +309,15 @@ const (
 	urlChangeProfilePicture = "api/v1/accounts/change_profile_picture/"
 	urlEditProfile          = "api/v1/accounts/edit_profile/"
 	// account and profile
-	urlFollowers = "api/v1/friendships/%d/followers/"
-	urlFollowing = "api/v1/friendships/%d/following/"
+	urlFollowers             = "api/v1/friendships/%d/followers/"
+	urlFollowing             = "api/v1/friendships/%d/following/"
+	urlGetSignupConfig       = "api/v1/consent/get_signup_config/"
+	urlGetCommonEmailDomains = "api/v1/accounts/get_common_email_domains/"
+	urlPrecheckCloudId       = "api/v1/accounts/precheck_cloud_id/"
+	urlIgUser                = "api/v1/fb/ig_user/"
+	urlCheckEmail            = "api/v1/users/check_email/"
+	urlSendVerifyEmail       = "api/v1/accounts/send_verify_email/"
+	urlCheckConfirmationCode = "api/v1/accounts/check_confirmation_code/"
 
 	// users
 	urlUserArchived      = "api/v1/feed/only_me_feed/"

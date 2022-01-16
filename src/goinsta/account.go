@@ -66,11 +66,11 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 		"phone_number":     this.Detail.PhoneNumber,
 		"timezone_offset":  "-28800",
 		"external_url":     profile.ExternalUrl,
-		"waterfall_id":     this.inst.wid,
+		"waterfall_id":     this.inst.Device.WaterID,
 		"biography":        profile.Biography,
 		"first_name":       profile.FirstName,
 		"username":         this.inst.User,
-		"device_id":        this.inst.DeviceID,
+		"device_id":        this.inst.Device.DeviceID,
 		"email":            profile.Email,
 	}
 
@@ -85,6 +85,30 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 		Signed:  true,
 		IsPost:  true},
 		&resp)
+	err = resp.CheckError(err)
+	return err
+}
+
+func (this *Account) ChangeProfilePicture(uploadID string) error {
+	params := map[string]interface{}{
+		"waterfall_id":     this.inst.Device.WaterID,
+		"share_to_feed":    "true",
+		"_uuid":            this.inst.Device.DeviceID,
+		"_uid":             this.inst.ID,
+		"device_id":        this.inst.Device.DeviceID,
+		"client_timestamp": time.Now().Unix(),
+		"upload_id":        uploadID,
+		"timezone_offset":  this.inst.Device.TimezoneOffset,
+	}
+
+	var resp RespChangeProfilePicture
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlChangeProfilePicture,
+		Query:   params,
+		Signed:  true,
+		IsPost:  true,
+	}, &resp)
+
 	err = resp.CheckError(err)
 	return err
 }
