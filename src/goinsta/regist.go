@@ -509,6 +509,9 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 		}, resp)
 
 	err = resp.CheckError(err)
+	if err != nil {
+		this.setInstRegisterInfo(resp.CreatedUser.ID)
+	}
 	return resp, err
 }
 
