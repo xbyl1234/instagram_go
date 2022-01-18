@@ -117,7 +117,7 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 
 	if config.IsDebug {
 		for _, header := range headerMap[reqOpt.ApiPath].HeaderSeq {
-			if req.Header.Get(header) == "" {
+			if req.Header.Get(header) == "" && header != "Content-Length" {
 				log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
 			}
 		}

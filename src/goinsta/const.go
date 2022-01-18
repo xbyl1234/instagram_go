@@ -172,7 +172,7 @@ type pathsMap struct {
 type reqHeaderJson struct {
 	PathsNoLogin []pathsMap `json:"paths_no_login"`
 	PathsLogin   []pathsMap `json:"paths_login"`
-	Md5S         []struct {
+	Md5S         []*struct {
 		Desp      string `json:"desp,omitempty"`
 		Md5       string `json:"md5"`
 		Header    string `json:"header"`
@@ -202,6 +202,7 @@ func InitInstagramConst() error {
 				ErrStr: "header is null,md5: " + md5.Md5,
 			}
 		}
+		sp = sp[:len(sp)-1]
 		md5.headerSeq.HeaderFun = GetAutoHeaderFunc(sp)
 		md5.headerSeq.HeaderSeq = sp
 	}
@@ -228,7 +229,7 @@ func GenInstDeviceInfo() *InstDeviceInfo {
 	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
 	sp := strings.Split(device, " ")
 	instVersion := &InstDeviceInfo{
-		IDFA:           common.GenUUID(),
+		IDFA:           strings.ToUpper(common.GenUUID()),
 		Version:        version.Version,
 		VersionCode:    version.VersionCode,
 		BloksVersionID: version.BloksVersionID,

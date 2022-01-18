@@ -307,7 +307,9 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 		//	index++
 		//	break
 		default:
-			log.Info("header: %s fun is default!", item)
+			if item != "Content-Length" {
+				log.Info("header: %s fun is default!", item)
+			}
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 			}
 			index++

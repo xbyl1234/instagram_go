@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	github.com/deckarep/golang-set v1.7.1
+	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/jmoiron/sqlx v1.3.4
 	github.com/klauspost/compress v1.13.6
 	github.com/utahta/go-cronowriter v1.2.0
 	go.mongodb.org/mongo-driver v1.7.4

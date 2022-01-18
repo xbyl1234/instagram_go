@@ -104,7 +104,7 @@ package phone
 //func (this *PhoneDo889) RequireCode(number string) (string, error) {
 //	//http://api.fghfdf.cn/api/get_message
 //	start := time.Now()
-//	for time.Since(start) < this.retryTimeout {
+//	for time.Since(start) < this.RetryTimeoutDuration {
 //		var respJson PhoneDo889_ReqPhoneCode
 //		err := http_helper.HttpDoJson(this.client, &http_helper.RequestOpt{ReqUrl: this.UrlReqPhoneCode,
 //			Params: map[string]string{
@@ -126,7 +126,7 @@ package phone
 //				log.Warn("to getting phone %s code error: %v", number, respJson.Message)
 //			}
 //		}
-//		time.Sleep(this.retryDelay)
+//		time.Sleep(this.RetryDelayDuration)
 //	}
 //
 //	return "", &common.MakeMoneyError{ErrStr: "require code timeout"}

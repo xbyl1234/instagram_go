@@ -195,14 +195,14 @@ func (this *Instagram) qeSync() error {
 	var query map[string]interface{}
 	if this.IsLogin {
 		query = map[string]interface{}{
-			"id":                      this.Device.DeviceID,
+			"id":                      this.ID,
+			"_uuid":                   this.Device.DeviceID,
+			"_uid":                    this.ID,
 			"server_config_retrieval": "1",
 		}
 	} else {
 		query = map[string]interface{}{
-			"id":                      this.ID,
-			"_uuid":                   this.Device.DeviceID,
-			"_uid":                    this.ID,
+			"id":                      this.Device.DeviceID,
 			"server_config_retrieval": "1",
 		}
 	}
@@ -222,14 +222,14 @@ func (this *Instagram) launcherSync() error {
 	var query map[string]interface{}
 	if this.IsLogin {
 		query = map[string]interface{}{
-			"id":                      this.Device.DeviceID,
+			"id":                      this.ID,
+			"_uuid":                   this.Device.DeviceID,
+			"_uid":                    this.ID,
 			"server_config_retrieval": "1",
 		}
 	} else {
 		query = map[string]interface{}{
-			"id":                      this.ID,
-			"_uuid":                   this.Device.DeviceID,
-			"_uid":                    this.ID,
+			"id":                      this.Device.DeviceID,
 			"server_config_retrieval": "1",
 		}
 	}

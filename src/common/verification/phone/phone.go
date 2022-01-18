@@ -1,9 +1,8 @@
 package phone
 
 import (
-	"makemoney/common"
-	"makemoney/common/verification"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -25,15 +24,15 @@ type PhoneInfo struct {
 	Area               string `json:"area"`
 	City               string `json:"city"`
 
-	client           *http.Client
-	reqLock          *sync.Mutex
-	lastReqPhoneTime time.Time
-	retryTimeout     time.Duration
-	retryDelay       time.Duration
+	Client               *http.Client
+	reqLock              sync.Mutex
+	lastReqPhoneTime     time.Time
+	RetryTimeoutDuration time.Duration
+	RetryDelayDuration   time.Duration
 }
 
-func (this *PhoneInfo) GetType() verification.VerificationType {
-	return verification.TypePhone
+func (this *PhoneInfo) GetType() string {
+	return "phone"
 }
 
 func (this *PhoneInfo) GetProvider() string {
@@ -44,37 +43,22 @@ func (this *PhoneInfo) GetArea() string {
 	return this.Area
 }
 
-func InitPhoneVerification(phone *PhoneInfo) (verification.VerificationCodeProvider, error) {
-	//if provider == "do889" {
-	//	ret := &PhoneDo889{}
-	//	err := common.LoadJsonFile("./config/phone.json", ret)
-	//	if err == nil {
-	//		ret.retryDelay = time.Duration(ret.RetryDelay) * time.Second
-	//		ret.retryTimeout = time.Duration(ret.RetryTimeout) * time.Second
-	//		ret.client = &http.Client{}
-	//		//ret.reqLock = &sync.Mutex{}
-	//		//common.DebugHttpClient(ret.client)
-	//	}
-	//	return ret, err
-	//} else
-	if phone.Provider == "taxin" {
-		ret := &PhoneTaxin{}
-		ret.PhoneInfo = *phone
-		ret.retryDelay = time.Duration(ret.RetryDelay) * time.Second
-		ret.retryTimeout = time.Duration(ret.RetryTimeout) * time.Second
-		ret.client = &http.Client{}
-		ret.reqLock = &sync.Mutex{}
-
-		common.DebugHttpClient(ret.client)
-		var err error
-		if ret.Token == "" {
-			err = ret.Login()
-			if err != nil {
-				return nil, err
-			}
-			common.Dumps("./config/phone_taxin.json", ret)
+func GetCode(msg string) string {
+	var index = 0
+	find := false
+	for index = range msg {
+		if msg[index] >= '0' && msg[index] <= '9' {
+			find = true
+			break
 		}
-		return ret, err
 	}
-	return nil, nil
+	if find {
+		code := strings.ReplaceAll(msg[index:index+7], " ", "")
+		if len(code) != 6 {
+			return ""
+		}
+		return code
+	} else {
+		return ""
+	}
 }

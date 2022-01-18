@@ -100,6 +100,7 @@ type AccountCookies struct {
 	Cookies             []*http.Cookie    `json:"cookies" bson:"cookies"`
 	CookiesB            []*http.Cookie    `json:"cookies_b" bson:"cookies_b"`
 	Device              *InstDeviceInfo   `json:"device" bson:"device"`
+	RegisterEmail       string            `json:"register_email" bson:"register_email"`
 	RegisterPhoneNumber string            `json:"register_phone_number" bson:"register_phone_number"`
 	RegisterPhoneArea   string            `json:"register_phone_area" bson:"register_phone_area"`
 	RegisterIpCountry   string            `json:"register_ip_country" bson:"register_ip_country"`
@@ -154,6 +155,7 @@ func SaveInstToDB(inst *Instagram) error {
 		HttpHeader:          inst.httpHeader,
 		ProxyID:             inst.Proxy.ID,
 		IsLogin:             inst.IsLogin,
+		RegisterEmail:       inst.RegisterEmail,
 		RegisterPhoneNumber: inst.RegisterPhoneNumber,
 		RegisterPhoneArea:   inst.RegisterPhoneArea,
 		RegisterIpCountry:   inst.RegisterIpCountry,
@@ -189,6 +191,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		Device:              config.Device,
 		httpHeader:          config.HttpHeader,
 		IsLogin:             config.IsLogin,
+		RegisterEmail:       config.RegisterEmail,
 		RegisterPhoneNumber: config.RegisterPhoneNumber,
 		RegisterPhoneArea:   config.RegisterPhoneArea,
 		RegisterIpCountry:   config.RegisterIpCountry,

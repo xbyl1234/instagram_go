@@ -101,13 +101,14 @@ func RegisterByEmail() {
 			common.GenString(common.CharSet_123, 4)
 		inst := goinsta.New("", "", _proxy)
 		regisert := goinsta.Register{
-			Inst:     inst,
-			Account:  account,
-			Username: username,
-			Password: password,
-			Year:     fmt.Sprintf("%d", common.GenNumber(1995, 2000)),
-			Month:    fmt.Sprintf("%d", common.GenNumber(1, 11)),
-			Day:      fmt.Sprintf("%d", common.GenNumber(1, 27)),
+			Inst:         inst,
+			RegisterType: "email",
+			Account:      account,
+			Username:     username,
+			Password:     password,
+			Year:         fmt.Sprintf("%d", common.GenNumber(1995, 2000)),
+			Month:        fmt.Sprintf("%d", common.GenNumber(1, 11)),
+			Day:          fmt.Sprintf("%d", common.GenNumber(1, 27)),
 		}
 
 		inst.PrepareNewClient()

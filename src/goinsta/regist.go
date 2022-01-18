@@ -3,13 +3,12 @@ package goinsta
 import (
 	"fmt"
 	"makemoney/common"
-	"makemoney/common/verification"
 	"time"
 )
 
 type Register struct {
 	Inst         *Instagram
-	registerType verification.VerificationType
+	RegisterType string
 	Account      string
 	AreaCode     string
 	Username     string
@@ -88,7 +87,6 @@ type RespCheckEmail struct {
 	UsernameSuggestions          []string `json:"username_suggestions"`
 	TosVersion                   string   `json:"tos_version"`
 	AgeRequired                  bool     `json:"age_required"`
-	Status                       string   `json:"status"`
 }
 
 func (this *Register) CheckEmail() (*RespCheckEmail, error) {
@@ -340,7 +338,7 @@ type RespUsernameSuggestions struct {
 
 func (this *Register) usernameSuggestions() (*RespUsernameSuggestions, error) {
 	params := map[string]interface{}{}
-	if this.registerType == verification.TypeEmail {
+	if this.RegisterType == "email" {
 		params = map[string]interface{}{
 			"email":        this.Account,
 			"device_id":    this.Inst.Device.DeviceID,
@@ -518,7 +516,7 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
 	params := map[string]interface{}{}
 
-	if this.registerType == verification.TypeEmail {
+	if this.RegisterType == "email" {
 		params = map[string]interface{}{
 			"_uuid":           this.Inst.Device.DeviceID,
 			"_uid":            this.Inst.ID,
@@ -546,7 +544,7 @@ func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
 
 func (this *Register) GetSteps() (*BaseApiResp, error) {
 	params := map[string]interface{}{}
-	if this.registerType == verification.TypeEmail {
+	if this.RegisterType == "email" {
 		params = map[string]interface{}{
 			"_uuid":                         this.Inst.Device.DeviceID,
 			"_uid":                          this.Inst.ID,

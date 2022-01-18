@@ -1427,16 +1427,18 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 		var didUA bool
 		if req.HeaderSequence != nil && len(req.HeaderSequence) != 0 {
 			for _, key := range req.HeaderSequence {
-				if strings.EqualFold(key, "host") || strings.EqualFold(key, "content-length") {
+				if strings.EqualFold(key, "host") {
 					continue
 				} else if strings.EqualFold(key, "connection") || strings.EqualFold(key, "proxy-connection") ||
 					strings.EqualFold(key, "transfer-encoding") || strings.EqualFold(key, "upgrade") ||
 					strings.EqualFold(key, "keep-alive") {
 					continue
 				} else if strings.EqualFold(key, "content-length") {
-					f("content-length", strconv.FormatInt(contentLength, 10))
+					if shouldSendReqContentLength(req.Method, contentLength) {
+						f("content-length", strconv.FormatInt(contentLength, 10))
+					}
 				}
-				
+
 				value := req.Header.Values(key)
 				if value != nil && len(value) != 0 {
 					for _, v := range value {
@@ -2428,7 +2430,7 @@ func (t *Transport) logf(format string, args ...interface{}) {
 	log.Printf(format, args...)
 }
 
-var noBody io.ReadCloser = ioutil.NopCloser(bytes.NewReader(nil))
+var noBody = ioutil.NopCloser(bytes.NewReader(nil))
 
 func strSliceContains(ss []string, s string) bool {
 	for _, v := range ss {

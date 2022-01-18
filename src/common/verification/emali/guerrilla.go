@@ -1,14 +1,51 @@
 package emali
 
+import (
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+	"makemoney/common"
+	"makemoney/common/log"
+	"time"
+)
+
+const sqlRequireEmail = "SELECT mail_id,mail from new where to=? and is_new is null ORDER BY date desc LIMIT 1"
+const sqlUpdateEmail = "update new set is_new ='0' where mail_id=?"
+
 type Guerrilla struct {
-	EmailInfo
+	*EmailInfo
+	MysqlDB *sqlx.DB
 }
 
 func (this *Guerrilla) RequireAccount() (string, error) {
-
+	return common.GenString(common.CharSet_abc+common.CharSet_123, 10) + "@" + this.Domain, nil
 }
-func (this *Guerrilla) RequireCode(number string) (string, error) {
 
+type EmailResult struct {
+	MailId int    `db:"mail_id"`
+	Mail   string `db:"mail"`
+}
+
+func (this *Guerrilla) RequireCode(email string) (string, error) {
+	start := time.Now()
+	for time.Since(start) < this.RetryTimeoutDuration {
+		var result []EmailResult
+		err := this.MysqlDB.Select(&result, sqlRequireEmail)
+		if err != nil {
+			log.Warn("select email db error: %v", err)
+		} else {
+			if len(result) == 1 {
+				_, err = this.MysqlDB.Exec(sqlUpdateEmail, result[0].MailId)
+				if err != nil {
+					log.Warn("update email db error: %v", err)
+				}
+			}
+		}
+
+		log.Warn("wait for email %s code...", email)
+		time.Sleep(this.RetryDelayDuration)
+	}
+
+	return "", &common.MakeMoneyError{ErrStr: "require code timeout", ErrType: common.RecvPhoneCodeError}
 }
 
 func (this *Guerrilla) ReleaseAccount(number string) error {
@@ -24,5 +61,5 @@ func (this *Guerrilla) GetBalance() (string, error) {
 }
 
 func (this *Guerrilla) Login() error {
-
+	return nil
 }
