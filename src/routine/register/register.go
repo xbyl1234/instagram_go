@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"makemoney/common"
@@ -11,6 +12,7 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -72,10 +74,6 @@ func statError(err error) {
 }
 
 func RegisterByPhone() {
-
-}
-
-func RegisterByEmail() {
 	provider := verification.VerificationProvider[config.ProviderName]
 	for true {
 		curCount := atomic.AddInt32(&Count, 1)
@@ -106,8 +104,8 @@ func RegisterByEmail() {
 			Username:     username,
 			Password:     password,
 			Year:         fmt.Sprintf("%d", common.GenNumber(1995, 2000)),
-			Month:        fmt.Sprintf("%d", common.GenNumber(1, 11)),
-			Day:          fmt.Sprintf("%d", common.GenNumber(1, 27)),
+			Month:        fmt.Sprintf("%02d", common.GenNumber(1, 11)),
+			Day:          fmt.Sprintf("%02d", common.GenNumber(1, 27)),
 		}
 
 		inst.PrepareNewClient()
@@ -195,7 +193,146 @@ func RegisterByEmail() {
 	WaitAll.Done()
 }
 
+func RegisterByEmail() {
+	provider := verification.VerificationProvider[config.ProviderName]
+	for true {
+		curCount := atomic.AddInt32(&Count, 1)
+		if curCount > int32(*RegisterCount) {
+			break
+		}
+		_proxy := proxy.ProxyPool.GetNoRisk(config.Country, true, true)
+		if _proxy == nil {
+			log.Error("get proxy error: %v", _proxy)
+			break
+		}
+
+		account, err := provider.RequireAccount()
+		if err != nil {
+			log.Error("require account error: %v", err)
+			break
+		}
+
+		username := common.Resource.ChoiceUsername()
+		password := common.GenString(common.CharSet_ABC, 4) +
+			common.GenString(common.CharSet_abc, 4) +
+			common.GenString(common.CharSet_123, 4)
+		inst := goinsta.New("", "", _proxy)
+		regisert := goinsta.Register{
+			Inst:         inst,
+			RegisterType: "email",
+			Account:      account,
+			Username:     username,
+			Password:     password,
+			Year:         fmt.Sprintf("%02d", common.GenNumber(1995, 2000)),
+			Month:        fmt.Sprintf("%02d", common.GenNumber(1, 11)),
+			Day:          fmt.Sprintf("%02d", common.GenNumber(1, 27)),
+		}
+
+		inst.PrepareNewClient()
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
+		err = regisert.GetSignupConfig()
+
+		err = regisert.GetCommonEmailDomains()
+		err = regisert.PrecheckCloudId()
+		err = regisert.IgUser()
+
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
+		_, err = regisert.CheckEmail()
+		if err != nil {
+			ErrorCheckAccountCount++
+			statError(err)
+			log.Error("email %s check error: %v", account, err)
+			continue
+		}
+
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(1000, 2000)))
+		_, err = regisert.SendVerifyEmail()
+		if err != nil {
+			ErrorSendCodeCount++
+			statError(err)
+			log.Error("email %s send error: %v", account, err)
+			continue
+		}
+		code, err := provider.RequireCode(account)
+		if err != nil {
+			ErrorRecvCodeCount++
+			statError(err)
+			log.Error("email %s require code error: %v", account, err)
+			continue
+		}
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
+		_, err = regisert.CheckConfirmationCode(code)
+		if err != nil {
+			ErrorCodeCount++
+			statError(err)
+			log.Error("email %s check code error: %v", account, err)
+			continue
+		}
+
+		regisert.GenUsername()
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
+		_, err = regisert.CheckAgeEligibility()
+		_, err = regisert.NewUserFlowBegins()
+
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
+		_, err = regisert.CreateEmail()
+		if err != nil {
+			ErrorCreateCount++
+			statError(err)
+			log.Error("email %s create error: %v", account, err)
+			continue
+		}
+
+		_, err = regisert.NewAccountNuxSeen()
+		_, err = regisert.GetSteps()
+
+		err = goinsta.SaveInstToDB(inst)
+
+		var uploadID string
+		uploadID, err = inst.GetUpload().RuploadPhotoFromPath(common.Resource.ChoiceIco())
+		err = inst.GetAccount().ChangeProfilePicture(uploadID)
+
+		if err != nil {
+			statError(err)
+			if common.IsError(err, common.ChallengeRequiredError) {
+				log.Error("email: %s had been challenge_required", account)
+				ErrorCreateCount++
+				continue
+			} else if common.IsError(err, common.FeedbackError) {
+				ErrorCreateCount++
+				log.Error("email: %s had been feedback_required", account)
+				continue
+			}
+
+			log.Warn("email: %s change ico error: %v", account, err)
+		}
+
+		SuccessCount++
+		log.Info("email: %s register success!", account)
+	}
+	WaitAll.Done()
+}
+
+type Tesp struct {
+	T string `json:"t"`
+}
+
 func initParams() {
+	b, _ := json.Marshal(&Tesp{T: "\\/"})
+
+	bb := string(b)
+	print(bb)
+	s := common.InstagramQueryEscape("\\/")
+
+	bb = strings.ReplaceAll(bb, "\\\\", "\\")
+
+	ss := common.InstagramQueryEscape(string(bb))
+
+	print(bb)
+	print(b)
+	print(s)
+	print(ss)
+
 	flag.Parse()
 	log.InitDefaultLog("register", true, true)
 	err := common.LoadJsonFile(*ConfigPath, &config)
@@ -224,9 +361,8 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	config2.UseTruncation = true
-
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 

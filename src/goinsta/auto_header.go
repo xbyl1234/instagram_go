@@ -5,7 +5,22 @@ import (
 	"makemoney/common/log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+)
+
+var (
+	IGHeader_EncryptionId           = "Password-Encryption-Key-Id"
+	IGHeader_EncryptionKey          = "Password-Encryption-Pub-Key"
+	IGHeader_Authorization          = "Authorization"
+	IGHeader_udsUserID              = "Ig-U-Ds-User-Id"
+	IGHeader_iguiggDirectRegionHint = "Ig-U-Ig-Direct-Region-Hint"
+	IGHeader_iguShbid               = "Ig-U-Shbid"
+	IGHeader_iguShbts               = "Ig-U-Shbts"
+	IGHeader_iguRur                 = "Ig-U-Rur"
+	IGHeader_UseAuthHeaderForSso    = "Use-Auth-Header-For-Sso"
+	IGHeader_XMid                   = "X-Mid"
+	IGHeader_igwwwClaim             = "X-Ig-Www-Claim"
 )
 
 func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
@@ -221,7 +236,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Mapped-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Mapped-Locale", inst.Device.AppLocale)
+				req.Header.Set("X-Ig-Mapped-Locale", strings.Replace(inst.Device.AppLocale, "-", "_", -1))
 			}
 			index++
 			break

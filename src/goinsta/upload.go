@@ -55,8 +55,9 @@ func (this *Upload) RuploadPhoto(data []byte) (string, error) {
 
 	var resp = &RespRuploadIgPhoto{}
 	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: urlUploadPhone + entityName,
-		IsPost:  true,
+		ApiPath:    urlUploadPhone + entityName,
+		RawApiPath: urlUploadPhone,
+		IsPost:     true,
 		Header: map[string]string{
 			"x_fb_photo_waterfall_id":    this.inst.Device.WaterID,
 			"x-instagram-rupload-params": paramsStr,
@@ -107,8 +108,9 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 
 	var resp = &RespRuploadIgPhoto{}
 	err = this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: urlUploadVideo + entityName,
-		IsPost:  true,
+		ApiPath:    urlUploadVideo + entityName,
+		RawApiPath: urlUploadVideo,
+		IsPost:     true,
 		Header: map[string]string{
 			"x_fb_video_waterfall_id":    this.inst.Device.WaterID,
 			"x-instagram-rupload-params": paramsStr,

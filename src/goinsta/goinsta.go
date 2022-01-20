@@ -167,9 +167,12 @@ func (this *Instagram) getNamePrefill() error {
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlGetNamePrefill,
-			IsPost:  true,
-			Signed:  true,
 			Query:   query,
+			Header: map[string]string{
+				"X-Ig-Connection-Speed": "-1kbps",
+			},
+			IsPost: true,
+			Signed: true,
 		},
 	)
 	return err
@@ -183,9 +186,12 @@ func (this *Instagram) contactPrefill() error {
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlContactPrefill,
-			IsPost:  true,
-			Signed:  true,
 			Query:   query,
+			Header: map[string]string{
+				"X-Ig-Connection-Speed": "-1kbps",
+			},
+			IsPost: true,
+			Signed: true,
 		},
 	)
 	return err
@@ -211,8 +217,11 @@ func (this *Instagram) qeSync() error {
 		&reqOptions{
 			ApiPath: urlQeSync,
 			Query:   query,
-			IsPost:  true,
-			Signed:  true,
+			Header: map[string]string{
+				"X-Ig-Connection-Speed": "-1kbps",
+			},
+			IsPost: true,
+			Signed: true,
 		},
 	)
 	return err
@@ -237,9 +246,12 @@ func (this *Instagram) launcherSync() error {
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlLauncherSync,
-			IsPost:  true,
-			Signed:  true,
 			Query:   query,
+			Header: map[string]string{
+				"X-Ig-Connection-Speed": "-1kbps",
+			},
+			IsPost: true,
+			Signed: true,
 		},
 	)
 	return err
@@ -254,9 +266,12 @@ func (this *Instagram) logAttribution() error {
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlLogAttribution,
-			IsPost:  true,
-			Signed:  true,
 			Query:   query,
+			Header: map[string]string{
+				"X-Ig-Connection-Speed": "-1kbps",
+			},
+			IsPost: true,
+			Signed: true,
 		},
 	)
 	return err

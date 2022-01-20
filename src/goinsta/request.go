@@ -28,6 +28,7 @@ type reqOptions struct {
 	Header         map[string]string
 	HeaderSequence []string
 	DisAutoHeader  bool
+	RawApiPath     string
 }
 
 type BaseApiResp struct {
@@ -77,20 +78,6 @@ func (this *BaseApiResp) CheckError(err error) error {
 	return nil
 }
 
-var (
-	IGHeader_EncryptionId           = "password-encryption-key-id"
-	IGHeader_EncryptionKey          = "password-encryption-pub-key"
-	IGHeader_Authorization          = "authorization"
-	IGHeader_udsUserID              = "ig-u-ds-user-id"
-	IGHeader_iguiggDirectRegionHint = "ig-u-ig-direct-region-hint"
-	IGHeader_iguShbid               = "ig-u-shbid"
-	IGHeader_iguShbts               = "ig-u-shbts"
-	IGHeader_iguRur                 = "ig-u-rur"
-	IGHeader_UseAuthHeaderForSso    = "use-auth-header-for-sso"
-	IGHeader_XMid                   = "x-mid"
-	IGHeader_igwwwClaim             = "x-ig-www-claim"
-)
-
 func SetHeader(req *http.Request, key string, vul string) {
 	//req.Header[key] = []string{vul}
 	req.Header.Set(key, vul)
@@ -103,22 +90,26 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 	} else {
 		headerMap = NoLoginHeaderMap
 	}
+	ApiPathKey := reqOpt.ApiPath
+	if reqOpt.RawApiPath != "" {
+		ApiPathKey = reqOpt.RawApiPath
+	}
 
 	if config.IsDebug {
-		if headerMap[reqOpt.ApiPath] == nil {
-			log.Error("api path: %s has no header map!", reqOpt.ApiPath)
+		if headerMap[ApiPathKey] == nil {
+			log.Error("api path: %s has no header map!", ApiPathKey)
 		}
 	}
-	req.HeaderSequence = headerMap[reqOpt.ApiPath].HeaderSeq
+	req.HeaderSequence = headerMap[ApiPathKey].HeaderSeq
 	req.OnlySequence = true
-	for _, fun := range headerMap[reqOpt.ApiPath].HeaderFun {
+	for _, fun := range headerMap[ApiPathKey].HeaderFun {
 		fun(this, reqOpt, req)
 	}
 
 	if config.IsDebug {
-		for _, header := range headerMap[reqOpt.ApiPath].HeaderSeq {
+		for _, header := range headerMap[ApiPathKey].HeaderSeq {
 			if req.Header.Get(header) == "" && header != "Content-Length" {
-				log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
+				log.Warn("api path: %s, header: %s is null", ApiPathKey, header)
 			}
 		}
 	}
@@ -133,9 +124,14 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 	}
 
 	for key := range resp.Header {
-		setting := strings.ToLower(key)
-		if strings.Index(setting, "ig-set-") == 0 {
-			this.httpHeader[setting[len("ig-set-"):]] = resp.Header.Get(key)
+		//setting := strings.ToLower(key)
+		if strings.Index(key, "Ig-Set-") == 0 {
+			h := key[len("Ig-Set-"):]
+			v := resp.Header.Get(key)
+			this.httpHeader[h] = v
+			if v != "" && config.IsDebug {
+				log.Info("account: %s set header %s = %s", this.User, h, v)
+			}
 		}
 	}
 }
@@ -178,8 +174,8 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			query = common.B2s(_query)
-			query = "signed_body=SIGNATURE." + url.QueryEscape(query)
+			query = strings.ReplaceAll(common.B2s(_query), "\\\\", "\\") //for password
+			query = "signed_body=SIGNATURE." + common.InstagramQueryEscape(query)
 		} else {
 			vurl := url.Values{}
 			for key, vul := range reqOpt.Query {

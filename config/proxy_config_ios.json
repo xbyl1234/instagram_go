@@ -2,7 +2,7 @@
   "providers": [
     {
       "provider": "dove",
-      "url": "https://dvapi.doveip.com/cmapi.php?rq=distribute&user=safrg534524&token=RklaOXZUbFp6WTFZQjBSUzVJTkt4QT09&auth=1&geo=ru&city=all&agreement=0&timeout=35&num=10",
+      "url": "https://dvapi.doveip.com/cmapi.php?rq=distribute&user=safrg534524&token=RklaOXZUbFp6WTFZQjBSUzVJTkt4QT09&auth=1&geo=us&city=all&agreement=0&timeout=35&num=10",
       "country": "us"
     }
   ]

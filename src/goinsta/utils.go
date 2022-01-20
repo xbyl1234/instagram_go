@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"image"
 	"makemoney/common"
+	"strings"
 	"time"
 
 	// Required for getImageDimensionFromReader in jpg and png format
@@ -151,6 +152,7 @@ func encryptPassword(password string, encId string, encPubKey string) (string, e
 	buff.Write(passwordEncrypted[len(passwordEncrypted)-16:])
 	buff.Write(passwordEncrypted[:len(passwordEncrypted)-16])
 
-	return fmt.Sprintf("#PWD_INSTAGRAM:%s:%s:%s", "4", _time,
-		base64.StdEncoding.EncodeToString(buff.Bytes())), nil
+	encode := strings.ReplaceAll(fmt.Sprintf("#PWD_INSTAGRAM:%s:%s:%s", "4", _time,
+		base64.StdEncoding.EncodeToString(buff.Bytes())), "/", "\\/")
+	return encode, nil
 }

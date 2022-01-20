@@ -103,7 +103,7 @@ func (this *Register) CheckEmail() (*RespCheckEmail, error) {
 	}, resp)
 
 	err = resp.CheckError(err)
-	if err != nil {
+	if err == nil {
 		this.tosVersion = resp.TosVersion
 	}
 	return resp, err
@@ -227,7 +227,7 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 		"has_seen_aart_on":                       "0",
 		"ck_error":                               "CKErrorDomain: 9",
 		"day":                                    this.Day,
-		"waterfall_id":                           this.Inst.Device.DeviceID,
+		"waterfall_id":                           this.Inst.Device.WaterID,
 		"year":                                   this.Year,
 		"email":                                  this.Account,
 		"enc_password":                           encodePasswd,
@@ -250,7 +250,7 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 	}, resp)
 
 	err = resp.CheckError(err)
-	if err != nil {
+	if err == nil {
 		this.setInstRegisterInfo(resp.CreatedUser.Pk)
 	}
 	return resp, err
@@ -506,7 +506,7 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 		}, resp)
 
 	err = resp.CheckError(err)
-	if err != nil {
+	if err == nil {
 		this.setInstRegisterInfo(resp.CreatedUser.ID)
 	}
 	return resp, err
