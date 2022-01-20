@@ -160,7 +160,7 @@ func (this *Register) CheckConfirmationCode(code string) (*RespCheckConfirmation
 	}, resp)
 
 	err = resp.CheckError(err)
-	if err != nil {
+	if err == nil {
 		this.signUpCode = resp.SignupCode
 	}
 	return resp, err
@@ -218,7 +218,6 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	params := map[string]interface{}{
 		"do_not_auto_login_if_credentials_match": "0",
 		"tos_version":                            this.tosVersion,
@@ -551,7 +550,7 @@ func (this *Register) GetSteps() (*BaseApiResp, error) {
 			"device_id":                     this.Inst.Device.DeviceID,
 			"is_secondary_account_creation": "0",
 			"push_permission_requested":     "0",
-			"network_type":                  this.Inst.Device.NetWorkType,
+			"network_type":                  this.Inst.Device.NetWorkType + "-none",
 			"is_account_linking_flow":       "0",
 		}
 	} else {
@@ -559,7 +558,7 @@ func (this *Register) GetSteps() (*BaseApiResp, error) {
 			"device_id":                     this.Inst.Device.DeviceID,
 			"is_secondary_account_creation": "0",
 			"push_permission_requested":     "0",
-			"network_type":                  this.Inst.Device.NetWorkType,
+			"network_type":                  this.Inst.Device.NetWorkType + "-none",
 			"is_account_linking_flow":       "0",
 		}
 	}

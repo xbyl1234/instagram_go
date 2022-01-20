@@ -22,6 +22,7 @@ import (
 	"net/http"
 	neturl "net/url"
 	"os"
+	"strings"
 	"unsafe"
 )
 
@@ -188,4 +189,24 @@ func GZipDecompress(in []byte) ([]byte, error) {
 
 func Base64Encode(in []byte) string {
 	return base64.StdEncoding.EncodeToString(in)
+}
+
+func GetCode(msg string) string {
+	var index = 0
+	find := false
+	for index = range msg {
+		if msg[index] >= '0' && msg[index] <= '9' {
+			find = true
+			break
+		}
+	}
+	if find {
+		code := strings.ReplaceAll(msg[index:index+7], " ", "")
+		if len(code) != 6 {
+			return ""
+		}
+		return code
+	} else {
+		return ""
+	}
 }

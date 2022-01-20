@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const sqlRequireEmail = "SELECT mail_id,mail from new where to=? and is_new is null ORDER BY date desc LIMIT 1"
+const sqlRequireEmail = "SELECT mail_id,subject from new where new.to = ? and is_new is null ORDER BY date desc LIMIT 1"
 const sqlUpdateEmail = "update new set is_new ='0' where mail_id=?"
 
 type Guerrilla struct {
@@ -21,15 +21,15 @@ func (this *Guerrilla) RequireAccount() (string, error) {
 }
 
 type EmailResult struct {
-	MailId int    `db:"mail_id"`
-	Mail   string `db:"mail"`
+	MailId  int    `db:"mail_id"`
+	Subject string `db:"subject"`
 }
 
 func (this *Guerrilla) RequireCode(email string) (string, error) {
 	start := time.Now()
 	for time.Since(start) < this.RetryTimeoutDuration {
 		var result []EmailResult
-		err := this.MysqlDB.Select(&result, sqlRequireEmail)
+		err := this.MysqlDB.Select(&result, sqlRequireEmail, email)
 		if err != nil {
 			log.Warn("select email db error: %v", err)
 		} else {
@@ -38,6 +38,7 @@ func (this *Guerrilla) RequireCode(email string) (string, error) {
 				if err != nil {
 					log.Warn("update email db error: %v", err)
 				}
+				return common.GetCode(result[0].Subject), nil
 			}
 		}
 

@@ -77,7 +77,6 @@ func RegisterByPhone() {
 
 func RegisterByEmail() {
 	provider := verification.VerificationProvider[config.ProviderName]
-
 	for true {
 		curCount := atomic.AddInt32(&Count, 1)
 		if curCount > int32(*RegisterCount) {

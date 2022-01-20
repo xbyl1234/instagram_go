@@ -2,7 +2,6 @@ package phone
 
 import (
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -41,24 +40,4 @@ func (this *PhoneInfo) GetProvider() string {
 
 func (this *PhoneInfo) GetArea() string {
 	return this.Area
-}
-
-func GetCode(msg string) string {
-	var index = 0
-	find := false
-	for index = range msg {
-		if msg[index] >= '0' && msg[index] <= '9' {
-			find = true
-			break
-		}
-	}
-	if find {
-		code := strings.ReplaceAll(msg[index:index+7], " ", "")
-		if len(code) != 6 {
-			return ""
-		}
-		return code
-	} else {
-		return ""
-	}
 }

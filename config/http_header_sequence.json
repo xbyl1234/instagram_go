@@ -65,7 +65,112 @@
       "md5": "8dbd9c642451291b3c8d3b844457f241"
     }
   ],
-  "paths_login": [],
+  "paths_login": [
+    {
+      "path": "api/v1/accounts/change_profile_picture/",
+      "md5": "8694acda239a3c2b805f39a5e0aea4df"
+    },
+    {
+      "path": "api/v1/accounts/fetch_onetap/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/address_book/link/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/banyan/banyan/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/business/branded_content/should_require_professional_account/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/business/eligibility/get_monetization_products_eligibility_data/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/creatives/camera_models/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/direct_v2/has_interop_upgraded/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/direct_v2/inbox/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/discover/ayml/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/dynamic_onboarding/get_steps/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/fbsearch/recent_searches/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/feed/reels_tray/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/feed/timeline/",
+      "md5": "aa69decba6a9f6196a4ff89ecf1b7701"
+    },
+    {
+      "path": "api/v1/launcher/sync/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/multiple_accounts/get_account_family/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/news/inbox/",
+      "md5": "b2a2f4df652d6d57b66097fc8a9aeb04"
+    },
+    {
+      "path": "api/v1/notifications/badge/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/nux/new_account_nux_seen/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/qe/sync/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/qp/batch_fetch/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/qp/get_cooldowns/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/users/?/info/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "api/v1/wwwgraphql/ig/query/",
+      "md5": "c4103d2cf7171f96b357d049b5d3d15f"
+    },
+    {
+      "path": "api/v1/wwwgraphql/ig/query/",
+      "md5": "55e06f2f72a8127373e3e11436b31a04"
+    },
+    {
+      "path": "/rupload_igphoto/?",
+      "md5": "1dbd0eb3101a245135e3e508cc5c8cab"
+    }
+  ],
   "md5s": [
     {
       "desp": "第二次打开未登录",

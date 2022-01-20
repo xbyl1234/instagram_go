@@ -90,7 +90,7 @@ func (this *PhoneTaxin) RequireCode(number string) (string, error) {
 		} else if sp[0] == "0" {
 			log.Warn("to getting phone %s code error: %v", number, resp)
 		} else if sp[0] == "1" {
-			code := GetCode(sp[1])
+			code := common.GetCode(sp[1])
 			if code != "" {
 				return code, nil
 			} else {

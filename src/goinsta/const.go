@@ -238,9 +238,10 @@ func GenInstDeviceInfo() *InstDeviceInfo {
 		TimezoneOffset: "-28800",
 		StartupCountry: "US",
 		AcceptLanguage: "en-US;q=1.0",
-		NetWorkType:    "4G",
-		DeviceID:       strings.ToUpper(common.GenUUID()),
-		WaterID:        common.GenString(common.CharSet_16_Num, 32),
+		NetWorkType:    "WiFi",
+		//DeviceID:       strings.ToUpper(common.GenUUID()),
+		DeviceID: "307F6FD7-BE61-4314-B1A3-A43CE79F9F7C",
+		WaterID:  common.GenString(common.CharSet_16_Num, 32),
 	}
 
 	instVersion.FamilyID = instVersion.DeviceID

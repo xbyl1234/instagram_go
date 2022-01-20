@@ -2,7 +2,7 @@
   "proxy_path": "./config/proxy_config_ios.json",
   "res_ico_path": "./data/girl_picture",
   "res_username_path": "./data/user_nameraw.txt",
-  "country": "ru",
+  "country": "us",
   "coro": 10,
   "provider_name": "guerrilla",
   "provider": [
@@ -12,7 +12,7 @@
       "email": {
         "domain": "ins-email.xyz",
         "retry_timeout": 120,
-        "retry_delay": 0,
+        "retry_delay": 3,
         "provider": "guerrilla",
         "email_mysql_url": "root:Hty741852..@tcp(155.138.145.209:7707)/email"
       }
