@@ -155,7 +155,7 @@
       "md5": "55e06f2f72a8127373e3e11436b31a04"
     },
     {
-      "path": "api/v1/users/51261946629/info/",
+      "path": "api/v1/users/%d/info/",
       "md5": "55e06f2f72a8127373e3e11436b31a04"
     },
     {
