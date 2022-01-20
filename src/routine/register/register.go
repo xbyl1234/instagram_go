@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"makemoney/common"
@@ -12,7 +11,6 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -313,26 +311,7 @@ func RegisterByEmail() {
 	WaitAll.Done()
 }
 
-type Tesp struct {
-	T string `json:"t"`
-}
-
 func initParams() {
-	b, _ := json.Marshal(&Tesp{T: "\\/"})
-
-	bb := string(b)
-	print(bb)
-	s := common.InstagramQueryEscape("\\/")
-
-	bb = strings.ReplaceAll(bb, "\\\\", "\\")
-
-	ss := common.InstagramQueryEscape(string(bb))
-
-	print(bb)
-	print(b)
-	print(s)
-	print(ss)
-
 	flag.Parse()
 	log.InitDefaultLog("register", true, true)
 	err := common.LoadJsonFile(*ConfigPath, &config)
