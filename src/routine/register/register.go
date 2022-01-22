@@ -71,9 +71,21 @@ func statError(err error) {
 	}
 }
 
+func GenAddressBook() []goinsta.AddressBook {
+	addr := make([]goinsta.AddressBook, common.GenNumber(20, 30))
+	for index := range addr {
+		addr[index].EmailAddresses = []string{common.GenString(common.CharSet_All, common.GenNumber(0, 10)) + "@gmail.com"}
+		addr[index].PhoneNumbers = []string{"+1 " + "410 " + "895 " + common.GenString(common.CharSet_123, 4)}
+		addr[index].LastName = common.GenString(common.CharSet_All, common.GenNumber(0, 10))
+		addr[index].FirstName = common.GenString(common.CharSet_All, common.GenNumber(0, 10))
+	}
+	return addr[:]
+}
+
 func RegisterByPhone() {
 	provider := verification.VerificationProvider[config.ProviderName]
 	for true {
+		var err error
 		curCount := atomic.AddInt32(&Count, 1)
 		if curCount > int32(*RegisterCount) {
 			break
@@ -84,66 +96,61 @@ func RegisterByPhone() {
 			break
 		}
 
-		account, err := provider.RequireAccount()
-		if err != nil {
-			log.Error("require account error: %v", err)
-			break
-		}
+		inst := goinsta.New("", "", _proxy)
+		inst.PrepareNewClient()
+		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
 		username := common.Resource.ChoiceUsername()
 		password := common.GenString(common.CharSet_ABC, 4) +
 			common.GenString(common.CharSet_abc, 4) +
 			common.GenString(common.CharSet_123, 4)
-		inst := goinsta.New("", "", _proxy)
 		regisert := goinsta.Register{
 			Inst:         inst,
-			RegisterType: "email",
-			Account:      account,
-			Username:     username,
-			Password:     password,
-			Year:         fmt.Sprintf("%d", common.GenNumber(1995, 2000)),
-			Month:        fmt.Sprintf("%02d", common.GenNumber(1, 11)),
-			Day:          fmt.Sprintf("%02d", common.GenNumber(1, 27)),
+			RegisterType: "phone",
+			//Account:      account,
+			Username: username,
+			Password: password,
+			AreaCode: provider.GetArea(),
+			Year:     fmt.Sprintf("%d", common.GenNumber(1995, 2000)),
+			Month:    fmt.Sprintf("%02d", common.GenNumber(1, 11)),
+			Day:      fmt.Sprintf("%02d", common.GenNumber(1, 27)),
 		}
 
-		inst.PrepareNewClient()
-		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 		err = regisert.GetSignupConfig()
-
 		err = regisert.GetCommonEmailDomains()
 		err = regisert.PrecheckCloudId()
 		err = regisert.IgUser()
-
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
-		_, err = regisert.CheckEmail()
-		if err != nil {
-			ErrorCheckAccountCount++
-			statError(err)
-			log.Error("email %s check error: %v", account, err)
-			continue
-		}
 
+		var account string
+		account, err = provider.RequireAccount()
+		if err != nil {
+			log.Error("require account error: %v", err)
+			break
+		}
+		regisert.Account = account
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(1000, 2000)))
-		_, err = regisert.SendVerifyEmail()
+
+		_, err = regisert.SendSignupSmsCode()
 		if err != nil {
 			ErrorSendCodeCount++
 			statError(err)
-			log.Error("email %s send error: %v", account, err)
+			log.Error("phone %s send error: %v", account, err)
 			continue
 		}
 		code, err := provider.RequireCode(account)
 		if err != nil {
 			ErrorRecvCodeCount++
 			statError(err)
-			log.Error("email %s require code error: %v", account, err)
+			log.Error("phone %s require code error: %v", account, err)
 			continue
 		}
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
-		_, err = regisert.CheckConfirmationCode(code)
+		_, err = regisert.ValidateSignupSmsCode(code)
 		if err != nil {
 			ErrorCodeCount++
 			statError(err)
-			log.Error("email %s check code error: %v", account, err)
+			log.Error("phone %s check code error: %v", account, err)
 			continue
 		}
 
@@ -153,18 +160,19 @@ func RegisterByPhone() {
 		_, err = regisert.NewUserFlowBegins()
 
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
-		_, err = regisert.CreateEmail()
+		_, err = regisert.CreatePhone()
 		if err != nil {
 			ErrorCreateCount++
 			statError(err)
-			log.Error("email %s create error: %v", account, err)
+			log.Error("phone %s create error: %v", account, err)
 			continue
 		}
-
-		_, err = regisert.NewAccountNuxSeen()
-		_, err = regisert.GetSteps()
-
 		err = goinsta.SaveInstToDB(inst)
+
+		_, err = regisert.GetSteps()
+		_, err = regisert.NewAccountNuxSeen()
+
+		_, err = inst.AddressBookLink(GenAddressBook())
 
 		var uploadID string
 		uploadID, err = inst.GetUpload().RuploadPhotoFromPath(common.Resource.ChoiceIco())
@@ -173,20 +181,20 @@ func RegisterByPhone() {
 		if err != nil {
 			statError(err)
 			if common.IsError(err, common.ChallengeRequiredError) {
-				log.Error("email: %s had been challenge_required", account)
+				log.Error("phone: %s had been challenge_required", account)
 				ErrorCreateCount++
 				continue
 			} else if common.IsError(err, common.FeedbackError) {
 				ErrorCreateCount++
-				log.Error("email: %s had been feedback_required", account)
+				log.Error("phone: %s had been feedback_required", account)
 				continue
 			}
 
-			log.Warn("email: %s change ico error: %v", account, err)
+			log.Warn("phone: %s change ico error: %v", account, err)
 		}
 
 		SuccessCount++
-		log.Info("email: %s register success!", account)
+		log.Info("phone: %s register success!", account)
 	}
 	WaitAll.Done()
 }

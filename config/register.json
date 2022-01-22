@@ -4,7 +4,7 @@
   "res_username_path": "./data/user_nameraw.txt",
   "country": "us",
   "coro": 10,
-  "provider_name": "guerrilla",
+  "provider_name": "taxin",
   "provider": [
     {
       "provider_type": "email",
@@ -19,7 +19,7 @@
     },
     {
       "provider_type": "phone",
-      "provider_name": "",
+      "provider_name": "taxin",
       "phone": {
         "username": "saftrfgbe",
         "password": "sadfgfght555",
@@ -33,7 +33,7 @@
         "project_id": "10213",
         "retry_timeout": 120,
         "retry_delay": 3,
-        "provider": "",
+        "provider": "taxin",
         "area": "+86",
         "city": ""
       }

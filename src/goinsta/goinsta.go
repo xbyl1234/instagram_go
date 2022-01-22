@@ -1,6 +1,9 @@
 package goinsta
 
 import (
+	"bytes"
+	"encoding/json"
+	"github.com/davecgh/go-spew/spew"
 	"makemoney/common"
 	"makemoney/common/proxy"
 	"net/http"
@@ -260,7 +263,7 @@ func (this *Instagram) launcherSync() error {
 func (this *Instagram) logAttribution() error {
 	query := map[string]interface{}{
 		"type": "app_first_launch",
-		"adid": "",
+		"adid": this.Device.IDFA,
 	}
 
 	_, err := this.HttpRequest(
@@ -384,6 +387,42 @@ func (this *Instagram) UserLookup() (*LookResp, error) {
 				"skip_recovery": this.Device.DeviceID,
 				"waterfall_id":  this.Device.WaterID,
 			},
+		}, resp)
+
+	err = resp.CheckError(err)
+	return resp, err
+}
+
+type RespAddressBookLink struct {
+	BaseApiResp
+	Items []interface{} `json:"items"`
+	Users []interface{} `json:"users"`
+}
+
+type AddressBook struct {
+	PhoneNumbers   []string `json:"phone_numbers"`
+	EmailAddresses []string `json:"email_addresses"`
+	LastName       string   `json:"last_name"`
+	FirstName      string   `json:"first_name"`
+}
+
+func (this *Instagram) AddressBookLink(addr []AddressBook) (*RespAddressBookLink, error) {
+	addrJson, err := json.Marshal(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	body := spew.Sprintf("contacts=%s&_uuid=%s&device_id=%s&phone_id=%s", addrJson,
+		this.Device.DeviceID, this.Device.DeviceID, this.Device.DeviceID)
+
+	resp := &RespAddressBookLink{}
+	err = this.HttpRequestJson(
+		&reqOptions{
+			ApiPath:   urlAddressBookLink + "?include=extra_display_name,thumbnails",
+			IsPost:    true,
+			Signed:    false,
+			HeaderMD5: "7fb66bcdd20c45244a01784da5c68d2e",
+			Body:      bytes.NewBuffer([]byte(body)),
 		}, resp)
 
 	err = resp.CheckError(err)

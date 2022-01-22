@@ -98,6 +98,7 @@ var (
 		"iPhone9,4 14_8_1 scale=2.61 1080x1920",
 	}
 	InstagramVersionData = []string{
+		"190.0.0.26.119 294609445 5538d18f11cad2fa88efa530f8a717c5d5339d1d53fc5140af9125216d1f7a89",
 		"191.0.0.25.122 296543649 bf3e79f2304601044c85a6f9c44dab59a72558ca9f9a821b96882a4a54ca3c3a",
 		"192.0.0.37.119 298025452 9fd8ac08308424f3385019b6c63fc3eb52f3d9d1314f33b78b5db21716d3bf7a",
 		"193.0.0.29.121 299401192 02872c8277b5f0ccc5275f61be6e600aeda09ad6927f75ed89e4177ba297bd4f",
@@ -138,6 +139,7 @@ var (
 	}
 	NoLoginHeaderMap map[string]*HeaderSequence
 	LoginHeaderMap   map[string]*HeaderSequence
+	HeaderMD5Map     map[string]*HeaderSequence
 	ReqHeaderJson    reqHeaderJson
 )
 
@@ -195,6 +197,7 @@ func InitInstagramConst() error {
 	if err != nil {
 		return err
 	}
+	HeaderMD5Map = make(map[string]*HeaderSequence)
 	for _, md5 := range ReqHeaderJson.Md5S {
 		sp := strings.Split(md5.Header, ",")
 		if len(sp) == 0 {
@@ -205,6 +208,7 @@ func InitInstagramConst() error {
 		sp = sp[:len(sp)-1]
 		md5.headerSeq.HeaderFun = GetAutoHeaderFunc(sp)
 		md5.headerSeq.HeaderSeq = sp
+		HeaderMD5Map[md5.Md5] = &md5.headerSeq
 	}
 
 	var makeSeqMap = func(headerMap *map[string]*HeaderSequence, pahts []pathsMap) {
@@ -320,6 +324,7 @@ const (
 	urlCheckEmail            = "api/v1/users/check_email/"
 	urlSendVerifyEmail       = "api/v1/accounts/send_verify_email/"
 	urlCheckConfirmationCode = "api/v1/accounts/check_confirmation_code/"
+	urlAddressBookLink       = "api/v1/address_book/link/"
 
 	// users
 	urlUserArchived      = "api/v1/feed/only_me_feed/"

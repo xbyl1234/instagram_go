@@ -29,6 +29,7 @@ type reqOptions struct {
 	HeaderSequence []string
 	DisAutoHeader  bool
 	RawApiPath     string
+	HeaderMD5      string
 }
 
 type BaseApiResp struct {
@@ -84,32 +85,40 @@ func SetHeader(req *http.Request, key string, vul string) {
 }
 
 func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
-	var headerMap map[string]*HeaderSequence
-	if this.IsLogin {
-		headerMap = LoginHeaderMap
+	var seq *HeaderSequence
+
+	if reqOpt.HeaderMD5 == "" {
+		var headerMap map[string]*HeaderSequence
+		if this.IsLogin {
+			headerMap = LoginHeaderMap
+		} else {
+			headerMap = NoLoginHeaderMap
+		}
+		ApiPathKey := reqOpt.ApiPath
+		if reqOpt.RawApiPath != "" {
+			ApiPathKey = reqOpt.RawApiPath
+		}
+		seq = headerMap[ApiPathKey]
 	} else {
-		headerMap = NoLoginHeaderMap
-	}
-	ApiPathKey := reqOpt.ApiPath
-	if reqOpt.RawApiPath != "" {
-		ApiPathKey = reqOpt.RawApiPath
+		seq = HeaderMD5Map[reqOpt.HeaderMD5]
 	}
 
 	if config.IsDebug {
-		if headerMap[ApiPathKey] == nil {
-			log.Error("api path: %s has no header map!", ApiPathKey)
+		if seq == nil {
+			log.Error("api path: %s has no header map!", reqOpt.ApiPath)
 		}
 	}
-	req.HeaderSequence = headerMap[ApiPathKey].HeaderSeq
+
+	req.HeaderSequence = seq.HeaderSeq
 	req.OnlySequence = true
-	for _, fun := range headerMap[ApiPathKey].HeaderFun {
+	for _, fun := range seq.HeaderFun {
 		fun(this, reqOpt, req)
 	}
 
 	if config.IsDebug {
-		for _, header := range headerMap[ApiPathKey].HeaderSeq {
+		for _, header := range seq.HeaderSeq {
 			if req.Header.Get(header) == "" && header != "Content-Length" {
-				log.Warn("api path: %s, header: %s is null", ApiPathKey, header)
+				log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
 			}
 		}
 	}
@@ -124,13 +133,19 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 	}
 
 	for key := range resp.Header {
-		//setting := strings.ToLower(key)
+		header := ""
+		value := ""
 		if strings.Index(key, "Ig-Set-") == 0 {
-			h := key[len("Ig-Set-"):]
-			v := resp.Header.Get(key)
-			this.httpHeader[h] = v
-			if v != "" && config.IsDebug {
-				log.Info("account: %s set header %s = %s", this.User, h, v)
+			header = key[len("Ig-Set-"):]
+			value = resp.Header.Get(key)
+		} else if strings.Index(key, "X-Ig-Set-") == 0 {
+			header = "X-Ig-" + key[len("X-Ig-Set-"):]
+			value = resp.Header.Get(key)
+		}
+		if header != "" {
+			this.httpHeader[header] = value
+			if config.IsDebug {
+				log.Info("account: %s set header %s = %s", this.User, header, value)
 			}
 		}
 	}

@@ -1,7 +1,9 @@
 package goinsta
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
 	"makemoney/common"
 	"time"
 )
@@ -205,10 +207,14 @@ type RespCreatUser struct {
 func (this *Register) setInstRegisterInfo(pk int64) {
 	this.Inst.User = this.RealUsername
 	this.Inst.Pass = this.Password
-	this.Inst.RegisterEmail = this.Account
+	if this.RegisterType == "email" {
+		this.Inst.RegisterEmail = this.Account
+	} else {
+		this.Inst.RegisterPhoneNumber = this.Account
+		this.Inst.RegisterPhoneArea = this.AreaCode
+	}
 	this.Inst.RegisterTime = time.Now().Unix()
 	this.Inst.RegisterIpCountry = this.Inst.Proxy.Country
-	this.Inst.RegisterPhoneArea = this.AreaCode
 	this.Inst.IsLogin = true
 	this.Inst.ID = pk
 }
@@ -250,31 +256,29 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 	}, resp)
 
 	err = resp.CheckError(err)
-	if err == nil {
-		this.setInstRegisterInfo(resp.CreatedUser.Pk)
-	}
+	this.setInstRegisterInfo(resp.CreatedUser.Pk)
 	return resp, err
 }
 
 //phone
-func (this *Register) CheckPhoneNumber() error {
-	params := map[string]interface{}{
-		"phone_id":        this.Inst.Device.FamilyID,
-		"login_nonce_map": "{}",
-		"phone_number":    this.Account,
-		"guid":            this.Inst.Device.DeviceID,
-		"prefill_shown":   "False",
-	}
-
-	_, err := this.Inst.HttpRequest(&reqOptions{
-		ApiPath: urlCheckPhoneNumber,
-		IsPost:  true,
-		Signed:  true,
-		Query:   params,
-	})
-
-	return err
-}
+//func (this *Register) CheckPhoneNumber() error {
+//	params := map[string]interface{}{
+//		"phone_id":        this.Inst.Device.FamilyID,
+//		"login_nonce_map": "{}",
+//		"phone_number":    this.Account,
+//		"guid":            this.Inst.Device.DeviceID,
+//		"prefill_shown":   "False",
+//	}
+//
+//	_, err := this.Inst.HttpRequest(&reqOptions{
+//		ApiPath: urlCheckPhoneNumber,
+//		IsPost:  true,
+//		Signed:  true,
+//		Query:   params,
+//	})
+//
+//	return err
+//}
 
 type RespSendSignupSmsCode struct {
 	BaseApiResp
@@ -299,6 +303,9 @@ func (this *Register) SendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 		}, resp)
 
 	err = resp.CheckError(err)
+	if err == nil {
+		this.tosVersion = resp.TosVersion
+	}
 	return resp, err
 }
 
@@ -387,18 +394,14 @@ type RespCheckAge struct {
 }
 
 func (this *Register) CheckAgeEligibility() (*RespCheckAge, error) {
-	params := map[string]interface{}{
-		"year":  this.Year,
-		"month": this.Month,
-		"day":   this.Day,
-	}
+	body := spew.Sprintf("year=%s&month=%s&day=%s", this.Year, this.Month, this.Day)
 
 	resp := &RespCheckAge{}
 	err := this.Inst.HttpRequestJson(&reqOptions{
 		ApiPath: urlCheckAgeEligibility,
 		IsPost:  true,
 		Signed:  false,
-		Query:   params,
+		Body:    bytes.NewBuffer([]byte(body)),
 	}, resp)
 
 	err = resp.CheckError(err)
@@ -475,25 +478,27 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 	}
 
 	params := map[string]interface{}{
-		"tos_version":                            this.tosVersion,
 		"verification_code":                      this.signUpCode,
+		"tos_version":                            this.tosVersion,
 		"do_not_auto_login_if_credentials_match": "0",
-		"phone_id":                               this.Inst.Device.DeviceID,
-		"enc_password":                           encodePasswd,
-		"phone_number":                           this.AreaCode + this.Account,
-		"username":                               this.RealUsername,
-		"first_name":                             this.Username,
-		"day":                                    this.Day,
-		"year":                                   this.Year,
-		"device_id":                              this.Inst.Device.DeviceID,
 		"month":                                  this.Month,
-		"has_seen_aart_on":                       "0",
-		"force_create_account":                   "0",
-		"waterfall_id":                           this.Inst.Device.WaterID,
-		"ck_error":                               "CKErrorDomain: 9",
 		"has_sms_consent":                        "true",
-		"ck_environment":                         "production",
+		"device_id":                              this.Inst.Device.DeviceID,
 		"ck_container":                           "iCloud.com.burbn.instagram",
+		"has_seen_aart_on":                       "0",
+		"ck_error":                               "CKErrorDomain: 9",
+		"day":                                    this.Day,
+		"waterfall_id":                           this.Inst.Device.WaterID,
+		"year":                                   this.Year,
+		"phone_number":                           this.AreaCode + this.Account,
+		"enc_password":                           encodePasswd,
+		"attribution_details":                    "{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}",
+		"force_create_account":                   "0",
+		"ck_environment":                         "production",
+		"adid":                                   this.Inst.Device.IDFA,
+		"first_name":                             this.Username,
+		"phone_id":                               this.Inst.Device.DeviceID,
+		"username":                               this.RealUsername,
 	}
 	resp := &RespCreateValidated{}
 
@@ -506,25 +511,15 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 		}, resp)
 
 	err = resp.CheckError(err)
-	if err == nil {
-		this.setInstRegisterInfo(resp.CreatedUser.ID)
-	}
+	this.setInstRegisterInfo(resp.CreatedUser.ID)
 	return resp, err
 }
 
 func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
-	params := map[string]interface{}{}
-
-	if this.RegisterType == "email" {
-		params = map[string]interface{}{
-			"_uuid":           this.Inst.Device.DeviceID,
-			"_uid":            this.Inst.ID,
-			"is_fb_installed": "false",
-		}
-	} else {
-		params = map[string]interface{}{
-			"is_fb_installed": false,
-		}
+	params := map[string]interface{}{
+		"_uuid":           this.Inst.Device.DeviceID,
+		"_uid":            this.Inst.ID,
+		"is_fb_installed": "false",
 	}
 
 	resp := &BaseApiResp{}
@@ -542,25 +537,14 @@ func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
 }
 
 func (this *Register) GetSteps() (*BaseApiResp, error) {
-	params := map[string]interface{}{}
-	if this.RegisterType == "email" {
-		params = map[string]interface{}{
-			"_uuid":                         this.Inst.Device.DeviceID,
-			"_uid":                          this.Inst.ID,
-			"device_id":                     this.Inst.Device.DeviceID,
-			"is_secondary_account_creation": "0",
-			"push_permission_requested":     "0",
-			"network_type":                  this.Inst.Device.NetWorkType + "-none",
-			"is_account_linking_flow":       "0",
-		}
-	} else {
-		params = map[string]interface{}{
-			"device_id":                     this.Inst.Device.DeviceID,
-			"is_secondary_account_creation": "0",
-			"push_permission_requested":     "0",
-			"network_type":                  this.Inst.Device.NetWorkType + "-none",
-			"is_account_linking_flow":       "0",
-		}
+	params := map[string]interface{}{
+		"_uuid":                         this.Inst.Device.DeviceID,
+		"_uid":                          this.Inst.ID,
+		"device_id":                     this.Inst.Device.DeviceID,
+		"is_secondary_account_creation": "0",
+		"push_permission_requested":     "0",
+		"network_type":                  this.Inst.Device.NetWorkType + "-none",
+		"is_account_linking_flow":       "0",
 	}
 
 	resp := &BaseApiResp{}
