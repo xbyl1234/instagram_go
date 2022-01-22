@@ -97,6 +97,7 @@ func RegisterByPhone() {
 		}
 
 		inst := goinsta.New("", "", _proxy)
+		inst.RegisterIpCountry = _proxy.Country
 		inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
@@ -233,7 +234,7 @@ func RegisterByEmail() {
 			Month:        fmt.Sprintf("%02d", common.GenNumber(1, 11)),
 			Day:          fmt.Sprintf("%02d", common.GenNumber(1, 27)),
 		}
-
+		inst.RegisterIpCountry = _proxy.Country
 		inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 		err = regisert.GetSignupConfig()
@@ -348,7 +349,7 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	config2.UseTruncation = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
