@@ -31,7 +31,7 @@
         "url_req_balance": "http://api.my531.com/Balance/",
         "token": "0d482a8e231831f2ebbc7f4bf05298321674d81e",
         "project_id": "10213",
-        "retry_timeout": 120,
+        "retry_timeout": 180,
         "retry_delay": 3,
         "provider": "taxin",
         "area": "+86",

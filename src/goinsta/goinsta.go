@@ -412,8 +412,8 @@ func (this *Instagram) AddressBookLink(addr []AddressBook) (*RespAddressBookLink
 		return nil, err
 	}
 
-	body := spew.Sprintf("contacts=%s&_uuid=%s&device_id=%s&phone_id=%s", addrJson,
-		this.Device.DeviceID, this.Device.DeviceID, this.Device.DeviceID)
+	body := common.InstagramQueryEscape(spew.Sprintf("contacts=%s&_uuid=%s&device_id=%s&phone_id=%s", addrJson,
+		this.Device.DeviceID, this.Device.DeviceID, this.Device.DeviceID))
 
 	resp := &RespAddressBookLink{}
 	err = this.HttpRequestJson(
