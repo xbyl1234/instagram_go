@@ -47,6 +47,7 @@ var (
 	SendStatusErr = "badstat"
 	SendReqErr    = "badreq"
 	SendNoDevice  = "nodevice"
+	SendOldStruct = "odlstruct"
 )
 
 func initParams() {
@@ -76,7 +77,12 @@ func Login(username string, password string) (*goinsta.Instagram, error) {
 	var err error
 
 	if routine.SetProxy(inst) {
-		inst.PrepareNewClient()
+		err = inst.PrepareNewClient()
+		if err != nil {
+			log.Warn("username: %s, init error: %v", inst.User, err.Error())
+			return inst, err
+		}
+
 		err = inst.Login()
 		if err != nil {
 			log.Warn("username: %s, login error: %v", inst.User, err.Error())
@@ -277,6 +283,12 @@ func send(inst *goinsta.Instagram) {
 			TestAccount <- inst
 		}
 		break
+	case SendOldStruct:
+		if inst.Device == nil && inst.Status != "" {
+			inst.CleanCookiesAndHeader()
+			inst.Device = goinsta.GenInstDeviceInfo()
+			TestAccount <- inst
+		}
 	case SendReqErr:
 		if strings.Index(inst.Status, "invalid character") != -1 {
 			inst.CleanCookiesAndHeader()

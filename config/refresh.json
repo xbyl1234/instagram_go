@@ -1,5 +1,5 @@
 {
-  "proxy_path": "./config/proxy_config_l.json",
+  "proxy_path": "./config/proxy_config_ios.json",
   "res_ico_path": "./data/girl_picture",
-  "coro": 5
+  "coro": 10
 }

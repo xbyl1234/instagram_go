@@ -109,6 +109,13 @@ type ProxyPoolt struct {
 }
 
 func (this *ProxyPoolt) Get(country string, id string) *Proxy {
+	if country == "" {
+		for key := range this.proxys {
+			country = key
+			break
+		}
+	}
+
 	p := this.proxys[country]
 	if p == nil {
 		return nil
@@ -117,6 +124,12 @@ func (this *ProxyPoolt) Get(country string, id string) *Proxy {
 }
 
 func (this *ProxyPoolt) GetNoRisk(country string, busy bool, used bool) *Proxy {
+	if country == "" {
+		for key := range this.proxys {
+			country = key
+			break
+		}
+	}
 	p := this.proxys[country]
 	if p == nil {
 		return nil

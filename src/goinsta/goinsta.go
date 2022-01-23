@@ -149,12 +149,16 @@ func (this *Instagram) GetHeader(key string) string {
 	return this.httpHeader[key]
 }
 
-func (this *Instagram) PrepareNewClient() {
+func (this *Instagram) PrepareNewClient() error {
 	_ = this.launcherSync()
 	_ = this.getNamePrefill()
-	_ = this.contactPrefill()
+	err := this.contactPrefill()
+	if err != nil {
+		return err
+	}
 	_ = this.qeSync()
 	_ = this.logAttribution()
+	return nil
 }
 
 func (this *Instagram) AfterLogin() {
