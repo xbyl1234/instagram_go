@@ -12,17 +12,17 @@ var TabRecent = "recent"
 var TabTop = "top"
 
 type Tags struct {
-	Inst          *Instagram
-	Name          string  `json:"name"`
-	Id            int64   `json:"id"`
-	MediaCount    int     `json:"media_count"`
-	ProfilePicUrl string  `json:"profile_pic_url"`
-	Session       string  `json:"session"`
-	Tab           string  `json:"tab"`
-	MoreAvailable bool    `json:"more_available"`
-	NextID        string  `json:"next_max_id"`
-	NextPage      int     `json:"next_page"`
-	NextMediaIds  []int64 `json:"next_media_ids"`
+	Inst          *Instagram `bson:"-"`
+	Name          string     `json:"name" bson:"name"`
+	Id            int64      `json:"id" bson:"id"`
+	MediaCount    int        `json:"media_count" bson:"media_count"`
+	ProfilePicUrl string     `json:"profile_pic_url" bson:"profile_pic_url"`
+	Session       string     `json:"session" bson:"session"`
+	Tab           string     `json:"tab" bson:"tab"`
+	MoreAvailable bool       `json:"more_available" bson:"more_available"`
+	NextID        string     `json:"next_max_id" bson:"next_id"`
+	NextPage      int        `json:"next_page" bson:"next_page"`
+	NextMediaIds  []int64    `json:"next_media_ids" bson:"next_media_ids"`
 }
 
 type RespHashtag struct {
@@ -108,7 +108,7 @@ func (this *RespHashtag) GetAllMedias() []*Item {
 	var index = 0
 	for item := buff.Front(); item != nil; item = item.Next() {
 		ret[index] = item.Value.(*Item)
-		ret[index].inst = this.inst
+		ret[index].Inst = this.inst
 		index++
 	}
 	return ret
@@ -151,7 +151,8 @@ func (this *Tags) Sync(tab string) error {
 
 	resp := &RespTagsInfo{}
 	err := this.Inst.HttpRequestJson(&reqOptions{
-		ApiPath: fmt.Sprintf(urlTagSync, this.Name),
+		ApiPath:        fmt.Sprintf(urlTagSync, this.Name),
+		HeaderSequence: LoginHeaderMap[urlTagSync],
 	}, resp)
 	err = resp.CheckError(err)
 	return err
@@ -165,7 +166,8 @@ func (this *Tags) Stories() (*StoryMedia, error) {
 	}
 
 	err := this.Inst.HttpRequestJson(&reqOptions{
-		ApiPath: fmt.Sprintf(urlTagStories, this.Name),
+		ApiPath:        fmt.Sprintf(urlTagStories, this.Name),
+		HeaderSequence: LoginHeaderMap[urlTagStories],
 	}, &resp)
 
 	err = resp.CheckError(err)
@@ -200,9 +202,10 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	ht := &RespHashtag{}
 	err := this.Inst.HttpRequestJson(
 		&reqOptions{
-			Query:   params,
-			ApiPath: fmt.Sprintf(urlTagSections, this.Name),
-			IsPost:  true,
+			Query:          params,
+			ApiPath:        fmt.Sprintf(urlTagSections, this.Name),
+			HeaderSequence: LoginHeaderMap[urlTagSections],
+			IsPost:         true,
 		}, ht,
 	)
 

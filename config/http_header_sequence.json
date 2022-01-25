@@ -87,6 +87,26 @@
       "md5": "8694acda239a3c2b805f39a5e0aea4df"
     },
     {
+      "path": "api/v1/tags/%s/story/",
+      "md5": "3da64e205bfc33be9032513e4a18579d"
+    },
+    {
+      "path": "api/v1/tags/%s/info/",
+      "md5": "3da64e205bfc33be9032513e4a18579d"
+    },
+    {
+      "path": "api/v1/tags/%s/sections/",
+      "md5": "dffb9265b5daf4248a5573b505256512"
+    },
+    {
+      "path": "api/v1/media/%s/comments/",
+      "md5": "3da64e205bfc33be9032513e4a18579d"
+    },
+    {
+      "path": "api/v1/tags/search/",
+      "md5": "3da64e205bfc33be9032513e4a18579d"
+    },
+    {
       "path": "api/v1/accounts/current_user/",
       "md5": "3242451c589194dece43ec596d94ff04"
     },
@@ -193,7 +213,8 @@
     {
       "path": "rupload_igphoto/",
       "md5": "1dbd0eb3101a245135e3e508cc5c8cab"
-    }, {
+    },
+    {
       "path": "api/v1/accounts/edit_profile/",
       "md5": "78a6a250ecc4a8ac7bb0fcfffe8037c9"
     }
@@ -248,12 +269,24 @@
       "header": "X-Ig-Connection-Speed,X-Ig-Eu-Configure-Disabled,Content-Length,X-Ig-Device-Id,X-Ig-App-Startup-Country,Ig-Intended-User-Id,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
     },
     {
+      "md5": "3da64e205bfc33be9032513e4a18579d",
+      "header": "Ig-Intended-User-Id,X-Ig-Connection-Speed,X-Ig-Device-Id,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,Ig-U-Ig-Direct-Region-Hint,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Family-Device-Id,Ig-U-Ds-User-Id,X-Ig-Abr-Connection-Speed-Kbps,Accept-Language,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Extended-Cdn-Thumbnail-Sizes,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
+    },
+    {
       "md5": "1dbd0eb3101a245135e3e508cc5c8cab",
       "header": "X-Ig-Connection-Type,Ig-Intended-User-Id,Media_hash,X-Entity-Name,X-Entity-Type,X-Ig-Device-Id,Content-Length,X-Ig-Timezone-Offset,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Family-Device-Id,Ig-U-Ds-User-Id,X_fb_photo_waterfall_id,Offset,Content-Type,X-Entity-Length,Accept-Language,User-Agent,X-Ig-Bandwidth-Speed-Kbps,Authorization,X-Mid,X-Ig-Www-Claim,X-Pigeon-Session-Id,X-Instagram-Rupload-Params,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
     },
     {
+      "md5": "dffb9265b5daf4248a5573b505256512",
+      "header": "X-Ig-Connection-Speed,Content-Length,X-Ig-Device-Id,Ig-Intended-User-Id,X-Pigeon-Session-Id,Ig-U-Ig-Direct-Region-Hint,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Extended-Cdn-Thumbnail-Sizes,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
+    },
+    {
       "md5": "2a377d49200c35086a914657106fd9e4",
       "header": "Cookie,X-Ig-Timezone-Offset,Ig-Intended-User-Id,X-Ig-Device-Id,X-Ig-Connection-Speed,Content-Length,X-Ig-Capabilities,X-Pigeon-Rawclienttime,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,X-Ig-Family-Device-Id,Accept-Language,User-Agent,Content-Type,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Pigeon-Session-Id,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
+    },
+    {
+      "md5": "78a6a250ecc4a8ac7bb0fcfffe8037c9",
+      "header": "X-Ig-Connection-Speed,X-Ig-Eu-Configure-Disabled,X-Ig-Device-Id,Content-Length,Ig-Intended-User-Id,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
     }
   ]
 }

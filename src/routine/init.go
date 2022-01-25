@@ -6,7 +6,6 @@ import (
 	"makemoney/common/proxy"
 	"makemoney/goinsta"
 	math_rand "math/rand"
-	"os"
 	"time"
 )
 
@@ -34,31 +33,39 @@ func InitRoutine(proxyPath string) {
 		log.Error("load const json error:%v", err)
 		panic(err)
 	}
-
-	intas := goinsta.LoadAllAccount()
-	if len(intas) == 0 {
-		log.Error("there have no account!")
-		os.Exit(0)
-	}
-	goinsta.InitAccountPool(intas)
-
-	log.Info("load account count: %d", goinsta.AccountPool.Available.Len())
 	goinsta.ProxyCallBack = ProxyCallBack
 	goinsta.InitGraph()
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
 func ReqAccount(block bool) (*goinsta.Instagram, error) {
-	inst := goinsta.AccountPool.GetOne(block)
-	if inst == nil {
-		return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more account"}
+	var reqAccount = func() (*goinsta.Instagram, error) {
+		inst := goinsta.AccountPool.GetOne(block)
+		if inst == nil {
+			return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more account"}
+		}
+		if !SetProxy(inst) {
+			return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more proxy"}
+		}
+
+		return inst, nil
 	}
 
-	if !SetProxy(inst) {
-		return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more proxy"}
+	for true {
+		inst, err := reqAccount()
+		if err != nil {
+			log.Warn("try require account error: %v", err)
+			if block {
+				time.Sleep(time.Second * 5)
+			} else {
+				return nil, err
+			}
+		} else {
+			log.Info("require account: %v", inst.User)
+			return inst, nil
+		}
 	}
-
-	return inst, nil
+	return nil, nil
 }
 
 func SetProxy(inst *goinsta.Instagram) bool {

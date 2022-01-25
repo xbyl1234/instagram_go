@@ -3,6 +3,7 @@ package goinsta
 import (
 	"fmt"
 	"makemoney/common"
+	"makemoney/common/log"
 	"net/http"
 	"strings"
 )
@@ -214,11 +215,16 @@ func InitInstagramConst() error {
 	var makeSeqMap = func(headerMap *map[string]*HeaderSequence, pahts []pathsMap) {
 		*headerMap = make(map[string]*HeaderSequence)
 		for _, path := range pahts {
+			find := false
 			for _, md5 := range ReqHeaderJson.Md5S {
 				if path.Md5 == md5.Md5 {
 					(*headerMap)[path.Path] = &md5.headerSeq
+					find = true
 					break
 				}
+			}
+			if !find {
+				log.Warn("not find header md5: %s", path.Md5)
 			}
 		}
 	}

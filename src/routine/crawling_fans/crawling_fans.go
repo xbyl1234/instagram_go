@@ -55,8 +55,8 @@ func CrawlingFans() {
 				if common.IsNoMoreError(err) {
 					log.Info("user %v fans comments has craw finish!", followes.User)
 					continue
-				} else if inst.NeedReplace() || common.IsError(err, common.RequestError) {
-					if inst.NeedReplace() {
+				} else if inst.IsBad() || common.IsError(err, common.RequestError) {
+					if inst.IsBad() {
 						goinsta.AccountPool.BlackOne(inst)
 						_inst, errAcc := routine.ReqAccount(false)
 						if errAcc != nil {

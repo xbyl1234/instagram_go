@@ -119,6 +119,9 @@ func InstRelogin(inst *goinsta.Instagram) *TestLoginResult {
 func RecvCleanAndLogin() {
 	index := 0
 	for result := range TestResult {
+		if result.err != nil {
+			result.inst.Status = result.err.Error()
+		}
 		TestResultList[index] = result
 		index++
 		goinsta.SaveInstToDB(result.inst)
@@ -284,7 +287,7 @@ func send(inst *goinsta.Instagram) {
 		}
 		break
 	case SendOldStruct:
-		if inst.Device == nil && inst.Status != "" {
+		if inst.ID == 0 && inst.Status == "" {
 			inst.CleanCookiesAndHeader()
 			inst.Device = goinsta.GenInstDeviceInfo()
 			TestAccount <- inst

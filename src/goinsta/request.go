@@ -26,10 +26,9 @@ type reqOptions struct {
 	Query          map[string]interface{}
 	Body           *bytes.Buffer
 	Header         map[string]string
-	HeaderSequence []string
+	HeaderSequence *HeaderSequence
 	DisAutoHeader  bool
 	RawApiPath     string
-	HeaderMD5      string
 }
 
 type BaseApiResp struct {
@@ -86,9 +85,9 @@ func SetHeader(req *http.Request, key string, vul string) {
 
 func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 	var seq *HeaderSequence
-
-	if reqOpt.HeaderMD5 == "" {
+	if reqOpt.HeaderSequence == nil {
 		var headerMap map[string]*HeaderSequence
+
 		if this.IsLogin {
 			headerMap = LoginHeaderMap
 		} else {
@@ -99,18 +98,17 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 			ApiPathKey = reqOpt.RawApiPath
 		}
 		seq = headerMap[ApiPathKey]
-	} else {
-		seq = HeaderMD5Map[reqOpt.HeaderMD5]
-	}
-
-	if config.IsDebug {
 		if seq == nil {
 			log.Error("api path: %s has no header map!", reqOpt.ApiPath)
 		}
+		req.HeaderSequence = seq.HeaderSeq
+		req.OnlySequence = true
+	} else {
+		seq = reqOpt.HeaderSequence
+		req.HeaderSequence = reqOpt.HeaderSequence.HeaderSeq
+		req.OnlySequence = true
 	}
 
-	req.HeaderSequence = seq.HeaderSeq
-	req.OnlySequence = true
 	for _, fun := range seq.HeaderFun {
 		fun(this, reqOpt, req)
 	}

@@ -28,6 +28,37 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 	index := 0
 	for _, item := range header {
 		switch item {
+		case "Ig-U-Rur":
+		case "Ig-U-Ds-User-Id":
+		case "X-Mid":
+		case "Authorization":
+		case "Ig-U-Ig-Direct-Region-Hint":
+			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+				value := inst.GetHeader(item)
+				req.Header.Set(item, value)
+				if value == "" {
+					log.Warn("user: %s ignore header %s", inst.User, item)
+				}
+			}
+			index++
+			break
+		case "X-Ig-Www-Claim":
+			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+				claim := inst.GetHeader("X-Ig-Www-Claim")
+				if claim == "" {
+					claim = "0"
+				}
+				req.Header.Set("X-Ig-Www-Claim", claim)
+			}
+			index++
+			break
+		case "Authorization-Others":
+			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+				req.Header.Set("Authorization-Others", "")
+			}
+			index++
+			break
+
 		case "X-Entity-Length":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 			}
@@ -45,12 +76,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "X-Mid":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Mid", inst.GetHeader("X-Mid"))
-			}
-			index++
-			break
+
 		case "X-Ig-Eu-Configure-Disabled":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Ig-Eu-Configure-Disabled", "true")
@@ -63,17 +89,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "Ig-U-Ds-User-Id":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				userID := inst.GetHeader("Ig-U-Ds-User-Id")
-				if userID != "" {
-					req.Header.Set("Ig-U-Ds-User-Id", userID)
-				} else {
-					log.Warn("user: %s ignore header Ig-U-Ds-User-Id", inst.User)
-				}
-			}
-			index++
-			break
+
 		case "X-Pigeon-Session-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Pigeon-Session-Id", inst.sessionID)
@@ -86,17 +102,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "Ig-U-Rur":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				rur := inst.GetHeader("Ig-U-Rur")
-				if rur != "" {
-					req.Header.Set("Ig-U-Rur", rur)
-				} else {
-					log.Warn("user: %s ignore header Ig-U-Rur", inst.User)
-				}
-			}
-			index++
-			break
+
 		case "X-Ig-Connection-Speed":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Ig-Connection-Speed", InstagramReqSpeed[common.GenNumber(0, len(InstagramReqSpeed))])
@@ -188,34 +194,14 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-		case "Authorization-Others":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("Authorization-Others", "")
-			}
-			index++
-			break
-		case "Authorization":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("Authorization", inst.GetHeader("Authorization"))
-			}
-			index++
-			break
+
 		case "X-Ig-Device-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Ig-Device-Locale", inst.Device.AppLocale)
 			}
 			index++
 			break
-		case "X-Ig-Www-Claim":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				claim := inst.GetHeader("X-Ig-Www-Claim")
-				if claim == "" {
-					claim = "0"
-				}
-				req.Header.Set("X-Ig-Www-Claim", claim)
-			}
-			index++
-			break
+
 		case "X-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Device-Id", inst.Device.DeviceID)

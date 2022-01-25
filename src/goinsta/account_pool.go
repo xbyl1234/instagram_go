@@ -45,10 +45,13 @@ func InitAccountPool(accounts []*Instagram) {
 		AccountPool.checkTimer = time.NewTicker(time.Second * 10)
 		go CheckAccount()
 	}
+
+	log.Info("init account pool available count: %d, bad account :%d",
+		AccountPool.Available.Len(), AccountPool.notAvailable.Len())
 }
 
 func CheckAccount() {
-	for _ = range AccountPool.checkTimer.C {
+	for range AccountPool.checkTimer.C {
 		AccountPool.coolingLock.Lock()
 		for item := AccountPool.Cooling.Front(); item != nil; item = item.Next() {
 			inst := item.Value.(*Instagram)
@@ -100,8 +103,12 @@ func (this *AccountPoolt) GetOne(block bool) *Instagram {
 func (this *AccountPoolt) ReleaseOne(insta *Instagram) {
 	this.avalLock.Lock()
 	defer this.avalLock.Unlock()
-
-	this.Available.PushBack(insta)
+	if insta.IsBad() {
+		this.notAvailable.PushBack(insta)
+	} else {
+		this.Available.PushBack(insta)
+	}
+	SaveInstToDB(insta)
 }
 
 func (this *AccountPoolt) CoolingOne(inst *Instagram) {

@@ -128,14 +128,12 @@ func (this *Instagram) SetProxy(_proxy *proxy.Proxy) {
 	common.DebugHttpClient(this.c)
 }
 
-func (this *Instagram) NeedReplace() bool {
-	if this.Status == InsAccountError_ChallengeRequired {
+func (this *Instagram) IsBad() bool {
+	if this.Status == InsAccountError_ChallengeRequired ||
+		this.Status == InsAccountError_Feedback ||
+		this.Status == InsAccountError_LoginRequired {
 		return true
 	}
-
-	//if this.ReqContError >= 3 {
-	//	return true
-	//}
 	return false
 }
 
@@ -422,11 +420,11 @@ func (this *Instagram) AddressBookLink(addr []AddressBook) (*RespAddressBookLink
 	resp := &RespAddressBookLink{}
 	err = this.HttpRequestJson(
 		&reqOptions{
-			ApiPath:   urlAddressBookLink + "?include=extra_display_name,thumbnails",
-			IsPost:    true,
-			Signed:    false,
-			HeaderMD5: "7fb66bcdd20c45244a01784da5c68d2e",
-			Body:      bytes.NewBuffer([]byte(body)),
+			ApiPath:        urlAddressBookLink + "?include=extra_display_name,thumbnails",
+			IsPost:         true,
+			Signed:         false,
+			HeaderSequence: LoginHeaderMap[urlAddressBookLink],
+			Body:           bytes.NewBuffer([]byte(body)),
 		}, resp)
 
 	err = resp.CheckError(err)

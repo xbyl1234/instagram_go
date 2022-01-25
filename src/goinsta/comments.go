@@ -7,15 +7,16 @@ import (
 )
 
 type Comments struct {
-	media   *Item
-	Inst    *Instagram
-	MediaID string `json:"media_id"`
+	media *Item      `bson:"-"`
+	Inst  *Instagram `bson:"-"`
+
+	MediaID string `json:"media_id" bson:"media_id"`
 	//Next    struct {
 	//	CachedCommentsCursor string `json:"cached_comments_cursor"`
 	//	BifilterToken        string `json:"bifilter_token"`
 	//} `json:"next"`
-	Next    string `json:"next"`
-	HasMore bool   `json:"has_more"`
+	Next    string `json:"next" bson:"next"`
+	HasMore bool   `json:"has_more" bson:"has_more"`
 }
 
 func (this *Comments) SetAccount(inst *Instagram) {
@@ -62,9 +63,10 @@ func (this *Comments) NextComments() (*RespComments, error) {
 
 	ret := &RespComments{}
 	err := this.Inst.HttpRequestJson(&reqOptions{
-		IsPost:  false,
-		ApiPath: fmt.Sprintf(urlComment, this.MediaID),
-		Query:   params,
+		IsPost:         false,
+		ApiPath:        fmt.Sprintf(urlComment, this.MediaID),
+		HeaderSequence: LoginHeaderMap[urlComment],
+		Query:          params,
 	}, ret)
 
 	err = ret.CheckError(err)

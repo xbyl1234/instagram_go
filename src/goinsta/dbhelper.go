@@ -107,6 +107,7 @@ type AccountCookies struct {
 	RegisterTime        int64             `json:"register_time" bson:"register_time"`
 	Status              string            `json:"status" bson:"status"`
 	LastSendMsgTime     int               `json:"last_send_msg_time" bson:"last_send_msg_time"`
+	Tag                 string            `json:"tag" bson:"tag"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -116,6 +117,19 @@ func SaveNewAccount(account AccountCookies) error {
 		bson.M{"$set": account},
 		options.Update().SetUpsert(true))
 	return err
+}
+
+func LoadDBAccountByTags(tag string) ([]AccountCookies, error) {
+	cursor, err := MogoHelper.Account.Find(context.TODO(), bson.M{"tags": tag}, nil)
+	if err != nil {
+		return nil, err
+	}
+	var ret []AccountCookies
+	err = cursor.All(context.TODO(), &ret)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func LoadDBAllAccount() ([]AccountCookies, error) {
@@ -213,6 +227,23 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	common.DebugHttpClient(inst.c)
 
 	return inst, nil
+}
+
+func LoadAccountByTags(tag string) []*Instagram {
+	config, err := LoadDBAccountByTags(tag)
+	if err != nil {
+		return nil
+	}
+	var ret []*Instagram
+	for item := range config {
+		inst, err := ConvConfig(&config[item])
+		if err != nil {
+			log.Warn("conv config to inst error:%v", err)
+			continue
+		}
+		ret = append(ret, inst)
+	}
+	return ret
 }
 
 func LoadAllAccount() []*Instagram {

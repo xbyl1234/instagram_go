@@ -56,7 +56,7 @@ func SaveTags(tags *goinsta.Tags) error {
 }
 
 func LoadTags() ([]goinsta.Tags, error) {
-	cursor, err := CrawTagsTagColl.Find(context.TODO(), bson.M{"moreavailable": true}, nil)
+	cursor, err := CrawTagsTagColl.Find(context.TODO(), bson.M{"more_available": true}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -126,15 +126,15 @@ func SaveComments(mediaComb *MediaComb) error {
 
 func LoadMedia(limit int) ([]MediaComb, error) {
 	cursor, err := CrawTagsMediaColl.Find(context.TODO(),
-		bson.D{{"$or", []bson.M{bson.M{"comments": nil},
-			bson.M{"comments": bson.M{"hasmore": true}}}},
-			{"media.commentcount", bson.M{"$gt": 0}}},
+		bson.D{{"$or", []bson.M{{"comments": nil},
+			{"comments": bson.M{"has_more": true}}}},
+			{"media.comment_count", bson.M{"$gt": 0}}},
 		nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []MediaComb = make([]MediaComb, limit)
+	var result = make([]MediaComb, limit)
 	index := 0
 	for cursor.Next(context.TODO()) && index < limit {
 		err = cursor.Decode(&result[index])
@@ -206,8 +206,8 @@ func LoadUser(source string, sendTaskName string, limit int) ([]UserComb, error)
 
 func LoadFansTargetUser(limit int) ([]UserComb, error) {
 	cursor, err := CrawFansTargetUserColl.Find(context.TODO(),
-		bson.D{{"$or", []bson.M{bson.M{"followes": nil},
-			bson.M{"followes": bson.M{"hasmore": true}}}}})
+		bson.D{{"$or", []bson.M{{"followes": nil},
+			{"followes": bson.M{"has_more": true}}}}})
 	if err != nil {
 		return nil, err
 	}

@@ -14,13 +14,13 @@ var (
 )
 
 type Search struct {
-	Inst *Instagram
+	Inst *Instagram `bson:"-"`
 
-	Q         string     `json:"q"`
-	RankToken string     `json:"rank_token"`
-	PageToken string     `json:"page_token"`
-	HasMore   bool       `json:"has_more"`
-	Type      SearchType `json:"type"`
+	Q         string     `json:"q" bson:"q"`
+	RankToken string     `json:"rank_token" bson:"rank_token"`
+	PageToken string     `json:"page_token" bson:"page_token"`
+	HasMore   bool       `json:"has_more" bson:"has_more"`
+	Type      SearchType `json:"type" bson:"type"`
 }
 
 func newSearch(inst *Instagram, q string) *Search {
