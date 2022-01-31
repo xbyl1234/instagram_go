@@ -18,11 +18,12 @@ type AccountPoolt struct {
 	checkTimer   *time.Ticker
 }
 
-var AccountPool AccountPoolt
+var AccountPool *AccountPoolt
 
-var CallBackCheckAccount func(inst *Instagram) bool
+var CallBackCheckAccount func(inst *Instagram) bool = nil
 
 func InitAccountPool(accounts []*Instagram) {
+	AccountPool = &AccountPoolt{}
 	AccountPool.Cooling = list.New()
 	AccountPool.Available = list.New()
 	AccountPool.notAvailable = list.New()
@@ -90,14 +91,6 @@ func (this *AccountPoolt) GetOneNoWait() *Instagram {
 	}
 	this.Available.Remove(ret)
 	return ret.Value.(*Instagram)
-}
-
-func (this *AccountPoolt) GetOne(block bool) *Instagram {
-	if block {
-		return this.GetOneBlock()
-	} else {
-		return this.GetOneNoWait()
-	}
 }
 
 func (this *AccountPoolt) ReleaseOne(insta *Instagram) {

@@ -11,6 +11,7 @@ import (
 	neturl "net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -21,6 +22,18 @@ var (
 )
 
 var ProxyCallBack func(country string, id string) (*proxy.Proxy, error)
+
+type Operation struct {
+	OperName string    `json:"oper_name"`
+	NextTime time.Time `json:"next_time"`
+}
+
+type OperationLog struct {
+	OperName  string    `json:"oper_name"`
+	StartTime time.Time `json:"start_time"`
+	EndTime   time.Time `json:"end_time"`
+	Count     int       `json:"count"`
+}
 
 type Instagram struct {
 	User                string
@@ -48,6 +61,7 @@ type Instagram struct {
 	c                   *http.Client
 	graph               *Graph
 	account             *Account
+	SpeedControl        map[string]*SpeedControl
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -84,7 +98,6 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	inst.Device = GenInstDeviceInfo()
 	inst.graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
-
 	common.DebugHttpClient(inst.c)
 	return inst
 }

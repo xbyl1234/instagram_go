@@ -33,14 +33,20 @@ func InitRoutine(proxyPath string) {
 		log.Error("load const json error:%v", err)
 		panic(err)
 	}
+	err = goinsta.InitSpeedControl("./config/speed_control.json")
+	if err != nil {
+		log.Error("load Speed Control error: %v", err)
+		panic(err)
+	}
+
 	goinsta.ProxyCallBack = ProxyCallBack
 	goinsta.InitGraph()
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
-func ReqAccount(block bool) (*goinsta.Instagram, error) {
+func ReqAccount(accountTags string, block bool) (*goinsta.Instagram, error) {
 	var reqAccount = func() (*goinsta.Instagram, error) {
-		inst := goinsta.AccountPool.GetOne(block)
+		inst := goinsta.AccountPool.GetOneNoWait()
 		if inst == nil {
 			return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more account"}
 		}
@@ -50,6 +56,18 @@ func ReqAccount(block bool) (*goinsta.Instagram, error) {
 
 		return inst, nil
 	}
+	var reLoadAccount = func(accountTags string) {
+		intas := goinsta.LoadAccountByTags(accountTags)
+		if len(intas) == 0 {
+			log.Warn("there have no account!")
+		} else {
+			goinsta.InitAccountPool(intas)
+		}
+	}
+
+	if goinsta.AccountPool == nil {
+		reLoadAccount(accountTags)
+	}
 
 	for true {
 		inst, err := reqAccount()
@@ -57,6 +75,7 @@ func ReqAccount(block bool) (*goinsta.Instagram, error) {
 			log.Warn("try require account error: %v", err)
 			if block {
 				time.Sleep(time.Second * 5)
+				reLoadAccount(accountTags)
 			} else {
 				return nil, err
 			}

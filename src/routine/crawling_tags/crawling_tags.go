@@ -17,6 +17,7 @@ import (
 )
 
 type CrawConfig struct {
+	AccountPoolTags            string `json:"account_pool_tags"`
 	TaskName                   string `json:"task_name"`
 	SearchTag                  string `json:"search_tag"`
 	StartTime                  string `json:"start_time"`
@@ -63,7 +64,7 @@ func CrawTags() {
 	var err error
 
 	var RequireAccount = func(search *goinsta.Search) *goinsta.Search {
-		inst, err := routine.ReqAccount(true)
+		inst, err := routine.ReqAccount(config.AccountPoolTags, true)
 		if err != nil {
 			log.Error("CrawTags req account error: %v!", err)
 			return nil
@@ -147,7 +148,7 @@ func CrawMedias() {
 	defer WaitAll.Done()
 	var currAccount *goinsta.Instagram
 	var SetNewAccount = func(tag *goinsta.Tags) {
-		inst, err := routine.ReqAccount(true)
+		inst, err := routine.ReqAccount(config.AccountPoolTags, true)
 		if err != nil {
 			log.Error("CrawMedias req account error: %v", err)
 			return
@@ -279,6 +280,8 @@ func SendTags() {
 	close(TagsChan)
 }
 
+//816
+//1320
 func CrawCommentUser() {
 	defer WaitAll.Done()
 	var currAccount *goinsta.Instagram
@@ -301,7 +304,7 @@ func CrawCommentUser() {
 				goinsta.AccountPool.ReleaseOne(currAccount)
 			}
 
-			inst, err := routine.ReqAccount(true)
+			inst, err := routine.ReqAccount(config.AccountPoolTags, true)
 			if err != nil {
 				log.Error("CrawCommentUser req account error: %v!", err)
 			}
@@ -375,9 +378,6 @@ func CrawCommentUser() {
 				break
 			}
 		}
-		//if mediaComb.Media.Inst != nil {
-		//	goinsta.AccountPool.ReleaseOne(mediaComb.Media.Inst)
-		//}
 	}
 }
 
@@ -439,7 +439,10 @@ func initParams() {
 	if config.StartTime == "" {
 		config.StartTime = time.Now().Format("2006-01-02")
 	}
-
+	if config.AccountPoolTags == "" {
+		log.Error("parse AccountPoolTags is null")
+		os.Exit(0)
+	}
 	//if config.MediaCoroCount == 0 {
 	//	config.MediaCoroCount = runtime.NumCPU()
 	//}
@@ -471,13 +474,6 @@ func main() {
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitCrawTagsDB(config.TaskName)
-
-	intas := goinsta.LoadAccountByTags("craw_tags")
-	if len(intas) == 0 {
-		log.Error("there have no account!")
-		os.Exit(0)
-	}
-	goinsta.InitAccountPool(intas)
 
 	LoadTags()
 	CrawTags()
