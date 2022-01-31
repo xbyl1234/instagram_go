@@ -1,15 +1,1 @@
-{
-  "task_name": "game_craw",
-  "search_tag": "game",
-  "start_time": "2021-12-08",
-  "last_time": "2021-01-30",
-  "media_coro_count": 1,
-  "comment_coro_count": 1,
-  "proxy_path": "./config/proxy_config_ios.json",
-  "config_path": "./test_craw",
-  "craw_tags_status": false,
-  "craw_medias_status": false,
-  "craw_comment_user_status": false,
-  "craw_media_max_request_count": 9999,
-  "craw_comment_max_request_count": 9999
-}
+{"task_name":"game_craw","search_tag":"game","start_time":"2021-12-08","last_time":"2021-01-30","media_coro_count":0,"comment_coro_count":1,"proxy_path":"./config/proxy_config_ios.json","config_path":"./test_craw","craw_tags_status":false,"craw_medias_status":false,"craw_comment_user_status":false,"craw_media_max_request_count":9999,"craw_comment_max_request_count":9999}

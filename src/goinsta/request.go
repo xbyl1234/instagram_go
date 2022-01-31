@@ -116,7 +116,7 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 	if config.IsDebug {
 		for _, header := range seq.HeaderSeq {
 			if req.Header.Get(header) == "" && header != "Content-Length" {
-				log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
+				//log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
 			}
 		}
 	}
@@ -143,7 +143,7 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 		if header != "" {
 			this.httpHeader[header] = value
 			if config.IsDebug {
-				log.Info("account: %s set header %s = %s", this.User, header, value)
+				//log.Info("account: %s set header %s = %s", this.User, header, value)
 			}
 		}
 	}

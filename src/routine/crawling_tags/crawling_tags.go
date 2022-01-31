@@ -10,7 +10,6 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -142,6 +141,8 @@ func CrawTags() {
 	}
 }
 
+//830
+//847
 func CrawMedias() {
 	defer WaitAll.Done()
 	var currAccount *goinsta.Instagram
@@ -194,6 +195,7 @@ func CrawMedias() {
 			reqCount = RequireAccount(tag, reqCount)
 			reqCount++
 			tagResult, err := tag.Next()
+			log.Info("account %s req count %d status %s", currAccount.User, reqCount, currAccount.Status)
 			if err != nil {
 				if common.IsNoMoreError(err) {
 					num := atomic.AddInt32(&NotFinishTags, -1)
@@ -282,13 +284,7 @@ func CrawCommentUser() {
 	var currAccount *goinsta.Instagram
 	reqCount := 0
 
-	var SetNewAccount = func(mediaComb *routine.MediaComb) {
-		inst, err := routine.ReqAccount(true)
-		if err != nil {
-			log.Error("CrawCommentUser req account error: %v!", err)
-			return
-		}
-		currAccount = inst
+	var SetNewAccount = func(mediaComb *routine.MediaComb, inst *goinsta.Instagram) {
 		mediaComb.Media.SetAccount(inst)
 		if mediaComb.Comments == nil {
 			mediaComb.Comments = mediaComb.Media.GetComments()
@@ -298,20 +294,25 @@ func CrawCommentUser() {
 	}
 
 	var RequireAccont = func(mediaComb *routine.MediaComb, reqCount int) int {
-		if mediaComb.Media.Inst == nil {
-			SetNewAccount(mediaComb)
-			log.Info("CrawCommentUser set account %s", mediaComb.Media.Inst.User)
+		if reqCount > config.CrawCommentMaxRequestCount || currAccount == nil || currAccount.IsBad() {
+			var oldUser string
+			if currAccount != nil {
+				oldUser = currAccount.User
+				goinsta.AccountPool.ReleaseOne(currAccount)
+			}
+
+			inst, err := routine.ReqAccount(true)
+			if err != nil {
+				log.Error("CrawCommentUser req account error: %v!", err)
+			}
+			currAccount = inst
+
+			SetNewAccount(mediaComb, currAccount)
+			log.Warn("CrawCommentUser replace account to %s->%s", oldUser, currAccount.User)
 			return 0
 		} else {
-			if reqCount > config.CrawCommentMaxRequestCount || mediaComb.Media.Inst.IsBad() {
-				oldUser := mediaComb.Media.Inst.User
-				goinsta.AccountPool.ReleaseOne(mediaComb.Media.Inst)
-				SetNewAccount(mediaComb)
-				log.Warn("CrawCommentUser replace account to %s->%s", oldUser, mediaComb.Media.Inst.User)
-				return 0
-			} else {
-				return reqCount
-			}
+			SetNewAccount(mediaComb, currAccount)
+			return reqCount
 		}
 	}
 
@@ -330,8 +331,8 @@ func CrawCommentUser() {
 		for true {
 			reqCount = RequireAccont(mediaComb, reqCount)
 			reqCount++
-
 			respComm, err := mediaComb.Comments.NextComments()
+			log.Info("account %s req count %d status %s", currAccount.User, reqCount, currAccount.Status)
 			if err != nil {
 				if common.IsNoMoreError(err) {
 					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
@@ -374,6 +375,9 @@ func CrawCommentUser() {
 				break
 			}
 		}
+		//if mediaComb.Media.Inst != nil {
+		//	goinsta.AccountPool.ReleaseOne(mediaComb.Media.Inst)
+		//}
 	}
 }
 
@@ -436,12 +440,12 @@ func initParams() {
 		config.StartTime = time.Now().Format("2006-01-02")
 	}
 
-	if config.MediaCoroCount == 0 {
-		config.MediaCoroCount = runtime.NumCPU()
-	}
-	if config.CommentCoroCount == 0 {
-		config.CommentCoroCount = runtime.NumCPU() * 2
-	}
+	//if config.MediaCoroCount == 0 {
+	//	config.MediaCoroCount = runtime.NumCPU()
+	//}
+	//if config.CommentCoroCount == 0 {
+	//	config.CommentCoroCount = runtime.NumCPU() * 2
+	//}
 
 	WorkPath, _ = os.Getwd()
 	if config.WorkPath == "" {

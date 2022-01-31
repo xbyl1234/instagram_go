@@ -26,21 +26,32 @@ var (
 func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 	ret := make([]AutoSetHeaderFun, len(header))
 	index := 0
+	var serverHeader = func(key string) {
+		ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+			value := inst.GetHeader(key)
+			req.Header.Set(key, value)
+			if value == "" {
+				log.Warn("user: %s ignore header %s", inst.User, key)
+			}
+		}
+		index++
+	}
 	for _, item := range header {
 		switch item {
 		case "Ig-U-Rur":
+			serverHeader(item)
+			break
 		case "Ig-U-Ds-User-Id":
+			serverHeader(item)
+			break
 		case "X-Mid":
+			serverHeader(item)
+			break
 		case "Authorization":
+			serverHeader(item)
+			break
 		case "Ig-U-Ig-Direct-Region-Hint":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				value := inst.GetHeader(item)
-				req.Header.Set(item, value)
-				if value == "" {
-					log.Warn("user: %s ignore header %s", inst.User, item)
-				}
-			}
-			index++
+			serverHeader(item)
 			break
 		case "X-Ig-Www-Claim":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {

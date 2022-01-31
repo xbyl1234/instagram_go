@@ -40,14 +40,15 @@ var (
 	TaskTestAccount = "test"
 )
 var (
-	SendAll       = "all"
-	SendGood      = "good"
-	SendBad       = "bad"
-	SendNoLogin   = "nologin"
-	SendStatusErr = "badstat"
-	SendReqErr    = "badreq"
-	SendNoDevice  = "nodevice"
-	SendOldStruct = "odlstruct"
+	SendAll          = "all"
+	SendGood         = "good"
+	SendBad          = "bad"
+	SendNoLogin      = "nologin"
+	SendStatusErr    = "badstat"
+	SendReqErr       = "badreq"
+	SendNoDevice     = "nodevice"
+	SendOldStruct    = "odlstruct"
+	SendTagsCrawTags = "craw_tags"
 )
 
 func initParams() {
@@ -297,7 +298,13 @@ func send(inst *goinsta.Instagram) {
 			inst.CleanCookiesAndHeader()
 			TestAccount <- inst
 		}
-		break
+		//case SendTagsCrawTags:
+		//
+		//	if  inst. == "" {
+		//
+		//	}
+		//	"craw_tags"
+		//	break
 	}
 }
 
@@ -370,7 +377,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	insts := goinsta.LoadAllAccount()
+	//insts := goinsta.LoadAllAccount()
+	insts := goinsta.LoadAccountByTags("craw_tags")
 	if len(insts) == 0 {
 		log.Error("there have no account!")
 		os.Exit(0)
