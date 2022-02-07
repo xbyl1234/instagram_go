@@ -2,6 +2,7 @@ package goinsta
 
 import (
 	"makemoney/common"
+	"makemoney/common/log"
 	"sync"
 	"time"
 )
@@ -18,7 +19,7 @@ type SpeedControlJson struct {
 	SpeedControl []SpeedControlConfig `json:"speed_control"`
 }
 
-var SpeedControlConfigMap map[string]SpeedControlConfig
+var SpeedControlConfigMap map[string]*SpeedControlConfig
 
 func InitSpeedControl(path string) error {
 	var config SpeedControlJson
@@ -26,9 +27,9 @@ func InitSpeedControl(path string) error {
 	if err != nil || len(config.SpeedControl) == 0 {
 		return err
 	}
-	SpeedControlConfigMap = make(map[string]SpeedControlConfig)
+	SpeedControlConfigMap = make(map[string]*SpeedControlConfig)
 	for _, item := range config.SpeedControl {
-		SpeedControlConfigMap[item.OperName] = item
+		SpeedControlConfigMap[item.OperName] = &item
 	}
 	return nil
 }
@@ -41,18 +42,21 @@ type LimitRate struct {
 	Lock     sync.Mutex    `db:"-"`
 }
 
-func (this *LimitRate) Limit(block bool) bool {
-	result := true
+func (this *LimitRate) Increase() int {
+	this.Count++
+	return this.Count
+}
+
+func (this *LimitRate) IsLimit(block bool) bool {
+	result := false
 	this.Lock.Lock()
-	if this.Count == this.Rate {
+	if this.Count >= this.Rate {
 		if time.Now().Sub(this.Begin) >= this.Interval {
 			this.Begin = time.Now()
 			this.Count = 0
 		} else {
-			result = false
+			result = true
 		}
-	} else {
-		this.Count++
 	}
 	this.Lock.Unlock()
 	return result
@@ -65,32 +69,59 @@ type SpeedControl struct {
 	EachDay    LimitRate `db:"each_day"`
 }
 
-func (this *SpeedControl) TestSpeed() bool {
+func (this *SpeedControl) Increase() (int, int, int, int) {
+	return this.EachSecond.Increase(),
+		this.EachMinute.Increase(),
+		this.EachHour.Increase(),
+		this.EachDay.Increase()
+
+}
+
+func (this *SpeedControl) GetSpeed() (int, int, int, int) {
+	return this.EachSecond.Count,
+		this.EachMinute.Count,
+		this.EachHour.Count,
+		this.EachDay.Count
+}
+
+func (this *SpeedControl) IsSpeedLimit() bool {
+	var ret = false
 	if this.EachSecond.Rate != 0 {
-		if this.EachSecond.Limit(true) {
-			return false
+		if this.EachSecond.IsLimit(true) {
+			ret = true
 		}
 	}
 	if this.EachMinute.Rate != 0 {
-		if this.EachMinute.Limit(false) {
-			return false
+		if this.EachMinute.IsLimit(false) {
+			ret = true
 		}
 	}
 	if this.EachHour.Rate != 0 {
-		if this.EachHour.Limit(false) {
-			return false
+		if this.EachHour.IsLimit(false) {
+			ret = true
 		}
 	}
 	if this.EachDay.Rate != 0 {
-		if this.EachDay.Limit(false) {
-			return false
+		if this.EachDay.IsLimit(false) {
+			ret = true
 		}
 	}
-	return true
+	return ret
 }
 
 func GetSpeedControl(OperName string) *SpeedControl {
 	config := SpeedControlConfigMap[OperName]
+	if config == nil {
+		log.Warn("not find %s speed control,set no limit", OperName)
+		config = &SpeedControlConfig{
+			OperName:   OperName,
+			EachSecond: 0,
+			EachMinute: 0,
+			EachHour:   0,
+			EachDay:    0,
+		}
+	}
+
 	ret := &SpeedControl{
 		EachSecond: LimitRate{
 			Rate:     config.EachSecond,
@@ -118,8 +149,23 @@ func GetSpeedControl(OperName string) *SpeedControl {
 
 func ReSetRate(sp *SpeedControl, OperName string) {
 	config := SpeedControlConfigMap[OperName]
+	if config == nil {
+		log.Warn("not find %s speed control,set no limit", OperName)
+		config = &SpeedControlConfig{
+			OperName:   OperName,
+			EachSecond: 0,
+			EachMinute: 0,
+			EachHour:   0,
+			EachDay:    0,
+		}
+	}
 	sp.EachSecond.Rate = config.EachSecond
 	sp.EachMinute.Rate = config.EachMinute
 	sp.EachHour.Rate = config.EachHour
 	sp.EachDay.Rate = config.EachDay
+
+	sp.EachSecond.IsLimit(false)
+	sp.EachMinute.IsLimit(false)
+	sp.EachHour.IsLimit(false)
+	sp.EachDay.IsLimit(false)
 }

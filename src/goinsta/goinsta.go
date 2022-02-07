@@ -98,6 +98,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	inst.Device = GenInstDeviceInfo()
 	inst.graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
+	inst.SpeedControl = make(map[string]*SpeedControl)
 	common.DebugHttpClient(inst.c)
 	return inst
 }
@@ -148,6 +149,29 @@ func (this *Instagram) IsBad() bool {
 		return true
 	}
 	return false
+}
+func (this *Instagram) InitSpeedControl(OperName string) *SpeedControl {
+	sc := this.SpeedControl[OperName]
+	if sc == nil {
+		sc = GetSpeedControl(OperName)
+		this.SpeedControl[OperName] = sc
+	}
+	return sc
+}
+
+func (this *Instagram) IsSpeedLimit(OperName string) bool {
+	sc := this.InitSpeedControl(OperName)
+	return sc.IsSpeedLimit()
+}
+
+func (this *Instagram) Increase(OperName string) (int, int, int, int) {
+	sc := this.InitSpeedControl(OperName)
+	return sc.Increase()
+}
+
+func (this *Instagram) GetSpeed(OperName string) (int, int, int, int) {
+	sc := this.InitSpeedControl(OperName)
+	return sc.GetSpeed()
 }
 
 func (this *Instagram) CleanCookiesAndHeader() {

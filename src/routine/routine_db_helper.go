@@ -77,15 +77,13 @@ func SaveSearch(search *goinsta.Search) error {
 	return nil
 }
 
-func LoadSearch() (*goinsta.Search, error) {
+func LoadSearch() ([]*goinsta.Search, error) {
 	cursor, err := CrawTagsSearchColl.Find(context.TODO(), bson.M{}, nil)
 	if err != nil {
 		return nil, err
 	}
-	var search *goinsta.Search
-	if cursor.Next(context.TODO()) {
-		err = cursor.Decode(&search)
-	}
+	var search []*goinsta.Search
+	cursor.All(context.TODO(), &search)
 	_ = cursor.Close(context.TODO())
 	return search, err
 }

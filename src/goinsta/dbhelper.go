@@ -90,24 +90,25 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 }
 
 type AccountCookies struct {
-	ID                  int64             `json:"id" bson:"id"`
-	Username            string            `json:"username" bson:"username"`
-	Passwd              string            `json:"passwd" bson:"passwd"`
-	HttpHeader          map[string]string `json:"http_header" bson:"http_header"`
-	ProxyID             string            `json:"proxy_id" bson:"proxy_id"`
-	IsLogin             bool              `json:"is_login" bson:"is_login"`
-	Token               string            `json:"token" bson:"token"`
-	Cookies             []*http.Cookie    `json:"cookies" bson:"cookies"`
-	CookiesB            []*http.Cookie    `json:"cookies_b" bson:"cookies_b"`
-	Device              *InstDeviceInfo   `json:"device" bson:"device"`
-	RegisterEmail       string            `json:"register_email" bson:"register_email"`
-	RegisterPhoneNumber string            `json:"register_phone_number" bson:"register_phone_number"`
-	RegisterPhoneArea   string            `json:"register_phone_area" bson:"register_phone_area"`
-	RegisterIpCountry   string            `json:"register_ip_country" bson:"register_ip_country"`
-	RegisterTime        int64             `json:"register_time" bson:"register_time"`
-	Status              string            `json:"status" bson:"status"`
-	LastSendMsgTime     int               `json:"last_send_msg_time" bson:"last_send_msg_time"`
-	Tag                 string            `json:"tag" bson:"tag"`
+	ID                  int64                    `json:"id" bson:"id"`
+	Username            string                   `json:"username" bson:"username"`
+	Passwd              string                   `json:"passwd" bson:"passwd"`
+	HttpHeader          map[string]string        `json:"http_header" bson:"http_header"`
+	ProxyID             string                   `json:"proxy_id" bson:"proxy_id"`
+	IsLogin             bool                     `json:"is_login" bson:"is_login"`
+	Token               string                   `json:"token" bson:"token"`
+	Cookies             []*http.Cookie           `json:"cookies" bson:"cookies"`
+	CookiesB            []*http.Cookie           `json:"cookies_b" bson:"cookies_b"`
+	Device              *InstDeviceInfo          `json:"device" bson:"device"`
+	RegisterEmail       string                   `json:"register_email" bson:"register_email"`
+	RegisterPhoneNumber string                   `json:"register_phone_number" bson:"register_phone_number"`
+	RegisterPhoneArea   string                   `json:"register_phone_area" bson:"register_phone_area"`
+	RegisterIpCountry   string                   `json:"register_ip_country" bson:"register_ip_country"`
+	RegisterTime        int64                    `json:"register_time" bson:"register_time"`
+	Status              string                   `json:"status" bson:"status"`
+	LastSendMsgTime     int                      `json:"last_send_msg_time" bson:"last_send_msg_time"`
+	Tag                 string                   `json:"tag" bson:"tag"`
+	SpeedControl        map[string]*SpeedControl `json:"speed_control" bson:"speed_control"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -176,6 +177,7 @@ func SaveInstToDB(inst *Instagram) error {
 		RegisterTime:        inst.RegisterTime,
 		Status:              inst.Status,
 		LastSendMsgTime:     inst.LastSendMsgTime,
+		SpeedControl:        inst.SpeedControl,
 	}
 	return SaveNewAccount(Cookies)
 }
@@ -210,6 +212,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		RegisterPhoneArea:   config.RegisterPhoneArea,
 		RegisterIpCountry:   config.RegisterIpCountry,
 		Status:              config.Status,
+		SpeedControl:        config.SpeedControl,
 		sessionID:           strings.ToUpper(common.GenUUID()),
 		LastSendMsgTime:     config.LastSendMsgTime,
 		RegisterTime:        config.RegisterTime,
@@ -220,6 +223,12 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 
 	if inst.Device == nil {
 		inst.Device = GenInstDeviceInfo()
+	}
+	if inst.SpeedControl == nil {
+		inst.SpeedControl = make(map[string]*SpeedControl)
+	}
+	for key, value := range inst.SpeedControl {
+		ReSetRate(value, key)
 	}
 
 	inst.graph = &Graph{inst: inst}

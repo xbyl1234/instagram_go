@@ -12,6 +12,7 @@ type AccountPoolt struct {
 	notAvailable *list.List
 	Available    *list.List
 	Cooling      *list.List
+	Cur          *list.Element
 	avalLock     sync.Mutex
 	noAvalLock   sync.Mutex
 	coolingLock  sync.Mutex
@@ -68,29 +69,50 @@ func CheckAccount() {
 	}
 }
 
-func (this *AccountPoolt) GetOneBlock() *Instagram {
+func (this *AccountPoolt) GetOneBlock(OperName string) *Instagram {
 	for true {
 		if this.Available.Len() > 0 {
-			inst := this.GetOneNoWait()
+			log.Warn("try require %s account", OperName)
+			inst := this.GetOneNoWait(OperName)
 			if inst != nil {
 				return inst
 			}
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 10)
 	}
 	return nil
 }
 
-func (this *AccountPoolt) GetOneNoWait() *Instagram {
+func (this *AccountPoolt) GetOneNoWait(OperName string) *Instagram {
 	this.avalLock.Lock()
 	defer this.avalLock.Unlock()
-
-	ret := this.Available.Front()
-	if ret == nil {
-		return nil
+	if this.Cur == nil {
+		this.Cur = this.Available.Front()
+		if this.Cur == nil {
+			return nil
+		}
 	}
-	this.Available.Remove(ret)
-	return ret.Value.(*Instagram)
+	var oldCurl = this.Cur
+	for true {
+		inst := this.Cur.Value.(*Instagram)
+		lastCur := this.Cur
+		this.Cur = this.Cur.Next()
+
+		if !inst.IsSpeedLimit(OperName) {
+			this.Available.Remove(lastCur)
+			return inst
+		}
+		if this.Cur == nil {
+			this.Cur = this.Available.Front()
+			if this.Cur == nil {
+				return nil
+			}
+		}
+		if this.Cur == oldCurl {
+			break
+		}
+	}
+	return nil
 }
 
 func (this *AccountPoolt) ReleaseOne(insta *Instagram) {

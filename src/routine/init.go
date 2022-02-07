@@ -44,47 +44,20 @@ func InitRoutine(proxyPath string) {
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
-func ReqAccount(accountTags string, block bool) (*goinsta.Instagram, error) {
-	var reqAccount = func() (*goinsta.Instagram, error) {
-		inst := goinsta.AccountPool.GetOneNoWait()
-		if inst == nil {
-			return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more account"}
-		}
-		if !SetProxy(inst) {
-			return nil, &common.MakeMoneyError{ErrType: common.NoMoreError, ErrStr: "no more proxy"}
-		}
-
-		return inst, nil
+func ReqAccount(OperName string) *goinsta.Instagram {
+	inst := goinsta.AccountPool.GetOneBlock(OperName)
+	if inst == nil {
+		log.Error("req account error!")
+		return nil
 	}
-	var reLoadAccount = func(accountTags string) {
-		intas := goinsta.LoadAccountByTags(accountTags)
-		if len(intas) == 0 {
-			log.Warn("there have no account!")
-		} else {
-			goinsta.InitAccountPool(intas)
-		}
-	}
-
-	if goinsta.AccountPool == nil {
-		reLoadAccount(accountTags)
-	}
-
 	for true {
-		inst, err := reqAccount()
-		if err != nil {
-			log.Warn("try require account error: %v", err)
-			if block {
-				time.Sleep(time.Second * 5)
-				reLoadAccount(accountTags)
-			} else {
-				return nil, err
-			}
-		} else {
-			log.Info("require account: %v", inst.User)
-			return inst, nil
+		if !SetProxy(inst) {
+			log.Error("set account proxy error!")
+			continue
 		}
+		break
 	}
-	return nil, nil
+	return inst
 }
 
 func SetProxy(inst *goinsta.Instagram) bool {

@@ -182,6 +182,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 		}
 	}
 
+	this.Inst.Increase("craw_medias")
 	var params = map[string]interface{}{
 		"_uuid":              this.Inst.Device.DeviceID,
 		"include_persistent": 0,
