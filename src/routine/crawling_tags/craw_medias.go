@@ -90,10 +90,11 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 				mediaComb.Tag = tag.Name
 				if !OncePrint {
 					mediaTime := time.Unix(mediaComb.Media.Caption.CreatedAt, 0)
-					if mediaTime.Sub(StopTime) < 0 {
+					if mediaComb.Media.Caption.CreatedAt < StopTime.Unix() {
 						stop = true
 						tag.MoreAvailable = false
-						log.Info("craw media stop! current time is %s", mediaTime.Format("2006-01-02 15:04:05"))
+						log.Info("%d %d", mediaComb.Media.Caption.CreatedAt, StopTime.Unix())
+						log.Info("craw media stop! media time is %s %s", mediaTime.Format("2006-01-02 15:04:05"), StopTime.Format("2006-01-02 15:04:05"))
 					} else {
 						log.Info("craw media current time is %s", mediaTime.Format("2006-01-02 15:04:05"))
 					}
@@ -123,6 +124,8 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 				break
 			}
 		}
+
+		goinsta.AccountPool.ReleaseOne(currAccount)
 	}
 }
 

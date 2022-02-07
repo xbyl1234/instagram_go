@@ -31,7 +31,7 @@ var timedTaskerID = 0
 func TimedTasker() {
 	now := time.Now()
 	year, month, day := now.Date()
-	scanEnd := time.Date(year, month, day-1, 0, 0, 0, 0, time.UTC)
+	scanEnd := time.Date(year, month, day-1, 0, 0, 0, 0, time.Local)
 
 	log.Info("task id %d: will running, this time is %s, scan end time is %s", timedTaskerID, now.String(), scanEnd.String())
 	var TagsChan = make(chan *goinsta.Tags, 10)
