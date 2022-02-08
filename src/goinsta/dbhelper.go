@@ -107,7 +107,7 @@ type AccountCookies struct {
 	RegisterTime        int64                    `json:"register_time" bson:"register_time"`
 	Status              string                   `json:"status" bson:"status"`
 	LastSendMsgTime     int                      `json:"last_send_msg_time" bson:"last_send_msg_time"`
-	Tag                 string                   `json:"tag" bson:"tag"`
+	Tags                string                   `json:"tags" bson:"tags"`
 	SpeedControl        map[string]*SpeedControl `json:"speed_control" bson:"speed_control"`
 }
 
@@ -178,6 +178,7 @@ func SaveInstToDB(inst *Instagram) error {
 		Status:              inst.Status,
 		LastSendMsgTime:     inst.LastSendMsgTime,
 		SpeedControl:        inst.SpeedControl,
+		Tags:                inst.Tags,
 	}
 	return SaveNewAccount(Cookies)
 }
@@ -219,6 +220,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		c: &http.Client{
 			Jar: jar,
 		},
+		Tags: config.Tags,
 	}
 
 	if inst.Device == nil {

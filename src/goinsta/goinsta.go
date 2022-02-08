@@ -62,6 +62,7 @@ type Instagram struct {
 	graph               *Graph
 	account             *Account
 	SpeedControl        map[string]*SpeedControl
+	Tags                string
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {

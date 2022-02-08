@@ -10,6 +10,7 @@ import (
 	"makemoney/routine"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -27,11 +28,19 @@ var config CrawConfig
 var MediaChan = make(chan *routine.MediaComb, 20)
 var CronTask *cron.Cron
 var timedTaskerID = 0
+var curRunTimedTaskerCount int32 = 0
 
 func TimedTasker() {
 	now := time.Now()
 	year, month, day := now.Date()
 	scanEnd := time.Date(year, month, day-1, 0, 0, 0, 0, time.Local)
+
+	count := atomic.AddInt32(&curRunTimedTaskerCount, 1)
+	if count > 1 {
+		atomic.AddInt32(&curRunTimedTaskerCount, -1)
+		log.Error("task id %d: last task was running, this time is %s, so return!!!", timedTaskerID, now.String())
+		return
+	}
 
 	log.Info("task id %d: will running, this time is %s, scan end time is %s", timedTaskerID, now.String(), scanEnd.String())
 	var TagsChan = make(chan *goinsta.Tags, 10)
@@ -46,6 +55,7 @@ func TimedTasker() {
 	close(TagsChan)
 	waitCraw.Wait()
 	log.Info("task id %d: finish! this time is %s, scan end time is %s", timedTaskerID, now.String(), scanEnd.String())
+	atomic.AddInt32(&curRunTimedTaskerCount, -1)
 }
 
 func initParams() {
@@ -102,7 +112,7 @@ func main() {
 	_, _ = CronTask.AddFunc(config.CrawMediasFreq, TimedTasker)
 	log.Info("start timer task")
 	CronTask.Start()
-	TimedTasker()
+	go TimedTasker()
 
 	go SendMedias()
 	for index := 0; index < config.CommentCoroCount; index++ {
