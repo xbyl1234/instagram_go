@@ -52,6 +52,7 @@ func TimedTasker() {
 	}
 
 	SendTags(TagsChan)
+	log.Info("send tags finish!")
 	close(TagsChan)
 	waitCraw.Wait()
 	log.Info("task id %d: finish! this time is %s, scan end time is %s", timedTaskerID, now.String(), scanEnd.String())

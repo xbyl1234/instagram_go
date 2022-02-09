@@ -55,9 +55,12 @@ func CrawCommentUser() {
 	for mediaComb := range MediaChan {
 		if mediaComb.Media.CommentCount == 0 {
 			mediaComb.Comments.HasMore = false
-			routine.SaveComments(mediaComb)
+			mediaComb.Flag = "no comment"
+			routine.SaveMedia(mediaComb)
 			continue
 		}
+		log.Info("craw_comment_user %s", mediaComb.Media.ID)
+
 		for true {
 			RequireAccont(mediaComb)
 			respComm, err := mediaComb.Comments.NextComments()
@@ -67,6 +70,9 @@ func CrawCommentUser() {
 			if err != nil {
 				if common.IsNoMoreError(err) {
 					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
+					routine.SaveMedia(mediaComb)
+					mediaComb.Comments.HasMore = false
+					mediaComb.Flag = "finish"
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) ||
 					common.IsError(err, common.FeedbackError) ||
@@ -81,7 +87,8 @@ func CrawCommentUser() {
 				} else if strings.Index(err.Error(), "Media is unavailable") >= 0 {
 					log.Warn("Media %d is unavailable", mediaComb.Media.ID)
 					mediaComb.Comments.HasMore = false
-					routine.SaveComments(mediaComb)
+					mediaComb.Flag = "unavailable"
+					routine.SaveMedia(mediaComb)
 					break
 				} else {
 					log.Error("NextComments unknow error:%v", err)
@@ -100,11 +107,6 @@ func CrawCommentUser() {
 					break
 				}
 			}
-			err = routine.SaveComments(mediaComb)
-			if err != nil {
-				log.Error("SaveMedia error:%v", err)
-				break
-			}
 		}
 	}
 }
@@ -114,7 +116,7 @@ func SendMedias() {
 		medias, err := routine.LoadMedia(100)
 		if err != nil {
 			log.Error("load media error: %v", err)
-			break
+			continue
 		}
 		if len(medias) == 0 {
 			time.Sleep(time.Second * 60)

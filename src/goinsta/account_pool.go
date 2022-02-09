@@ -71,8 +71,8 @@ func CheckAccount() {
 
 func (this *AccountPoolt) GetOneBlock(OperName string) *Instagram {
 	for true {
+		log.Warn("try require %s account", OperName)
 		if this.Available.Len() > 0 {
-			log.Warn("try require %s account", OperName)
 			inst := this.GetOneNoWait(OperName)
 			if inst != nil {
 				return inst
@@ -119,8 +119,10 @@ func (this *AccountPoolt) ReleaseOne(insta *Instagram) {
 	this.avalLock.Lock()
 	defer this.avalLock.Unlock()
 	if insta.IsBad() {
+		log.Error("add black account: %s ,status: %s", insta.User, insta.Status)
 		this.notAvailable.PushBack(insta)
 	} else {
+		log.Info("add available account: %s", insta.User)
 		this.Available.PushBack(insta)
 	}
 	SaveInstToDB(insta)

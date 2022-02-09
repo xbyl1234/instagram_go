@@ -89,9 +89,10 @@ func LoadSearch() ([]*goinsta.Search, error) {
 }
 
 type MediaComb struct {
-	Media    *goinsta.Item     `json:"media"`
-	Comments *goinsta.Comments `json:"comments"`
-	Tag      string            `json:"tag"`
+	Media    *goinsta.Item     `bson:"media"`
+	Comments *goinsta.Comments `bson:"comments"`
+	Tag      string            `bson:"tag"`
+	Flag     string            `bson:"flag"`
 }
 
 func SaveMedia(mediaComb *MediaComb) error {
@@ -108,25 +109,12 @@ func SaveMedia(mediaComb *MediaComb) error {
 	return nil
 }
 
-func SaveComments(mediaComb *MediaComb) error {
-	_, err := CrawTagsMediaColl.UpdateOne(context.TODO(),
-		bson.D{
-			{"q", mediaComb.Media.ID},
-		}, bson.D{
-			{"$set", bson.M{"comments": mediaComb.Comments}}},
-		options.Update().SetUpsert(true))
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func LoadMedia(limit int) ([]MediaComb, error) {
 	cursor, err := CrawTagsMediaColl.Find(context.TODO(),
 		bson.D{{"$or", []bson.M{{"comments": nil},
 			{"comments": bson.M{"has_more": true}}}},
-			{"media.comment_count", bson.M{"$gt": 0}}},
+			{"media.comment_count", bson.M{"$gt": 0}},
+			{"media.flag", ""}},
 		nil)
 	if err != nil {
 		return nil, err
@@ -139,8 +127,17 @@ func LoadMedia(limit int) ([]MediaComb, error) {
 		if err != nil {
 			break
 		}
+
+		_, _ = CrawTagsMediaColl.UpdateOne(context.TODO(),
+			bson.D{
+				{"q", result[index].Media.ID},
+			}, bson.D{
+				{"$set", bson.M{"flag": "loaded"}}},
+			options.Update().SetUpsert(true))
+
 		index++
 	}
+
 	_ = cursor.Close(context.TODO())
 
 	return result[:index], err

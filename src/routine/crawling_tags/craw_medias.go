@@ -6,8 +6,11 @@ import (
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"sync"
+	"sync/atomic"
 	"time"
 )
+
+var indCoro int32 = 0
 
 //830
 //847
@@ -52,18 +55,23 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 	defer func() {
 		if currAccount != nil {
 			goinsta.AccountPool.ReleaseOne(currAccount)
+			currAccount = nil
 		}
 	}()
 
+	myIdx := atomic.AddInt32(&indCoro, 1)
+
 	for tag := range TagsChan {
+		log.Info("coro %d will craw media %s", myIdx, tag.Name)
+
 		for true {
 			RequireAccount(tag)
 			tagResult, err := tag.Next()
 			_, min, hour, day := currAccount.GetSpeed("craw_medias")
-			log.Info("account %s craw_medias count %d,%d,%d status %s", currAccount.User, min, hour, day, currAccount.Status)
+			log.Info("coro %d account %s craw media %s count %d,%d,%d status %s", myIdx, currAccount.User, tag.Name, min, hour, day, currAccount.Status)
 			if err != nil {
 				if common.IsNoMoreError(err) {
-					log.Info("tags %s medias has craw finish!", tag.Name)
+					log.Info("coro %d tags %s medias has craw finish!", myIdx, tag.Name)
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) ||
 					common.IsError(err, common.FeedbackError) ||
@@ -93,10 +101,9 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 					if mediaComb.Media.Caption.CreatedAt < StopTime.Unix() {
 						stop = true
 						tag.MoreAvailable = false
-						log.Info("%d %d", mediaComb.Media.Caption.CreatedAt, StopTime.Unix())
-						log.Info("craw media stop! media time is %s %s", mediaTime.Format("2006-01-02 15:04:05"), StopTime.Format("2006-01-02 15:04:05"))
+						log.Info("coro %d account %s craw media %s stop! media time is %s", myIdx, currAccount.User, tag.Name, mediaTime.Format("2006-01-02 15:04:05"))
 					} else {
-						log.Info("craw media current time is %s", mediaTime.Format("2006-01-02 15:04:05"))
+						log.Info("coro %d account %s craw media %s  current time is %s", myIdx, currAccount.User, tag.Name, mediaTime.Format("2006-01-02 15:04:05"))
 					}
 					OncePrint = true
 				}
@@ -112,7 +119,6 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 				err = routine.SaveUser(routine.CrawTagsUserColl, &userComb)
 				if err != nil {
 					log.Error("SaveUser error:%v", err)
-					break
 				}
 			}
 
@@ -121,21 +127,23 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 			//	log.Error("SaveTags error:%v", err)
 			//}
 			if stop {
+				log.Info("coro %d break", myIdx)
 				break
 			}
 		}
 
+		log.Info("coro %d craw media %s out! account: %s", myIdx, tag.Name, currAccount.User)
 		goinsta.AccountPool.ReleaseOne(currAccount)
 	}
+
+	log.Info("coro %d exit!", myIdx)
 }
 
 func SendTags(TagsChan chan *goinsta.Tags) {
-	for true {
-		for item := TagList.Front(); item != nil; item = item.Next() {
-			tags := item.Value.(*goinsta.Tags)
-			if tags.MoreAvailable {
-				TagsChan <- tags
-			}
+	for item := TagList.Front(); item != nil; item = item.Next() {
+		tags := item.Value.(*goinsta.Tags)
+		if tags.MoreAvailable {
+			TagsChan <- tags
 		}
 	}
 }
