@@ -70,9 +70,9 @@ func CrawCommentUser() {
 			if err != nil {
 				if common.IsNoMoreError(err) {
 					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
-					routine.SaveMedia(mediaComb)
 					mediaComb.Comments.HasMore = false
 					mediaComb.Flag = "finish"
+					routine.SaveMedia(mediaComb)
 					break
 				} else if common.IsError(err, common.ChallengeRequiredError) ||
 					common.IsError(err, common.FeedbackError) ||

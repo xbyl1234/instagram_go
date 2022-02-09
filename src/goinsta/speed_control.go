@@ -35,11 +35,11 @@ func InitSpeedControl(path string) error {
 }
 
 type LimitRate struct {
-	Rate     int           `db:"-"`
-	Begin    time.Time     `db:"begin"`
-	Count    int           `db:"count"`
-	Interval time.Duration `db:"interval"`
-	Lock     sync.Mutex    `db:"-"`
+	Rate     int           `bson:"-"`
+	Begin    time.Time     `bson:"begin"`
+	Count    int           `bson:"count"`
+	Interval time.Duration `bson:"interval"`
+	Lock     sync.Mutex    `bson:"-"`
 }
 
 func (this *LimitRate) Increase() int {
@@ -63,13 +63,15 @@ func (this *LimitRate) IsLimit(block bool) bool {
 }
 
 type SpeedControl struct {
-	EachSecond LimitRate `db:"each_second"`
-	EachMinute LimitRate `db:"each_minute"`
-	EachHour   LimitRate `db:"each_hour"`
-	EachDay    LimitRate `db:"each_day"`
+	EachSecond LimitRate `bson:"each_second"`
+	EachMinute LimitRate `bson:"each_minute"`
+	EachHour   LimitRate `bson:"each_hour"`
+	EachDay    LimitRate `bson:"each_day"`
+	history    int       `bson:"history"`
 }
 
 func (this *SpeedControl) Increase() (int, int, int, int) {
+	this.history++
 	return this.EachSecond.Increase(),
 		this.EachMinute.Increase(),
 		this.EachHour.Increase(),

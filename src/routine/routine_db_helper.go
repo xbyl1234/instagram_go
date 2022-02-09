@@ -96,6 +96,14 @@ type MediaComb struct {
 }
 
 func SaveMedia(mediaComb *MediaComb) error {
+	if mediaComb.Flag == "" {
+		if mediaComb.Media.CommentCount == 0 {
+			mediaComb.Flag = "no comment"
+		} else if mediaComb.Comments != nil && !mediaComb.Comments.HasMore {
+			mediaComb.Flag = "no comment"
+		}
+	}
+
 	_, err := CrawTagsMediaColl.UpdateOne(context.TODO(),
 		bson.D{
 			{"q", mediaComb.Media.ID},
@@ -111,10 +119,10 @@ func SaveMedia(mediaComb *MediaComb) error {
 
 func LoadMedia(limit int) ([]MediaComb, error) {
 	cursor, err := CrawTagsMediaColl.Find(context.TODO(),
-		bson.D{{"$or", []bson.M{{"comments": nil},
-			{"comments": bson.M{"has_more": true}}}},
-			{"media.comment_count", bson.M{"$gt": 0}},
-			{"media.flag", ""}},
+		bson.D{{"media.comment_count", bson.M{"$gt": 0}},
+			{"$or", []bson.M{{"flag": bson.M{"$exists": false}},
+				{"flag": ""}}},
+		},
 		nil)
 	if err != nil {
 		return nil, err

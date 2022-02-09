@@ -2,7 +2,7 @@
   "account_pool_tags": "craw_tags",
   "task_name": "game_craw",
   "media_coro_count": 0,
-  "comment_coro_count": 5,
+  "comment_coro_count": 1,
   "proxy_path": "./config/proxy_config_ios.json",
   "craw_medias_freq": "0 0 1 * * ?",
   "key_word_path": "./config/game_keyword.txt"
