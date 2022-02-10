@@ -2,7 +2,7 @@
   "craw_media_account_tag": "craw_media",
   "craw_comment_account_tag": "craw_comment",
   "task_name": "game_craw",
-  "media_coro_count": 0,
+  "media_coro_count": 1,
   "comment_coro_count": 1,
   "proxy_path": "./config/proxy_config_ios.json",
   "craw_medias_freq": "0 0 1 * * ?",

@@ -12,7 +12,6 @@ import (
 
 var indCoro int32 = 0
 
-var CrawMediaOperName = "craw_media"
 var CrawMediaAccountTag = "craw_media"
 
 //830
@@ -21,7 +20,7 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 	defer waitCraw.Done()
 	var currAccount *goinsta.Instagram
 	var SetNewAccount = func(tag *goinsta.Tags) {
-		inst := routine.ReqAccount(CrawMediaOperName, CrawMediaAccountTag)
+		inst := routine.ReqAccount(goinsta.OperNameCrawMedia, CrawMediaAccountTag)
 		if inst == nil {
 			log.Error("CrawMedias req account error")
 			return
@@ -45,7 +44,7 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 			log.Info("CrawMedias set account %s", tag.Inst.User)
 		} else {
 			oldUser = tag.Inst.User
-			if currAccount.IsSpeedLimit("craw_medias") || tag.Inst.IsBad() {
+			if currAccount.IsSpeedLimit(goinsta.OperNameCrawMedia) || tag.Inst.IsBad() {
 				goinsta.AccountPool.ReleaseOne(tag.Inst)
 				SetNewAccount(tag)
 				log.Warn("CrawMedias replace account %s->%s", oldUser, tag.Inst.User)
@@ -70,7 +69,7 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 		for true {
 			RequireAccount(tag)
 			tagResult, err := tag.Next()
-			_, min, hour, day := currAccount.GetSpeed("craw_medias")
+			_, min, hour, day := currAccount.GetSpeed(goinsta.OperNameCrawMedia)
 			log.Info("coro %d account %s craw media %s count %d,%d,%d status %s", myIdx, currAccount.User, tag.Name, min, hour, day, currAccount.Status)
 			if err != nil {
 				if common.IsNoMoreError(err) {

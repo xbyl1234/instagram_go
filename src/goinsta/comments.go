@@ -52,7 +52,7 @@ func (this *Comments) NextComments() (*RespComments, error) {
 			ErrType: common.NoMoreError,
 		}
 	}
-	this.Inst.Increase("craw_comment_user")
+	this.Inst.Increase(OperNameCrawComment)
 
 	params := map[string]interface{}{
 		"can_support_threading": true,

@@ -1,17 +1,17 @@
 {
   "speed_control": [
     {
-      "oper_name": "craw_medias",
+      "oper_name": "craw_media",
       "each_second": 0,
       "each_minute": 10,
-      "each_hour": 0,
+      "each_hour": 100,
       "each_day": 800
     },
     {
-      "oper_name": "craw_comment_user",
+      "oper_name": "craw_comment",
       "each_second": 0,
       "each_minute": 10,
-      "each_hour": 0,
+      "each_hour": 100,
       "each_day": 800
     }
   ]

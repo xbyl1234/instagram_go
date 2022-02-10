@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-var CrawCommentOperName = "craw_comment"
 var CrawCommentAccountTag = "craw_comment"
 
 //816
@@ -27,14 +26,14 @@ func CrawCommentUser() {
 	}
 
 	var RequireAccont = func(mediaComb *routine.MediaComb) {
-		if currAccount == nil || currAccount.IsSpeedLimit("craw_comment_user") || currAccount.IsBad() {
+		if currAccount == nil || currAccount.IsSpeedLimit(goinsta.OperNameCrawComment) || currAccount.IsBad() {
 			var oldUser string
 			if currAccount != nil {
 				oldUser = currAccount.User
 				goinsta.AccountPool.ReleaseOne(currAccount)
 			}
 
-			inst := routine.ReqAccount(CrawCommentOperName, CrawCommentAccountTag)
+			inst := routine.ReqAccount(goinsta.OperNameCrawComment, CrawCommentAccountTag)
 			if inst == nil {
 				log.Error("CrawCommentUser req account error!")
 			}
@@ -68,7 +67,7 @@ func CrawCommentUser() {
 			RequireAccont(mediaComb)
 			respComm, err := mediaComb.Comments.NextComments()
 
-			_, min, hour, day := currAccount.GetSpeed("craw_comment_user")
+			_, min, hour, day := currAccount.GetSpeed(goinsta.OperNameCrawComment)
 			log.Info("account %s craw_comment_user count %d,%d,%d status %s", currAccount.User, min, hour, day, currAccount.Status)
 			if err != nil {
 				if common.IsNoMoreError(err) {

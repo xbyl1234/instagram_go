@@ -123,6 +123,7 @@ func SaveNewAccount(account AccountCookies) error {
 func LoadDBAccountByTags(tags []string) ([]AccountCookies, error) {
 	filter := make([]bson.M, len(tags))
 	for idx := range tags {
+		filter[idx] = make(bson.M)
 		filter[idx]["tags"] = tags[idx]
 	}
 	cursor, err := MogoHelper.Account.Find(context.TODO(), bson.M{"$or": filter}, nil)

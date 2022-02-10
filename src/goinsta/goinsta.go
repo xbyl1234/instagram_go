@@ -151,10 +151,12 @@ func (this *Instagram) IsBad() bool {
 	}
 	return false
 }
+
 func (this *Instagram) InitSpeedControl(OperName string) *SpeedControl {
 	sc := this.SpeedControl[OperName]
+	//var isCtrl = true
 	if sc == nil {
-		sc = GetSpeedControl(OperName)
+		sc, _ = GetSpeedControl(OperName)
 		this.SpeedControl[OperName] = sc
 	}
 	return sc

@@ -19,6 +19,11 @@ type SpeedControlJson struct {
 	SpeedControl []SpeedControlConfig `json:"speed_control"`
 }
 
+const (
+	OperNameCrawMedia   = "craw_media"
+	OperNameCrawComment = "craw_comment"
+)
+
 var SpeedControlConfigMap map[string]*SpeedControlConfig
 
 func InitSpeedControl(path string) error {
@@ -111,7 +116,8 @@ func (this *SpeedControl) IsSpeedLimit() bool {
 	return ret
 }
 
-func GetSpeedControl(OperName string) *SpeedControl {
+func GetSpeedControl(OperName string) (*SpeedControl, bool) {
+	var isCtrl = true
 	config := SpeedControlConfigMap[OperName]
 	if config == nil {
 		log.Warn("not find %s speed control,set no limit", OperName)
@@ -122,6 +128,7 @@ func GetSpeedControl(OperName string) *SpeedControl {
 			EachHour:   0,
 			EachDay:    0,
 		}
+		isCtrl = false
 	}
 
 	ret := &SpeedControl{
@@ -146,7 +153,7 @@ func GetSpeedControl(OperName string) *SpeedControl {
 			Interval: time.Hour * 24,
 		},
 	}
-	return ret
+	return ret, isCtrl
 }
 
 func ReSetRate(sp *SpeedControl, OperName string) {
