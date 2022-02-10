@@ -12,13 +12,16 @@ import (
 
 var indCoro int32 = 0
 
+var CrawMediaOperName = "craw_media"
+var CrawMediaAccountTag = "craw_media"
+
 //830
 //847
 func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime time.Time) {
 	defer waitCraw.Done()
 	var currAccount *goinsta.Instagram
 	var SetNewAccount = func(tag *goinsta.Tags) {
-		inst := routine.ReqAccount("craw_medias")
+		inst := routine.ReqAccount(CrawMediaOperName, CrawMediaAccountTag)
 		if inst == nil {
 			log.Error("CrawMedias req account error")
 			return

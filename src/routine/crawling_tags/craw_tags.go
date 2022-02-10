@@ -15,6 +15,9 @@ var TagList = list.New()
 var TagIDSet = mapset.NewSet()
 var KeyWord []string
 
+var CrawTagsOperName = "craw_media"
+var CrawTagsAccountTag = "craw_media"
+
 func LoadKeyWord() error {
 	data, err := os.ReadFile(config.KeyWordPath)
 	if err != nil {
@@ -93,7 +96,7 @@ func CrawTags(search *goinsta.Search) {
 	var currAccount *goinsta.Instagram
 
 	var RequireAccount = func(search *goinsta.Search) *goinsta.Search {
-		inst := routine.ReqAccount("")
+		inst := routine.ReqAccount(CrawTagsOperName, CrawTagsAccountTag)
 		currAccount = inst
 		if inst == nil {
 			log.Error("CrawTags req account error")

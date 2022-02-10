@@ -44,8 +44,8 @@ func InitRoutine(proxyPath string) {
 	//common.InitResource("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture", "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\user_nameraw.txt")
 }
 
-func ReqAccount(OperName string) *goinsta.Instagram {
-	inst := goinsta.AccountPool.GetOneBlock(OperName)
+func ReqAccount(OperName string, AccountTag string) *goinsta.Instagram {
+	inst := goinsta.AccountPool.GetOneBlock(OperName, AccountTag)
 	if inst == nil {
 		log.Error("req account error!")
 		return nil

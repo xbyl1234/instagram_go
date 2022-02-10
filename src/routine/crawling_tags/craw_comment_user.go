@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+var CrawCommentOperName = "craw_comment"
+var CrawCommentAccountTag = "craw_comment"
+
 //816
 //1320
 func CrawCommentUser() {
@@ -31,7 +34,7 @@ func CrawCommentUser() {
 				goinsta.AccountPool.ReleaseOne(currAccount)
 			}
 
-			inst := routine.ReqAccount("craw_comment_user")
+			inst := routine.ReqAccount(CrawCommentOperName, CrawCommentAccountTag)
 			if inst == nil {
 				log.Error("CrawCommentUser req account error!")
 			}

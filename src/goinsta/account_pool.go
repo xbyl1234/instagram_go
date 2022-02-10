@@ -7,12 +7,16 @@ import (
 	"time"
 )
 
+type ListWrap struct {
+	list *list.List
+	cur  *list.Element
+}
+
 type AccountPoolt struct {
 	accounts     []*Instagram
 	notAvailable *list.List
-	Available    *list.List
+	Available    map[string]*ListWrap
 	Cooling      *list.List
-	Cur          *list.Element
 	avalLock     sync.Mutex
 	noAvalLock   sync.Mutex
 	coolingLock  sync.Mutex
@@ -26,22 +30,28 @@ var CallBackCheckAccount func(inst *Instagram) bool = nil
 func InitAccountPool(accounts []*Instagram) {
 	AccountPool = &AccountPoolt{}
 	AccountPool.Cooling = list.New()
-	AccountPool.Available = list.New()
+	AccountPool.Available = make(map[string]*ListWrap)
 	AccountPool.notAvailable = list.New()
-
+	AccountPool.accounts = make([]*Instagram, len(accounts))
+	var accountsIndex = 0
 	for idx := range accounts {
 		if accounts[idx].IsLogin && accounts[idx].Status == "" {
-			AccountPool.Available.PushBack(accounts[idx])
+			Available := AccountPool.Available[accounts[idx].Tags]
+			if Available == nil {
+				Available = &ListWrap{
+					list: list.New(),
+					cur:  nil,
+				}
+				AccountPool.Available[accounts[idx].Tags] = Available
+			}
+			Available.list.PushBack(accounts[idx])
+			AccountPool.accounts[accountsIndex] = accounts[idx]
+			accountsIndex++
 		} else {
 			AccountPool.notAvailable.PushBack(accounts[idx])
 		}
 	}
-	AccountPool.accounts = make([]*Instagram, AccountPool.Available.Len())
-	var index = 0
-	for item := AccountPool.Available.Front(); item != nil; item = item.Next() {
-		AccountPool.accounts[index] = item.Value.(*Instagram)
-		index++
-	}
+	AccountPool.accounts = AccountPool.accounts[:accountsIndex]
 
 	if CallBackCheckAccount != nil {
 		AccountPool.checkTimer = time.NewTicker(time.Second * 10)
@@ -49,7 +59,7 @@ func InitAccountPool(accounts []*Instagram) {
 	}
 
 	log.Info("init account pool available count: %d, bad account :%d",
-		AccountPool.Available.Len(), AccountPool.notAvailable.Len())
+		accountsIndex, AccountPool.notAvailable.Len())
 }
 
 func CheckAccount() {
@@ -69,46 +79,51 @@ func CheckAccount() {
 	}
 }
 
-func (this *AccountPoolt) GetOneBlock(OperName string) *Instagram {
+func (this *AccountPoolt) GetOneBlock(OperName string, AccountTag string) *Instagram {
 	for true {
-		log.Warn("try require %s account", OperName)
-		if this.Available.Len() > 0 {
-			inst := this.GetOneNoWait(OperName)
-			if inst != nil {
-				return inst
-			}
+		log.Warn("try require account tag: %s, for %s", AccountTag, OperName)
+		inst := this.GetOneNoWait(OperName, AccountTag)
+		if inst != nil {
+			return inst
 		}
 		time.Sleep(time.Second * 10)
 	}
 	return nil
 }
 
-func (this *AccountPoolt) GetOneNoWait(OperName string) *Instagram {
+func (this *AccountPoolt) GetOneNoWait(OperName string, AccountTag string) *Instagram {
 	this.avalLock.Lock()
 	defer this.avalLock.Unlock()
-	if this.Cur == nil {
-		this.Cur = this.Available.Front()
-		if this.Cur == nil {
+
+	Available := this.Available[AccountTag]
+	if Available == nil {
+		log.Error("not find account tag: %s", AccountTag)
+		return nil
+	}
+
+	if Available.cur == nil {
+		Available.cur = Available.list.Front()
+		if Available.cur == nil {
 			return nil
 		}
 	}
-	var oldCurl = this.Cur
+	var oldCurl = Available.cur
 	for true {
-		inst := this.Cur.Value.(*Instagram)
-		lastCur := this.Cur
-		this.Cur = this.Cur.Next()
+		inst := Available.cur.Value.(*Instagram)
+		lastCur := Available.cur
+		Available.cur = Available.cur.Next()
 
 		if !inst.IsSpeedLimit(OperName) {
-			this.Available.Remove(lastCur)
+			Available.list.Remove(lastCur)
 			return inst
 		}
-		if this.Cur == nil {
-			this.Cur = this.Available.Front()
-			if this.Cur == nil {
+		if Available.cur == nil {
+			Available.cur = Available.list.Front()
+			if Available.cur == nil {
 				return nil
 			}
 		}
-		if this.Cur == oldCurl {
+		if Available.cur == oldCurl {
 			break
 		}
 	}
@@ -122,8 +137,13 @@ func (this *AccountPoolt) ReleaseOne(insta *Instagram) {
 		log.Error("add black account: %s ,status: %s", insta.User, insta.Status)
 		this.notAvailable.PushBack(insta)
 	} else {
+		Available := this.Available[insta.Tags]
+		if Available == nil {
+			log.Error("not find account tag: %s", insta.Tags)
+			return
+		}
+		Available.list.PushBack(insta)
 		log.Info("add available account: %s", insta.User)
-		this.Available.PushBack(insta)
 	}
 	SaveInstToDB(insta)
 }
