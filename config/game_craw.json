@@ -1,5 +1,6 @@
 {
-  "account_pool_tags": "craw_tags",
+  "craw_media_account_tag": "craw_media",
+  "craw_comment_account_tag": "craw_comment",
   "task_name": "game_craw",
   "media_coro_count": 0,
   "comment_coro_count": 1,

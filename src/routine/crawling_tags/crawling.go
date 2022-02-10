@@ -15,13 +15,14 @@ import (
 )
 
 type CrawConfig struct {
-	AccountPoolTags  string `json:"account_pool_tags"`
-	TaskName         string `json:"task_name"`
-	MediaCoroCount   int    `json:"media_coro_count"`
-	CommentCoroCount int    `json:"comment_coro_count"`
-	ProxyPath        string `json:"proxy_path"`
-	KeyWordPath      string `json:"key_word_path"`
-	CrawMediasFreq   string `json:"craw_medias_freq"`
+	CrawMediaAccountTag   string `json:"craw_media_account_tag"`
+	CrawCommentAccountTag string `json:"craw_comment_account_tag"`
+	TaskName              string `json:"task_name"`
+	MediaCoroCount        int    `json:"media_coro_count"`
+	CommentCoroCount      int    `json:"comment_coro_count"`
+	ProxyPath             string `json:"proxy_path"`
+	KeyWordPath           string `json:"key_word_path"`
+	CrawMediasFreq        string `json:"craw_medias_freq"`
 }
 
 var config CrawConfig
@@ -80,8 +81,8 @@ func initParams() {
 		os.Exit(0)
 	}
 
-	if config.AccountPoolTags == "" {
-		log.Error("parse AccountPoolTags is null")
+	if config.CrawMediaAccountTag == "" || config.CrawCommentAccountTag == "" {
+		log.Error("parse Account Tags is null")
 		os.Exit(0)
 	}
 	//if config.MediaCoroCount == 0 {
@@ -99,7 +100,7 @@ func main() {
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitCrawTagsDB(config.TaskName)
 
-	intas := goinsta.LoadAccountByTags(config.AccountPoolTags)
+	intas := goinsta.LoadAccountByTags([]string{config.CrawMediaAccountTag, config.CrawCommentAccountTag})
 	if len(intas) == 0 {
 		log.Warn("there have no account!")
 	} else {

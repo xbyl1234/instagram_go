@@ -120,8 +120,12 @@ func SaveNewAccount(account AccountCookies) error {
 	return err
 }
 
-func LoadDBAccountByTags(tag string) ([]AccountCookies, error) {
-	cursor, err := MogoHelper.Account.Find(context.TODO(), bson.M{"tags": tag}, nil)
+func LoadDBAccountByTags(tags []string) ([]AccountCookies, error) {
+	filter := make([]bson.M, len(tags))
+	for idx := range tags {
+		filter[idx]["tags"] = tags[idx]
+	}
+	cursor, err := MogoHelper.Account.Find(context.TODO(), bson.M{"$or": filter}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -240,8 +244,8 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	return inst, nil
 }
 
-func LoadAccountByTags(tag string) []*Instagram {
-	config, err := LoadDBAccountByTags(tag)
+func LoadAccountByTags(tags []string) []*Instagram {
+	config, err := LoadDBAccountByTags(tags)
 	if err != nil {
 		return nil
 	}
