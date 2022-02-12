@@ -1,9 +1,213 @@
 package goinsta
 
-import "makemoney/common"
+import (
+	"fmt"
+	"makemoney/common"
+	"time"
+)
 
 type Message struct {
-	inst *Instagram
+	inst    *Instagram
+	ChatMap map[string]*RespCreateGroup
+}
+type ChatHistory struct {
+	Timestamp    string `json:"timestamp"`
+	ItemId       string `json:"item_id"`
+	ShhSeenState struct {
+	} `json:"shh_seen_state"`
+	CreatedAt string `json:"created_at"`
+}
+
+type InboxCursor struct {
+	CursorTimestampSeconds int `json:"cursor_timestamp_seconds"`
+	CursorRelevancyScore   int `json:"cursor_relevancy_score"`
+	CursorThreadV2Id       int `json:"cursor_thread_v2_id"`
+}
+
+type ChatMediaBase struct {
+	Id        string `json:"id"`
+	MediaType int    `json:"media_type"`
+}
+
+type MessageBase struct {
+	ItemType               string `json:"item_type"`
+	ClientContext          string `json:"client_context"`
+	IsSentByViewer         bool   `json:"is_sent_by_viewer"`
+	IsShhMode              bool   `json:"is_shh_mode"`
+	ItemId                 string `json:"item_id"`
+	ShowForwardAttribution bool   `json:"show_forward_attribution"`
+	Timestamp              int64  `json:"timestamp"`
+	UserId                 int64  `json:"user_id"`
+}
+
+type TextMessage struct {
+	MessageBase
+	Text string `json:"text"`
+}
+
+type VoiceMessage struct {
+	MessageBase
+	VoiceMedia struct {
+		Media              ChatMediaBase `json:"media"`
+		SeenCount          int           `json:"seen_count"`
+		IsShhMode          bool          `json:"is_shh_mode"`
+		SeenUserIds        []interface{} `json:"seen_user_ids"`
+		ReplayExpiringAtUs interface{}   `json:"replay_expiring_at_us"`
+		ViewMode           string        `json:"view_mode"`
+	} `json:"voice_media"`
+}
+
+type MediaMessage struct {
+	MessageBase
+	Media ChatMediaBase `json:"media"`
+}
+
+type VideoCallMessage struct {
+	MessageBase
+	VideoCallEvent struct {
+		Action                 string        `json:"action"`
+		VcId                   int64         `json:"vc_id"`
+		EncodedServerDataInfo  string        `json:"encoded_server_data_info"`
+		Description            string        `json:"description"`
+		TextAttributes         []interface{} `json:"text_attributes"`
+		DidJoin                bool          `json:"did_join"`
+		ThreadHasAudioOnlyCall bool          `json:"thread_has_audio_only_call"`
+		ThreadHasDropIn        bool          `json:"thread_has_drop_in"`
+		FeatureSetStr          string        `json:"feature_set_str"`
+		CallDuration           int           `json:"call_duration"`
+		CallStartTime          int           `json:"call_start_time"`
+		CallEndTime            int           `json:"call_end_time"`
+	} `json:"video_call_event"`
+}
+
+type ChatItems struct {
+	VideoCallMessage
+	MediaMessage
+	VoiceMessage
+	TextMessage
+}
+
+type RespInbox struct {
+	Inbox struct {
+		Threads []struct {
+			HasOlder                         bool                   `json:"has_older"`
+			HasNewer                         bool                   `json:"has_newer"`
+			Pending                          bool                   `json:"pending"`
+			Items                            []ChatItems            `json:"items"`
+			Canonical                        bool                   `json:"canonical"`
+			ThreadId                         string                 `json:"thread_id"`
+			ThreadV2Id                       string                 `json:"thread_v2_id"`
+			Users                            UserSimp               `json:"users"`
+			ViewerId                         int64                  `json:"viewer_id"`
+			LastActivityAt                   int64                  `json:"last_activity_at"`
+			Muted                            bool                   `json:"muted"`
+			VcMuted                          bool                   `json:"vc_muted"`
+			EncodedServerDataInfo            string                 `json:"encoded_server_data_info"`
+			AdminUserIds                     []interface{}          `json:"admin_user_ids"`
+			ApprovalRequiredForNewMembers    bool                   `json:"approval_required_for_new_members"`
+			Archived                         bool                   `json:"archived"`
+			ThreadHasAudioOnlyCall           bool                   `json:"thread_has_audio_only_call"`
+			PendingUserIds                   []interface{}          `json:"pending_user_ids"`
+			LastSeenAt                       map[string]ChatHistory `json:"last_seen_at"`
+			RelevancyScore                   int                    `json:"relevancy_score"`
+			RelevancyScoreExpr               int                    `json:"relevancy_score_expr"`
+			OldestCursor                     string                 `json:"oldest_cursor"`
+			NewestCursor                     string                 `json:"newest_cursor"`
+			Named                            bool                   `json:"named"`
+			NextCursor                       string                 `json:"next_cursor"`
+			PrevCursor                       string                 `json:"prev_cursor"`
+			ThreadTitle                      string                 `json:"thread_title"`
+			LeftUsers                        []interface{}          `json:"left_users"`
+			Spam                             bool                   `json:"spam"`
+			BcPartnership                    bool                   `json:"bc_partnership"`
+			MentionsMuted                    bool                   `json:"mentions_muted"`
+			ThreadType                       string                 `json:"thread_type"`
+			ThreadHasDropIn                  bool                   `json:"thread_has_drop_in"`
+			VideoCallId                      interface{}            `json:"video_call_id"`
+			ShhModeEnabled                   bool                   `json:"shh_mode_enabled"`
+			ShhTogglerUserid                 interface{}            `json:"shh_toggler_userid"`
+			ShhReplayEnabled                 bool                   `json:"shh_replay_enabled"`
+			IsGroup                          bool                   `json:"is_group"`
+			InputMode                        int                    `json:"input_mode"`
+			ReadState                        int                    `json:"read_state"`
+			AssignedAdminId                  int                    `json:"assigned_admin_id"`
+			Folder                           int                    `json:"folder"`
+			LastNonSenderItemAt              int                    `json:"last_non_sender_item_at"`
+			BusinessThreadFolder             int                    `json:"business_thread_folder"`
+			ThreadLabel                      int                    `json:"thread_label"`
+			MarkedAsUnread                   bool                   `json:"marked_as_unread"`
+			IsCloseFriendThread              bool                   `json:"is_close_friend_thread"`
+			HasGroupsXacIneligibleUser       bool                   `json:"has_groups_xac_ineligible_user"`
+			ThreadImage                      interface{}            `json:"thread_image"`
+			IsXacThread                      bool                   `json:"is_xac_thread"`
+			IsTranslationEnabled             bool                   `json:"is_translation_enabled"`
+			TranslationBannerImpressionCount int                    `json:"translation_banner_impression_count"`
+			SystemFolder                     int                    `json:"system_folder"`
+			IsFanclubSubscriberThread        bool                   `json:"is_fanclub_subscriber_thread"`
+			JoinableGroupLink                string                 `json:"joinable_group_link"`
+			GroupLinkJoinableMode            int                    `json:"group_link_joinable_mode"`
+			RtcFeatureSetStr                 string                 `json:"rtc_feature_set_str"`
+		} `json:"threads"`
+		HasOlder            bool        `json:"has_older"`
+		UnseenCount         int         `json:"unseen_count"`
+		UnseenCountTs       int64       `json:"unseen_count_ts"`
+		PrevCursor          InboxCursor `json:"prev_cursor"`
+		NextCursor          InboxCursor `json:"next_cursor"`
+		BlendedInboxEnabled bool        `json:"blended_inbox_enabled"`
+	} `json:"inbox"`
+	SeqId                 int    `json:"seq_id"`
+	SnapshotAtMs          int64  `json:"snapshot_at_ms"`
+	PendingRequestsTotal  int    `json:"pending_requests_total"`
+	HasPendingTopRequests bool   `json:"has_pending_top_requests"`
+	Status                string `json:"status"`
+}
+
+func (this *Message) FetchInbox() {
+
+}
+
+type RespCreateGroup struct {
+	BaseApiResp
+	ThreadId       string `json:"thread_id"`
+	ThreadV2Id     string `json:"thread_v2_id"`
+	LastActivityAt int    `json:"last_activity_at"`
+	BcPartnership  bool   `json:"bc_partnership"`
+	ThreadType     string `json:"thread_type"`
+	ViewerId       int64  `json:"viewer_id"`
+	IsGroup        bool   `json:"is_group"`
+}
+
+var navChain = []string{
+	"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+	"IGExploreViewController:explore_popular:19,IGProfileViewController:profile:21",
+	"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+}
+
+var sendAttribution = []string{
+	"inbox",
+	"direct_inbox",
+	"thread_view",
+}
+
+func (this *Message) CreateGroup(id string) (*RespCreateGroup, error) {
+	params := map[string]interface{}{
+		"client_context":  common.GenUUID(),
+		"_uuid":           this.inst.Device.DeviceID,
+		"recipient_users": "[[" + id + "]]",
+		"_uid":            this.inst.ID,
+	}
+	resp := &RespCreateGroup{}
+	err := this.inst.HttpRequestJson(&reqOptions{
+		IsPost:  true,
+		Signed:  true,
+		ApiPath: urlCreateGroupThread,
+		Header: map[string]string{
+			"Source": "thread_presenter_message_button",
+		},
+		Query: params,
+	}, resp)
+	err = resp.CheckError(err)
+	return resp, err
 }
 
 type RespSendMsg struct {
@@ -18,24 +222,39 @@ type RespSendMsg struct {
 	StatusCode string `json:"status_code"`
 }
 
+func GenChatID() string {
+	return fmt.Sprintf("%d", (time.Now().UnixMilli()<<22)|(int64(common.GenNumber(0, 9999999))&4194303)&0x7fffffffffffffff)
+}
+
 func (this *Message) SendTextMessage(id string, msg string) error {
-	msgID := common.GenString(common.CharSet_123, 19)
+	var err error
+	msgID := GenChatID()
+	var chatInfo = this.ChatMap[id]
+	if chatInfo == nil {
+		chatInfo, err = this.CreateGroup(id)
+		if err != nil {
+			return err
+		}
+	}
+	var threadID = chatInfo.ThreadId
+
 	params := map[string]interface{}{
-		"recipient_users":  "[[" + id + "]]",
-		"action":           "send_item",
-		"is_shh_mode":      0,
-		"send_attribution": "inbox",
-		"client_context":   msgID,
-		"text":             msg,
-		//"device_id":            this.inst.androidID,
+		"thread_id":            threadID,
+		"action":               "send_item",
+		"is_shh_mode":          0,
+		"send_attribution":     sendAttribution[common.GenNumber(0, len(sendAttribution))],
+		"client_context":       msgID,
+		"text":                 msg,
+		"device_id":            this.inst.Device.DeviceID,
 		"mutation_token":       msgID,
 		"_uuid":                this.inst.Device.DeviceID,
-		"nav_chain":            "8Of:self_profile:42,82Y:account_switch_fragment:43,8Of:self_profile:44,TRUNCATEDx10,6Hh:direct_sticker_tab_tray_fragment:71,4tf:direct_thread:72,4tf:direct_thread:73,6Hh:direct_sticker_tab_tray_fragment:74,4tf:direct_thread:75,4tf:direct_thread:76,4tf:direct_thread:77",
+		"nav_chain":            navChain[common.GenNumber(0, len(navChain))],
 		"offline_threading_id": msgID,
 	}
 	resp := &RespSendMsg{}
-	err := this.inst.HttpRequestJson(&reqOptions{
+	err = this.inst.HttpRequestJson(&reqOptions{
 		IsPost:  true,
+		Signed:  false,
 		ApiPath: urlSendText,
 		Query:   params,
 	}, resp)

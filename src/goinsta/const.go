@@ -411,9 +411,9 @@ const (
 	urlUploadVideo = "rupload_igvideo/"
 
 	// msg
-	urlSendText  = "api/v1/direct_v2/threads/broadcast/text/"
-	urlSendImage = "api/v1/direct_v2/threads/broadcast/configure_photo/"
-
+	urlSendText          = "api/v1/direct_v2/threads/broadcast/text/"
+	urlSendImage         = "api/v1/direct_v2/threads/broadcast/configure_photo/"
+	urlCreateGroupThread = "api/v1/direct_v2/create_group_thread/"
 	//	graph
 	urlLoggingClientEvents = "logging_client_events"
 )

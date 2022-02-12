@@ -5,6 +5,37 @@ import (
 	"makemoney/common"
 )
 
+type UserSimp struct {
+	Pk               int64  `json:"pk"`
+	Username         string `json:"username"`
+	FullName         string `json:"full_name"`
+	IsPrivate        bool   `json:"is_private"`
+	ProfilePicUrl    string `json:"profile_pic_url"`
+	ProfilePicId     string `json:"profile_pic_id"`
+	FriendshipStatus struct {
+		Following                 bool `json:"following"`
+		Blocking                  bool `json:"blocking"`
+		IsPrivate                 bool `json:"is_private"`
+		IncomingRequest           bool `json:"incoming_request"`
+		OutgoingRequest           bool `json:"outgoing_request"`
+		IsBestie                  bool `json:"is_bestie"`
+		IsRestricted              bool `json:"is_restricted"`
+		IsMessagingPseudoBlocking bool `json:"is_messaging_pseudo_blocking"`
+		ReachabilityStatus        int  `json:"reachability_status"`
+		IsFeedFavorite            bool `json:"is_feed_favorite"`
+	} `json:"friendship_status"`
+	IsVerified                   bool  `json:"is_verified"`
+	FollowFrictionType           int   `json:"follow_friction_type"`
+	HasAnonymousProfilePicture   bool  `json:"has_anonymous_profile_picture"`
+	HasThreadsApp                bool  `json:"has_threads_app"`
+	HasHighlightReels            bool  `json:"has_highlight_reels"`
+	IsUsingUnifiedInboxForDirect bool  `json:"is_using_unified_inbox_for_direct"`
+	BizUserInboxState            int   `json:"biz_user_inbox_state"`
+	WaAddressable                bool  `json:"wa_addressable"`
+	WaEligibility                int   `json:"wa_eligibility"`
+	InteropMessagingUserFbid     int64 `json:"interop_messaging_user_fbid"`
+}
+
 type UserDetail struct {
 	ID                         int64   `json:"pk"`
 	Username                   string  `json:"username"`

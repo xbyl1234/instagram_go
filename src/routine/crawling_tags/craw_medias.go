@@ -102,7 +102,7 @@ func CrawMedias(TagsChan chan *goinsta.Tags, waitCraw *sync.WaitGroup, StopTime 
 					mediaTime := time.Unix(mediaComb.Media.Caption.CreatedAt, 0)
 					if mediaComb.Media.Caption.CreatedAt < StopTime.Unix() {
 						stop = true
-						tag.MoreAvailable = false
+						//tag.MoreAvailable = false
 						log.Info("coro %d account %s craw media %s stop! media time is %s", myIdx, currAccount.User, tag.Name, mediaTime.Format("2006-01-02 15:04:05"))
 					} else {
 						log.Info("coro %d account %s craw media %s  current time is %s", myIdx, currAccount.User, tag.Name, mediaTime.Format("2006-01-02 15:04:05"))

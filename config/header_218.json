@@ -1,0 +1,12 @@
+{
+  "paths": [
+    {
+      "path": "api/v1/direct_v2/threads/broadcast/text/",
+      "md5": "392f23d848c4c90994590eb870fa489f"
+    },
+    {
+      "path": "api/v1/direct_v2/create_group_thread/",
+      "md5": "bf5e2d55ed105311a113afbe78b2c138"
+    }
+  ]
+}
