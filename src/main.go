@@ -7,11 +7,11 @@ type Extra2 struct {
 	Step        string  `json:"step"`
 	Flow        string  `json:"flow"`
 }
+
 type name struct {
 	Extra2
 }
 
 func main() {
 
-	print(t)
 }

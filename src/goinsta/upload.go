@@ -25,23 +25,23 @@ type RespUpload struct {
 	XsharingNonces interface{} `json:"xsharing_nonces"`
 }
 
-func (this *Upload) RuploadPhotoFromPath(path string) (string, error) {
+func (this *Upload) UploadPhotoFromPath(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
-	return this.RuploadPhoto(data)
+	return this.UploadPhoto(data)
 }
 
-func (this *Upload) RuploadVoiceFromPath(path string) (string, error) {
+func (this *Upload) UploadVoiceFromPath(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
-	return this.RuploadVoice(data)
+	return this.UploadVoice(data)
 }
 
-func (this *Upload) RuploadPhoto(data []byte) (string, error) {
+func (this *Upload) UploadPhoto(data []byte) (string, error) {
 	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
 	path := common.GenString(common.CharSet_16_Num, 32)
 
@@ -82,7 +82,7 @@ func (this *Upload) RuploadPhoto(data []byte) (string, error) {
 	return upId, err
 }
 
-func (this *Upload) RuploadVideo(path string) (string, error) {
+func (this *Upload) UploadVideo(path string) (string, error) {
 	upId := common.GenString(common.CharSet_123, 15)
 	timeTick := strconv.FormatInt(time.Now().Unix(), 15) + "000"
 	entityName := common.GenString(common.CharSet_16_Num, 32) + "-0-" +
@@ -136,7 +136,23 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 	return upId, err
 }
 
-func (this *Upload) RuploadVoice(data []byte) (string, error) {
+func (this *Upload) UploadFinish(uploadID string) error {
+	var resp = &BaseApiResp{}
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlUploadFinish,
+		IsPost:  true,
+		Signed:  true,
+		Header: map[string]string{
+			"upload_id": uploadID,
+			"_uuid":     this.inst.Device.DeviceID,
+			"_uid":      fmt.Sprintf("%d", this.inst.ID),
+		},
+	}, resp)
+	err = resp.CheckError(err)
+	return err
+}
+
+func (this *Upload) UploadVoice(data []byte) (string, error) {
 	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
 	path := common.GenString(common.CharSet_16_Num, 32)
 
@@ -168,5 +184,9 @@ func (this *Upload) RuploadVoice(data []byte) (string, error) {
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
+	if err != nil {
+		return "", err
+	}
+	err = this.UploadFinish(upId)
 	return upId, err
 }

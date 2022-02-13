@@ -136,7 +136,7 @@ func InstRefreshAccountInfo(inst *goinsta.Instagram) *TestLoginResult {
 		var result = &TestLoginResult{}
 		inst.IsLogin = true
 		if routine.SetProxy(inst) {
-			uploadID, err := inst.GetUpload().RuploadPhotoFromPath(common.Resource.ChoiceIco())
+			uploadID, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 			if err == nil {
 				err = inst.GetAccount().EditProfile(&goinsta.UserProfile{
 					UploadId: uploadID,

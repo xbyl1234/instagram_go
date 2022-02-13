@@ -22,6 +22,8 @@ type SpeedControlJson struct {
 const (
 	OperNameCrawMedia   = "craw_media"
 	OperNameCrawComment = "craw_comment"
+	OperNameSendMsg     = "send_msg"
+	OperNameLikeUser    = "like_user"
 )
 
 var SpeedControlConfigMap map[string]*SpeedControlConfig

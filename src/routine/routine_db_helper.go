@@ -33,13 +33,9 @@ func InitCrawFansDB(taskName string, targetFansDBName string, targetFansCollName
 	CrawFansTargetUserColl = goinsta.GetDB(targetFansDBName).Collection(targetFansCollName)
 }
 
-var SendMsgDB *mongo.Database
-var SendTaskColl *mongo.Collection
 var SendTargeUserColl *mongo.Collection
 
 func InitSendMsgDB(TargetUserDB string, TargetUserCollection string) {
-	SendMsgDB = goinsta.GetDB("inst_fans")
-	SendTaskColl = SendMsgDB.Collection("task")
 	targetDB := goinsta.GetDB(TargetUserDB)
 	SendTargeUserColl = targetDB.Collection(TargetUserCollection)
 }
@@ -151,16 +147,23 @@ func LoadMedia(limit int) ([]MediaComb, error) {
 	return result[:index], err
 }
 
+type SendHistory struct {
+	TaskName string `bson:"task_name"`
+	HadRead  bool   `bson:"had_read"`
+	HadOpen  bool   `bson:"had_open"`
+}
+
 type UserComb struct {
-	User     *goinsta.User      `json:"user"`
-	Source   string             `json:"source"`
-	Followes *goinsta.Followers `json:"followes"`
-	SendFlag map[string]string  `json:"send_flag"`
+	User        *goinsta.User      `bson:"user"`
+	Source      string             `bson:"source"`
+	Followes    *goinsta.Followers `bson:"followes"`
+	SendHistory []SendHistory      `bson:"send_history"`
+	Black       bool               `bson:"black"`
 }
 
 func SaveSendFlag(Coll *mongo.Collection, userComb *UserComb, sendTaskName string) error {
-	_, err := Coll.UpdateOne(context.TODO(),
-		bson.D{{"user", bson.M{"pk": userComb.User.ID}}}, bson.D{{"$set", bson.M{"send_flag": bson.M{sendTaskName: true}}}},
+	_, err := Coll.UpdateOne(context.TODO(), bson.D{{"user", bson.M{"pk": userComb.User.ID}}},
+		bson.D{{"$set", bson.M{"send_flag": bson.M{sendTaskName: true}}}},
 		options.Update().SetUpsert(true))
 
 	if err != nil {
@@ -180,12 +183,12 @@ func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
 	return nil
 }
 
-func LoadUser(source string, sendTaskName string, limit int) ([]UserComb, error) {
-	cursor, err := CrawTagsUserColl.Find(context.TODO(),
+func LoadUser(sendTaskName string, limit int) ([]UserComb, error) {
+	cursor, err := SendTargeUserColl.Find(context.TODO(),
 		bson.D{{"$and",
 			bson.D{
-				{"source", source},
 				{"send_flag", bson.M{sendTaskName: bson.M{"$exists": false}}},
+				{"black", false},
 			},
 		}}, nil)
 

@@ -176,7 +176,7 @@ func RegisterByPhone() {
 		_, err = inst.AddressBookLink(GenAddressBook())
 
 		var uploadID string
-		uploadID, err = inst.GetUpload().RuploadPhotoFromPath(common.Resource.ChoiceIco())
+		uploadID, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 		err = inst.GetAccount().ChangeProfilePicture(uploadID)
 
 		if err != nil {
@@ -296,7 +296,7 @@ func RegisterByEmail() {
 		err = goinsta.SaveInstToDB(inst)
 
 		var uploadID string
-		uploadID, err = inst.GetUpload().RuploadPhotoFromPath(common.Resource.ChoiceIco())
+		uploadID, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 		err = inst.GetAccount().ChangeProfilePicture(uploadID)
 
 		if err != nil {

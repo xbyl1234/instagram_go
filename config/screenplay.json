@@ -1,0 +1,14 @@
+{
+  "msgs": [
+    [
+      {
+        "type": "text",
+        "content": "123"
+      },
+      {
+        "type": "voice",
+        "content": ""
+      }
+    ]
+  ]
+}

@@ -35,6 +35,16 @@ type OperationLog struct {
 	Count     int       `json:"count"`
 }
 
+type InstagramOperate struct {
+	Graph     *Graph
+	Search    *Search
+	Upload    *Upload
+	Account   *Account
+	User      *User
+	Followers *Followers
+	Message   *Message
+}
+
 type Instagram struct {
 	User                string
 	Pass                string
@@ -59,10 +69,9 @@ type Instagram struct {
 	MatePoint           interface{}
 	Proxy               *proxy.Proxy
 	c                   *http.Client
-	graph               *Graph
-	account             *Account
 	SpeedControl        map[string]*SpeedControl
 	Tags                string
+	Operate             InstagramOperate
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -97,7 +106,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 	}
 
 	inst.Device = GenInstDeviceInfo()
-	inst.graph = &Graph{inst: inst}
+	inst.Operate.Graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
 	inst.SpeedControl = make(map[string]*SpeedControl)
 	common.DebugHttpClient(inst.c)
@@ -105,7 +114,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 }
 
 func (this *Instagram) GetGraph() *Graph {
-	return this.graph
+	return this.Operate.Graph
 }
 
 func (this *Instagram) GetSearch(q string) *Search {
@@ -117,10 +126,10 @@ func (this *Instagram) GetUpload() *Upload {
 }
 
 func (this *Instagram) GetAccount() *Account {
-	if this.account == nil {
-		this.account = &Account{ID: this.ID, inst: this}
+	if this.Operate.Account == nil {
+		this.Operate.Account = &Account{ID: this.ID, inst: this}
 	}
-	return this.account
+	return this.Operate.Account
 }
 
 func (this *Instagram) GetUser(id string) *User {

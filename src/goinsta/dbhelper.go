@@ -238,7 +238,7 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		ReSetRate(value, key)
 	}
 
-	inst.graph = &Graph{inst: inst}
+	inst.Operate.Graph = &Graph{inst: inst}
 	inst.Proxy = &proxy.Proxy{ID: config.ProxyID}
 	common.DebugHttpClient(inst.c)
 
@@ -281,7 +281,7 @@ func LoadAllAccount() []*Instagram {
 
 type UploadIDRecord struct {
 	FileMd5  string `bson:"file_md5"`
-	Username string `bson:"username"`
+	UserID   int64  `bson:"user_id"`
 	FileType string `bson:"file_type"`
 	FileName string `bson:"file_name"`
 	UploadID string `bson:"upload_id"`
@@ -296,25 +296,19 @@ func SaveUploadID(record *UploadIDRecord) error {
 	return err
 }
 
-func FindUploadID(username string, fileMd5 string) (*UploadIDRecord, error) {
+func LoadUploadID(userID int64) ([]UploadIDRecord, error) {
 	cursor, err := MogoHelper.UploadIDRecord.Find(context.TODO(),
-		bson.D{{"$and",
-			bson.D{
-				{"username", username},
-				{"file_md5", fileMd5},
-			},
-		}}, nil)
+		bson.D{{"user_id", userID}}, nil)
 
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close(context.TODO())
 
-	var result = &UploadIDRecord{}
-	if cursor.Next(context.TODO()) {
-		err = cursor.Decode(result)
-		return result, err
+	var result []UploadIDRecord
+	err = cursor.All(context.TODO(), &result)
+	if err != nil {
+		return nil, err
 	}
-
-	return nil, &common.MakeMoneyError{ErrType: common.NoMoreError}
+	return result, nil
 }

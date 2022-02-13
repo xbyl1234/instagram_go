@@ -8,7 +8,7 @@ import (
 
 type Message struct {
 	inst    *Instagram
-	ChatMap map[string]*RespCreateGroup
+	ChatMap map[int64]*RespCreateGroup
 }
 type ChatHistory struct {
 	Timestamp    string `json:"timestamp"`
@@ -193,11 +193,11 @@ var waveform = [][]float32{
 	{0.2969, 0.3027, 0.3111, 0.4661, 0.4467, 0.4105, 0.3816, 0.4424, 0.4384, 0.3946, 0.3677, 0.4171, 0.4220, 0.3782, 0.3150, 0.2716, 0.4209, 0.3486, 0.3082, 0.3758, 0.3453, 0.3208, 0.3052, 0.2639, 0.2182, 0.3558, 0.2750, 0.3337, 0.3347, 0.2555, 0.2774, 0.3700, 0.3604, 0.3395, 0.3033, 0.3551, 0.2919, 0.2630, 0.2123},
 }
 
-func (this *Message) CreateGroup(id string) (*RespCreateGroup, error) {
+func (this *Message) CreateGroup(id int64) (*RespCreateGroup, error) {
 	params := map[string]interface{}{
 		"client_context":  common.GenUUID(),
 		"_uuid":           this.inst.Device.DeviceID,
-		"recipient_users": "[[" + id + "]]",
+		"recipient_users": "[[" + fmt.Sprintf("%d", id) + "]]",
 		"_uid":            this.inst.ID,
 	}
 	resp := &RespCreateGroup{}
@@ -230,7 +230,7 @@ type RespSendMsg struct {
 	StatusCode string `json:"status_code"`
 }
 
-func (this *Message) GetThreadId(id string) (string, error) {
+func (this *Message) GetThreadId(id int64) (string, error) {
 	var err error
 	var chatInfo = this.ChatMap[id]
 	if chatInfo == nil {
@@ -242,7 +242,7 @@ func (this *Message) GetThreadId(id string) (string, error) {
 	return chatInfo.ThreadId, err
 }
 
-func (this *Message) SendTextMessage(id string, msg string) error {
+func (this *Message) SendTextMessage(id int64, msg string) error {
 	msgID := GenChatID()
 	threadID, err := this.GetThreadId(id)
 	if err != nil {
@@ -265,7 +265,6 @@ func (this *Message) SendTextMessage(id string, msg string) error {
 	resp := &RespSendMsg{}
 	err = this.inst.HttpRequestJson(&reqOptions{
 		IsPost:  true,
-		Signed:  false,
 		ApiPath: urlSendText,
 		Query:   params,
 	}, resp)
@@ -273,7 +272,7 @@ func (this *Message) SendTextMessage(id string, msg string) error {
 	return err
 }
 
-func (this *Message) SendImgMessage(id string, imageID string) error {
+func (this *Message) SendImgMessage(id int64, imageID string) error {
 	msgID := GenChatID()
 	threadID, err := this.GetThreadId(id)
 	if err != nil {
@@ -312,7 +311,7 @@ func (this *Message) SendImgMessage(id string, imageID string) error {
 	return err
 }
 
-func (this *Message) SendVoiceMessage(id string, voiceID string) error {
+func (this *Message) SendVoiceMessage(id int64, voiceID string) error {
 	msgID := GenChatID()
 	threadID, err := this.GetThreadId(id)
 	if err != nil {
