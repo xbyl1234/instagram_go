@@ -189,6 +189,10 @@ var sendAttribution = []string{
 	"thread_view",
 }
 
+var waveform = [][]float32{
+	{0.2969, 0.3027, 0.3111, 0.4661, 0.4467, 0.4105, 0.3816, 0.4424, 0.4384, 0.3946, 0.3677, 0.4171, 0.4220, 0.3782, 0.3150, 0.2716, 0.4209, 0.3486, 0.3082, 0.3758, 0.3453, 0.3208, 0.3052, 0.2639, 0.2182, 0.3558, 0.2750, 0.3337, 0.3347, 0.2555, 0.2774, 0.3700, 0.3604, 0.3395, 0.3033, 0.3551, 0.2919, 0.2630, 0.2123},
+}
+
 func (this *Message) CreateGroup(id string) (*RespCreateGroup, error) {
 	params := map[string]interface{}{
 		"client_context":  common.GenUUID(),
@@ -210,6 +214,10 @@ func (this *Message) CreateGroup(id string) (*RespCreateGroup, error) {
 	return resp, err
 }
 
+func GenChatID() string {
+	return fmt.Sprintf("%d", (time.Now().UnixMilli()<<22)|(int64(common.GenNumber(0, 9999999))&4194303)&0x7fffffffffffffff)
+}
+
 type RespSendMsg struct {
 	BaseApiResp
 	Action  string `json:"action"`
@@ -222,21 +230,24 @@ type RespSendMsg struct {
 	StatusCode string `json:"status_code"`
 }
 
-func GenChatID() string {
-	return fmt.Sprintf("%d", (time.Now().UnixMilli()<<22)|(int64(common.GenNumber(0, 9999999))&4194303)&0x7fffffffffffffff)
-}
-
-func (this *Message) SendTextMessage(id string, msg string) error {
+func (this *Message) GetThreadId(id string) (string, error) {
 	var err error
-	msgID := GenChatID()
 	var chatInfo = this.ChatMap[id]
 	if chatInfo == nil {
 		chatInfo, err = this.CreateGroup(id)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
-	var threadID = chatInfo.ThreadId
+	return chatInfo.ThreadId, err
+}
+
+func (this *Message) SendTextMessage(id string, msg string) error {
+	msgID := GenChatID()
+	threadID, err := this.GetThreadId(id)
+	if err != nil {
+		return err
+	}
 
 	params := map[string]interface{}{
 		"thread_id":            threadID,
@@ -263,53 +274,80 @@ func (this *Message) SendTextMessage(id string, msg string) error {
 }
 
 func (this *Message) SendImgMessage(id string, imageID string) error {
-	msgID := common.GenString(common.CharSet_123, 19)
+	msgID := GenChatID()
+	threadID, err := this.GetThreadId(id)
+	if err != nil {
+		return err
+	}
+
 	params := map[string]interface{}{
-		"recipient_users":  "[[" + id + "]]",
-		"action":           "send_item",
-		"is_shh_mode":      0,
-		"send_attribution": "inbox",
-		"client_context":   msgID,
-		//"device_id":               this.inst.androidID,
+		"thread_id":               threadID,
+		"client_timestamp":        time.Now().Unix(),
+		"timezone_offset":         this.inst.Device.TimezoneOffset,
 		"mutation_token":          msgID,
+		"nav_chain":               navChain[common.GenNumber(0, len(navChain))],
+		"content_type":            "photo",
 		"_uuid":                   this.inst.Device.DeviceID,
-		"allow_full_aspect_ratio": true,
-		"nav_chain":               "8Of:self_profile:42,82Y:account_switch_fragment:43,8Of:self_profile:44,TRUNCATEDx10,6Hh:direct_sticker_tab_tray_fragment:71,4tf:direct_thread:72,4tf:direct_thread:73,6Hh:direct_sticker_tab_tray_fragment:74,4tf:direct_thread:75,4tf:direct_thread:76,4tf:direct_thread:77",
-		"upload_id":               imageID,
+		"action":                  "send_item",
+		"allow_full_aspect_ratio": 1,
+		"waterfall_id":            "",
 		"offline_threading_id":    msgID,
+		"upload_id":               imageID,
+		"device_id":               this.inst.Device.DeviceID,
+		"send_attribution":        sendAttribution[common.GenNumber(0, len(sendAttribution))],
+		"client_context":          msgID,
+		"is_shh_mode":             0,
 	}
 	resp := &RespSendMsg{}
-	err := this.inst.HttpRequestJson(&reqOptions{
+	err = this.inst.HttpRequestJson(&reqOptions{
 		IsPost:  true,
 		ApiPath: urlSendImage,
-		Query:   params,
+		Header: map[string]string{
+			"X-Ig-Connection-Speed":      "429kbps",
+			"X-Ig-Eu-Configure-Disabled": "true",
+		},
+		Query: params,
 	}, resp)
 	err = resp.CheckError(err)
 	return err
 }
 
-func (this *Message) SendVoiceMessage(id string, videoID string) error {
-	msgID := common.GenString(common.CharSet_123, 19)
+func (this *Message) SendVoiceMessage(id string, voiceID string) error {
+	msgID := GenChatID()
+	threadID, err := this.GetThreadId(id)
+	if err != nil {
+		return err
+	}
+
 	params := map[string]interface{}{
-		"recipient_users":  "[[" + id + "]]",
-		"action":           "send_item",
-		"is_shh_mode":      0,
-		"send_attribution": "direct_thread",
-		"client_context":   msgID,
-		"video_result":     "",
-		//"device_id":               this.inst.androidID,
-		"mutation_token":          msgID,
-		"_uuid":                   this.inst.Device.DeviceID,
-		"allow_full_aspect_ratio": true,
-		"nav_chain":               "8Of:self_profile:42,82Y:account_switch_fragment:43,8Of:self_profile:44,TRUNCATEDx10,6Hh:direct_sticker_tab_tray_fragment:71,4tf:direct_thread:72,4tf:direct_thread:73,6Hh:direct_sticker_tab_tray_fragment:74,4tf:direct_thread:75,4tf:direct_thread:76,4tf:direct_thread:77",
-		"upload_id":               videoID,
-		"offline_threading_id":    msgID,
+		"is_shh_mode":                    0,
+		"thread_id":                      threadID,
+		"client_timestamp":               time.Now().Unix(),
+		"timezone_offset":                this.inst.Device.TimezoneOffset,
+		"mutation_token":                 msgID,
+		"nav_chain":                      navChain[common.GenNumber(0, len(navChain))],
+		"content_type":                   "audio",
+		"_uuid":                          this.inst.Device.DeviceID,
+		"action":                         "send_item",
+		"allow_full_aspect_ratio":        1,
+		"waterfall_id":                   "",
+		"offline_threading_id":           msgID,
+		"upload_id":                      voiceID,
+		"device_id":                      this.inst.Device.DeviceID,
+		"waveform_sampling_frequency_hz": 10,
+		"client_context":                 msgID,
+		"waveform":                       waveform[common.GenNumber(0, len(waveform))],
+		"send_attribution":               sendAttribution[common.GenNumber(0, len(sendAttribution))],
 	}
 	resp := &RespSendMsg{}
-	err := this.inst.HttpRequestJson(&reqOptions{
+	err = this.inst.HttpRequestJson(&reqOptions{
 		IsPost:  true,
-		ApiPath: urlSendImage,
-		Query:   params,
+		ApiPath: urlShareVoice,
+		Header: map[string]string{
+			"Priority": "u=2, i",
+			//"X-Ig-Salt-Ids: 42139649",
+		},
+		Query: params,
 	}, resp)
 	err = resp.CheckError(err)
 	return err

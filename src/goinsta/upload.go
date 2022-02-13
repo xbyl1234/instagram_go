@@ -3,6 +3,7 @@ package goinsta
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"makemoney/common"
 	"strconv"
@@ -17,7 +18,7 @@ func newUpload(inst *Instagram) *Upload {
 	return &Upload{inst: inst}
 }
 
-type RespRuploadIgPhoto struct {
+type RespUpload struct {
 	BaseApiResp
 	Offset         int         `json:"offset"`
 	UploadId       string      `json:"upload_id"`
@@ -32,16 +33,24 @@ func (this *Upload) RuploadPhotoFromPath(path string) (string, error) {
 	return this.RuploadPhoto(data)
 }
 
+func (this *Upload) RuploadVoiceFromPath(path string) (string, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return this.RuploadVoice(data)
+}
+
 func (this *Upload) RuploadPhoto(data []byte) (string, error) {
-	upId := strconv.FormatInt(time.Now().UnixMicro(), 10)
-	entityName := common.GenString(common.CharSet_16_Num, 32)
+	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
+	path := common.GenString(common.CharSet_16_Num, 32)
 
 	imageCompression, _ := json.Marshal(map[string]interface{}{
 		"lib_name":    "uikit",
 		"lib_version": "1575.230000",
-		"quality":     99.9,
+		"quality":     64,
 		"colorspace":  "kCGColorSpaceDeviceRGB",
-		"ssim":        1,
+		"ssim":        0.9,
 	})
 
 	params, _ := json.Marshal(map[string]interface{}{
@@ -53,13 +62,13 @@ func (this *Upload) RuploadPhoto(data []byte) (string, error) {
 
 	body := bytes.NewBuffer(data)
 
-	var resp = &RespRuploadIgPhoto{}
+	var resp = &RespUpload{}
 	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath:        urlUploadPhone + entityName,
+		ApiPath:        urlUploadPhone + path,
 		HeaderSequence: LoginHeaderMap[urlUploadPhone],
 		IsPost:         true,
 		Header: map[string]string{
-			"x_fb_photo_waterfall_id":    this.inst.Device.WaterID,
+			"x_fb_photo_waterfall_id":    common.GenString(common.CharSet_16_Num, 32),
 			"x-instagram-rupload-params": paramsStr,
 			"content-type":               "application/octet-stream",
 			"x-entity-type":              "image/jpeg",
@@ -106,7 +115,7 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 	}
 	body := bytes.NewBuffer(data)
 
-	var resp = &RespRuploadIgPhoto{}
+	var resp = &RespUpload{}
 	err = this.inst.HttpRequestJson(&reqOptions{
 		ApiPath:        urlUploadVideo + entityName,
 		HeaderSequence: LoginHeaderMap[urlUploadVideo],
@@ -120,6 +129,41 @@ func (this *Upload) RuploadVideo(path string) (string, error) {
 			"x-entity-name":              entityName,
 			"x-entity-type":              "video/mp4",
 			"x-entity-length":            strconv.Itoa(len(data)),
+		},
+		Body: body,
+	}, resp)
+	err = resp.CheckError(err)
+	return upId, err
+}
+
+func (this *Upload) RuploadVoice(data []byte) (string, error) {
+	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
+	path := common.GenString(common.CharSet_16_Num, 32)
+
+	uploadParams, _ := json.Marshal(map[string]interface{}{
+		"upload_id":         "1644744220215219",
+		"xsharing_user_ids": "[]",
+		"media_type":        11,
+		"is_direct_voice":   true,
+	})
+
+	uploadParamsStr := string(uploadParams)
+	body := bytes.NewBuffer(data)
+
+	var resp = &RespUpload{}
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath:        urlUploadVideo + path,
+		HeaderSequence: LoginHeaderMap[urlUploadVideo],
+		IsPost:         true,
+		Header: map[string]string{
+			"Media_hash":                 "",
+			"X-Entity-Name":              "audio.m4a",
+			"X-Entity-Type":              "audio/aac",
+			"Offset":                     "0",
+			"Content-Type":               "application/octet-stream",
+			"X-Entity-Length":            fmt.Sprintf("%d", len(data)),
+			"X_fb_video_waterfall_id":    common.GenString(common.CharSet_16_Num, 32),
+			"X-Instagram-Rupload-Params": uploadParamsStr,
 		},
 		Body: body,
 	}, resp)

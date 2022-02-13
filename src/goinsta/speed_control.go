@@ -72,11 +72,11 @@ type SpeedControl struct {
 	EachMinute LimitRate `bson:"each_minute"`
 	EachHour   LimitRate `bson:"each_hour"`
 	EachDay    LimitRate `bson:"each_day"`
-	history    int       `bson:"history"`
+	History    int       `bson:"History"`
 }
 
 func (this *SpeedControl) Increase() (int, int, int, int) {
-	this.history++
+	this.History++
 	return this.EachSecond.Increase(),
 		this.EachMinute.Increase(),
 		this.EachHour.Increase(),

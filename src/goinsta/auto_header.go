@@ -53,17 +53,16 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 		case "Ig-U-Ig-Direct-Region-Hint":
 			serverHeader(item)
 			break
-		case "X-Ig-Nav-Chain":
-			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Nav-Chain", "IGExploreViewController:explore_popular:2:main_explore,IGGenericSearchViewController:search_typeahead:3:,IGSearchResultsViewController:search_typeahead:4:,IGProfileViewController:profile:5:,IGDirectThreadViewController:direct_thread:6:button_tray")
-			}
-			index++
+		//case "X-Ig-Nav-Chain":
+		//	ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
+		//		req.Header.Set("X-Ig-Nav-Chain", "IGExploreViewController:explore_popular:2:main_explore,IGGenericSearchViewController:search_typeahead:3:,IGSearchResultsViewController:search_typeahead:4:,IGProfileViewController:profile:5:,IGDirectThreadViewController:direct_thread:6:button_tray")
+		//	}
+		//	index++
 		case "X-Fb-Rmd":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Fb-Rmd", "cached=0;state=NO_MATCH")
 			}
 			index++
-
 		case "Priority":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("Priority", "u=2, i")

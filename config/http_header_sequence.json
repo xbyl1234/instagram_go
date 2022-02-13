@@ -225,13 +225,26 @@
     {
       "path": "api/v1/direct_v2/create_group_thread/",
       "md5": "2deedbc6f79a4d19f0f7df37f3036955"
+    },
+    {
+      "path": "api/v1/direct_v2/threads/broadcast/share_voice/",
+      "md5": "09c3c183bfc57f6954d1e9a4413cc772"
+    },
+    {
+      "path": "api/v1/direct_v2/threads/broadcast/configure_photo/",
+      "md5": "78a6a250ecc4a8ac7bb0fcfffe8037c9"
     }
   ],
   "md5s": [
     {
       "md5": "392f23d848c4c90994590eb870fa489f",
       "header": "Priority,X-Ig-Connection-Speed,Content-Length,X-Ig-Device-Id,Ig-Intended-User-Id,X-Ig-App-Startup-Country,Ig-U-Ig-Direct-Region-Hint,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Ig-Nav-Chain,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,X-Fb-Rmd,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
-    }, {
+    },
+    {
+      "md5": "09c3c183bfc57f6954d1e9a4413cc772",
+      "header": "Priority,X-Ig-Connection-Speed,X-Ig-Eu-Configure-Disabled,Content-Length,X-Ig-Device-Id,X-Ig-App-Startup-Country,Ig-U-Ig-Direct-Region-Hint,Ig-Intended-User-Id,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Ig-Salt-Ids,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Extended-Cdn-Thumbnail-Sizes,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
+    },
+    {
       "md5": "2deedbc6f79a4d19f0f7df37f3036955",
       "header": "X-Ig-Connection-Speed,Content-Length,Source,X-Ig-Device-Id,Ig-Intended-User-Id,Ig-U-Ig-Direct-Region-Hint,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
     },

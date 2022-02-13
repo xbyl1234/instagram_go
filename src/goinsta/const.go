@@ -407,11 +407,13 @@ const (
 	urlTagSections = "api/v1/tags/%s/sections/"
 
 	// upload
-	urlUploadPhone = "rupload_igphoto/"
-	urlUploadVideo = "rupload_igvideo/"
+	urlUploadPhone  = "rupload_igphoto/"
+	urlUploadVideo  = "rupload_igvideo/"
+	urlUploadFinish = "api/v1/media/upload_finish/"
 
 	// msg
 	urlSendText          = "api/v1/direct_v2/threads/broadcast/text/"
+	urlShareVoice        = "api/v1/direct_v2/threads/broadcast/share_voice/"
 	urlSendImage         = "api/v1/direct_v2/threads/broadcast/configure_photo/"
 	urlCreateGroupThread = "api/v1/direct_v2/create_group_thread/"
 	//	graph
