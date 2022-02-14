@@ -17,9 +17,9 @@
     {
       "oper_name": "send_msg",
       "each_second": 0,
-      "each_minute": 10,
-      "each_hour": 100,
-      "each_day": 800
+      "each_minute": 0,
+      "each_hour": 0,
+      "each_day": 0
     },
     {
       "oper_name": "like_user",

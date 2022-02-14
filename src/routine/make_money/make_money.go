@@ -12,16 +12,17 @@ import (
 	"os"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type MakeMoneyConfig struct {
-	TaskName             string `json:"task_name"`
-	CoroCount            int    `json:"coro_count"`
-	ProxyPath            string `json:"proxy_path"`
-	TargetUserDB         string `json:"target_user_db"`
-	TargetUserCollection string `json:"target_user_collection"`
-	ScreenplayPath       string `json:"screenplay_path"`
-	AccountTag           string `json:"account_tag"`
+	TaskName             string       `json:"task_name"`
+	CoroCount            int          `json:"coro_count"`
+	ProxyPath            string       `json:"proxy_path"`
+	TargetUserDB         string       `json:"target_user_db"`
+	TargetUserCollection string       `json:"target_user_collection"`
+	AccountTag           string       `json:"account_tag"`
+	Msgs                 [][]*Message `json:"msgs"`
 }
 
 type Message struct {
@@ -31,17 +32,12 @@ type Message struct {
 	MD5     string
 }
 
-type Screenplay struct {
-	Msgs [][]Message `json:"msgs"`
-}
-
 const (
 	TexeMsg  = "text"
 	VoiceMsg = "voice"
 	ImgMsg   = "img"
 )
 
-var screenplay Screenplay
 var config MakeMoneyConfig
 var WaitAll sync.WaitGroup
 var UserChan = make(chan *routine.UserComb, 100)
@@ -49,7 +45,7 @@ var UserChan = make(chan *routine.UserComb, 100)
 var SendSuccessCount int32
 var SendErrorCount int32
 
-func UploadRes(inst *goinsta.Instagram, msg Message) (string, error) {
+func UploadRes(inst *goinsta.Instagram, msg *Message) (string, error) {
 	var mateData map[string]string
 	if inst.MatePoint == nil {
 		mateData = make(map[string]string)
@@ -100,7 +96,7 @@ func SendTask() {
 
 	for user := range UserChan {
 		inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
-		message := screenplay.Msgs[common.GenNumber(0, len(screenplay.Msgs))]
+		message := config.Msgs[common.GenNumber(0, len(config.Msgs))]
 		err = nil
 		for _, item := range message {
 			switch item.Type {
@@ -123,6 +119,8 @@ func SendTask() {
 			if err != nil {
 				log.Error("send %s msg %s to %d, error: %v", item.Type, inst.User, user.User.ID, err)
 				break
+			} else {
+				log.Info("send %s msg %s to %d success!", item.Type, inst.User, user.User.ID)
 			}
 		}
 
@@ -130,8 +128,10 @@ func SendTask() {
 
 		if err != nil {
 			atomic.AddInt32(&SendErrorCount, 1)
+			log.Info("%s send to %d finish with error!", inst.User, user.User.ID)
 		} else {
 			atomic.AddInt32(&SendSuccessCount, 1)
+			log.Info("%s send to %d finish!", inst.User, user.User.ID)
 		}
 		goinsta.AccountPool.ReleaseOne(inst)
 	}
@@ -139,16 +139,29 @@ func SendTask() {
 
 func SendUser() {
 	defer WaitAll.Done()
+	//51082952034
+	for true {
+		user := &routine.UserComb{
+			User:        &goinsta.User{ID: 51082952034},
+			Source:      "",
+			Followes:    nil,
+			SendHistory: nil,
+			Black:       false,
+		}
+		UserChan <- user
+	}
 
 	for true {
 		users, err := routine.LoadUser(config.TaskName, 100)
 		if err != nil {
 			log.Error("load user error: %v", err)
-			break
+			time.Sleep(time.Minute)
+			continue
 		}
 		if len(users) == 0 {
 			log.Info("no more user to load")
-			break
+			time.Sleep(time.Minute)
+			continue
 		}
 
 		for index := range users {
@@ -160,13 +173,8 @@ func SendUser() {
 }
 
 func LoadScreenplay() error {
-	err := common.LoadJsonFile(config.ScreenplayPath, &screenplay)
-	if err != nil {
-		log.Error("load Screenplay error: %v", err)
-		return err
-	}
-
-	for _, items := range screenplay.Msgs {
+	var err error
+	for _, items := range config.Msgs {
 		for _, item := range items {
 			if item.Type == ImgMsg || item.Type == VoiceMsg {
 				item.Data, err = os.ReadFile(item.Content)
@@ -212,8 +220,8 @@ func initParams() {
 		log.Error("TargetUserCollection is null")
 		os.Exit(0)
 	}
-	if config.ScreenplayPath == "" {
-		log.Error("ScreenplayPath is null")
+	if config.Msgs == nil || len(config.Msgs) == 0 {
+		log.Error("Msgs is null")
 		os.Exit(0)
 	}
 	err = LoadScreenplay()
@@ -224,10 +232,17 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)
+	intas := goinsta.LoadAccountByTags([]string{config.AccountTag, config.AccountTag})
+	if len(intas) == 0 {
+		log.Warn("there have no account!")
+	} else {
+		goinsta.InitAccountPool(intas)
+	}
+
 	WaitAll.Add(config.CoroCount + 1)
 	go SendUser()
 	for index := 0; index < config.CoroCount; index++ {

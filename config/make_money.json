@@ -1,0 +1,16 @@
+{
+  "task_name": "make_money",
+  "coro_count": 1,
+  "proxy_path": "./config/proxy_config_ios.json",
+  "target_user_db": "game_craw",
+  "target_user_collection": "users",
+  "account_tag": "make_money",
+  "msgs": [
+    [
+      {
+        "type": "voice",
+        "content": "C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture\\0e47971492aef5f928ec86a5f48016d3.jpg"
+      }
+    ]
+  ]
+}

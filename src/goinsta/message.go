@@ -10,6 +10,14 @@ type Message struct {
 	inst    *Instagram
 	ChatMap map[int64]*RespCreateGroup
 }
+
+func newMessage(inst *Instagram) *Message {
+	return &Message{
+		inst:    inst,
+		ChatMap: make(map[int64]*RespCreateGroup),
+	}
+}
+
 type ChatHistory struct {
 	Timestamp    string `json:"timestamp"`
 	ItemId       string `json:"item_id"`
@@ -238,6 +246,7 @@ func (this *Message) GetThreadId(id int64) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		this.ChatMap[id] = chatInfo
 	}
 	return chatInfo.ThreadId, err
 }

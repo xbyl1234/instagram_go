@@ -117,12 +117,15 @@ func (this *Instagram) GetGraph() *Graph {
 	return this.Operate.Graph
 }
 
-func (this *Instagram) GetSearch(q string) *Search {
+func (this *Instagram) NewSearch(q string) *Search {
 	return newSearch(this, q)
 }
 
 func (this *Instagram) GetUpload() *Upload {
-	return newUpload(this)
+	if this.Operate.Upload == nil {
+		this.Operate.Upload = newUpload(this)
+	}
+	return this.Operate.Upload
 }
 
 func (this *Instagram) GetAccount() *Account {
@@ -132,18 +135,21 @@ func (this *Instagram) GetAccount() *Account {
 	return this.Operate.Account
 }
 
-func (this *Instagram) GetUser(id string) *User {
+func (this *Instagram) NewUser(id string) *User {
 	pk, _ := strconv.ParseInt(id, 10, 64)
 	return &User{ID: pk, inst: this}
 }
 
-func (this *Instagram) GetFollowers(id string) *Followers {
+func (this *Instagram) NewFollowers(id string) *Followers {
 	pk, _ := strconv.ParseInt(id, 10, 64)
 	return &Followers{User: pk, inst: this, HasMore: true}
 }
 
 func (this *Instagram) GetMessage() *Message {
-	return &Message{inst: this}
+	if this.Operate.Message == nil {
+		this.Operate.Message = newMessage(this)
+	}
+	return this.Operate.Message
 }
 
 func (this *Instagram) SetProxy(_proxy *proxy.Proxy) {

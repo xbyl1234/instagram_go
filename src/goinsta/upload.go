@@ -55,6 +55,7 @@ func (this *Upload) UploadPhoto(data []byte) (string, error) {
 
 	params, _ := json.Marshal(map[string]interface{}{
 		"upload_id":         upId,
+		"xsharing_user_ids": "[]",
 		"media_type":        1,
 		"image_compression": string(imageCompression),
 	})
@@ -75,6 +76,7 @@ func (this *Upload) UploadPhoto(data []byte) (string, error) {
 			"x-entity-name":              "image.jpeg",
 			"x-entity-length":            strconv.Itoa(len(data)),
 			"offset":                     "0",
+			"Media_hash":                 "",
 		},
 		Body: body,
 	}, resp)

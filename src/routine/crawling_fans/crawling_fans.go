@@ -43,7 +43,7 @@ func CrawlingFans() {
 		if item.User.ID != 0 {
 			var followes *goinsta.Followers
 			if item.Followes == nil {
-				followes = inst.GetFollowers(strconv.FormatInt(item.User.ID, 10))
+				followes = inst.NewFollowers(strconv.FormatInt(item.User.ID, 10))
 				item.Followes = followes
 			} else {
 				followes = item.Followes
