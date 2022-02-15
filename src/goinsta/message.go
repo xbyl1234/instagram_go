@@ -186,15 +186,17 @@ type RespCreateGroup struct {
 }
 
 var navChain = []string{
-	"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
-	"IGExploreViewController:explore_popular:19,IGProfileViewController:profile:21",
-	"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+	"IGProfileViewController:self_profile:2,IGFollowListTabPageViewController:self_unified_follow_lists:12,IGProfileViewController:profile:13",
+	//"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+	//"IGExploreViewController:explore_popular:19,IGProfileViewController:profile:21",
+	//"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
 }
 
 var sendAttribution = []string{
-	"inbox",
-	"direct_inbox",
-	"thread_view",
+	"message_button",
+	//"inbox",
+	//"direct_inbox",
+	//"thread_view",
 }
 
 var waveform = [][]float32{
@@ -235,7 +237,6 @@ type RespSendMsg struct {
 		ThreadId      string `json:"thread_id"`
 		Timestamp     string `json:"timestamp"`
 	} `json:"payload"`
-	StatusCode string `json:"status_code"`
 }
 
 func (this *Message) GetThreadId(id int64) (string, error) {
@@ -289,11 +290,11 @@ func (this *Message) SendImgMessage(id int64, imageID string) error {
 	}
 
 	params := map[string]interface{}{
-		"thread_id":               threadID,
-		"client_timestamp":        time.Now().Unix(),
-		"timezone_offset":         this.inst.Device.TimezoneOffset,
-		"mutation_token":          msgID,
-		"nav_chain":               navChain[common.GenNumber(0, len(navChain))],
+		"thread_id":        threadID,
+		"client_timestamp": time.Now().Unix(),
+		"timezone_offset":  this.inst.Device.TimezoneOffset,
+		"mutation_token":   msgID,
+		//"nav_chain":               navChain[common.GenNumber(0, len(navChain))],
 		"content_type":            "photo",
 		"_uuid":                   this.inst.Device.DeviceID,
 		"action":                  "send_item",

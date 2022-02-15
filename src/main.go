@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"time"
+)
+
 type Extra2 struct {
 	WaterfallId string  `json:"waterfall_id"`
 	StartTime   float32 `json:"start_time"`
@@ -12,6 +17,12 @@ type name struct {
 	Extra2
 }
 
+func GenUploadID() string {
+	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
+	return upId[:len(upId)-1]
+}
+
 func main() {
 
+	print(GenUploadID())
 }

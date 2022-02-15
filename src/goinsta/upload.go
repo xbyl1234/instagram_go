@@ -25,6 +25,11 @@ type RespUpload struct {
 	XsharingNonces interface{} `json:"xsharing_nonces"`
 }
 
+func GenUploadID() string {
+	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
+	return upId[:len(upId)-1]
+}
+
 func (this *Upload) UploadPhotoFromPath(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -42,7 +47,7 @@ func (this *Upload) UploadVoiceFromPath(path string) (string, error) {
 }
 
 func (this *Upload) UploadPhoto(data []byte) (string, error) {
-	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
+	upId := GenUploadID()
 	path := common.GenString(common.CharSet_16_Num, 32)
 
 	imageCompression, _ := json.Marshal(map[string]interface{}{
@@ -50,12 +55,12 @@ func (this *Upload) UploadPhoto(data []byte) (string, error) {
 		"lib_version": "1575.230000",
 		"quality":     64,
 		"colorspace":  "kCGColorSpaceDeviceRGB",
-		"ssim":        0.9,
+		"ssim":        0.96855711936950684,
 	})
 
 	params, _ := json.Marshal(map[string]interface{}{
 		"upload_id":         upId,
-		"xsharing_user_ids": "[]",
+		"xsharing_user_ids": []int{},
 		"media_type":        1,
 		"image_compression": string(imageCompression),
 	})
@@ -155,7 +160,7 @@ func (this *Upload) UploadFinish(uploadID string) error {
 }
 
 func (this *Upload) UploadVoice(data []byte) (string, error) {
-	upId := fmt.Sprintf("%d", time.Now().UnixMicro())
+	upId := GenUploadID()
 	path := common.GenString(common.CharSet_16_Num, 32)
 
 	uploadParams, _ := json.Marshal(map[string]interface{}{

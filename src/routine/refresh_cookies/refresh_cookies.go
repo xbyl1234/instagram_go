@@ -370,15 +370,20 @@ func main() {
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 
+	login, err := Login("fuchychh", "Xbyl1234")
+	if err != nil {
+		return
+	}
+	goinsta.SaveInstToDB(login)
 	//goinsta.CleanStatus()
-	err := common.InitResource(config.ResIcoPath, "")
+	err = common.InitResource(config.ResIcoPath, "")
 	if err != nil {
 		log.Error("load res error: %v", err)
 		os.Exit(0)
 	}
 
-	//insts := goinsta.LoadAllAccount()
-	insts := goinsta.LoadAccountByTags("craw_tags")
+	insts := goinsta.LoadAllAccount()
+	//insts := goinsta.LoadAccountByTags("craw_tags")
 	if len(insts) == 0 {
 		log.Error("there have no account!")
 		os.Exit(0)

@@ -91,8 +91,8 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 
 func (this *Account) ChangeProfilePicture(uploadID string) error {
 	params := map[string]interface{}{
-		"waterfall_id":     this.inst.Device.WaterID,
-		"share_to_feed":    "true",
+		"waterfall_id": "",
+		//"share_to_feed":    "true",
 		"_uuid":            this.inst.Device.DeviceID,
 		"_uid":             this.inst.ID,
 		"device_id":        this.inst.Device.DeviceID,

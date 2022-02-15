@@ -106,13 +106,14 @@ func SendTask() {
 			case ImgMsg:
 				uploadID, err = UploadRes(inst, item)
 				if err == nil {
-					err = inst.GetMessage().SendImgMessage(inst.ID, uploadID)
+					//err = inst.GetMessage().SendImgMessage(user.User.ID, uploadID)
+					err = inst.GetAccount().ChangeProfilePicture(uploadID)
 				}
 				break
 			case VoiceMsg:
 				uploadID, err = UploadRes(inst, item)
 				if err == nil {
-					err = inst.GetMessage().SendVoiceMessage(inst.ID, uploadID)
+					err = inst.GetMessage().SendVoiceMessage(user.User.ID, uploadID)
 				}
 				break
 			}
@@ -232,7 +233,7 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)

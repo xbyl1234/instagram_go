@@ -1,0 +1,2 @@
+[31m[2022-02-14 21:50:29 make_money:200      ]	Error: task config path is null!
+[0m

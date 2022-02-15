@@ -178,8 +178,8 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 			if this.token != "" {
 				reqOpt.Query["_csrftoken"] = this.token
 			}
-			reqOpt.Query["_uuid"] = this.Device.DeviceID
-			reqOpt.Query["_uid"] = this.ID
+			//reqOpt.Query["_uuid"] = this.Device.DeviceID
+			//reqOpt.Query["_uid"] = this.ID
 		}
 
 		if reqOpt.Signed {
