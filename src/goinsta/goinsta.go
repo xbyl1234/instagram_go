@@ -36,13 +36,11 @@ type OperationLog struct {
 }
 
 type InstagramOperate struct {
-	Graph     *Graph
-	Search    *Search
-	Upload    *Upload
-	Account   *Account
-	User      *User
-	Followers *Followers
-	Message   *Message
+	Graph       *Graph
+	Upload      *Upload
+	Account     *Account
+	Message     *Message
+	UserOperate *UserOperate
 }
 
 type Instagram struct {
@@ -126,6 +124,13 @@ func (this *Instagram) GetUpload() *Upload {
 		this.Operate.Upload = newUpload(this)
 	}
 	return this.Operate.Upload
+}
+
+func (this *Instagram) GetUserOperate() *UserOperate {
+	if this.Operate.UserOperate == nil {
+		this.Operate.UserOperate = newUserOperate(this)
+	}
+	return this.Operate.UserOperate
 }
 
 func (this *Instagram) GetAccount() *Account {

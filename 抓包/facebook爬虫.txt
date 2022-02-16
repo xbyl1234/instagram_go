@@ -1,0 +1,41 @@
+http: 69.171.251.10:44186
+get: /
+header:
+---	User-Agent		:	[facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)]
+---	Range		:	[bytes=0-524287]
+---	X-Fb-Crawlerbot		:	[AambBg_QKhX48gAbvTDDyhNFrBC59Z7tb1GGBXBVmmc6oRKH2mIq_KdrRuc08MN_TF9Re5Qap928ftzaMril75yM]
+---	Connection		:	[close]
+---	Accept		:	[*/*]
+---	Accept-Encoding		:	[deflate, gzip]
+
+
+http: 69.171.251.26:59134
+get: /
+header:
+---	Accept-Encoding		:	[deflate, gzip]
+---	User-Agent		:	[facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)]
+---	Range		:	[bytes=0-524287]
+---	X-Fb-Crawlerbot		:	[AalAWpj7fljjknNyVMSkKk9xBeUYw9Eb44X2uyasIn0ng-phuK7gt48ECXSaVx1Q3CFueu0mXIly1aF-DLBHIcVX-CwO8bBeBOMh4Bm2gjG24U8PNVGsr-xFd3Z6eZAHvg]
+---	Connection		:	[close]
+---	Accept		:	[*/*]
+
+
+http: 173.252.83.14:42520
+get: /
+header:
+---	User-Agent		:	[facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)]
+---	Range		:	[bytes=0-524287]
+---	X-Fb-Crawlerbot		:	[AalFoGfUA19nuderzmGpz6wvxA89OeMwTBVDtdOOVJFe3bbNbD5wsYblE2iIwQFqzW5uVlVwRQkzdq5CTyou2x_2LCACLT2nGYs]
+---	Connection		:	[close]
+---	Accept		:	[*/*]
+---	Accept-Encoding		:	[deflate, gzip]
+
+
+
+
+
+
+
+
+
+ 

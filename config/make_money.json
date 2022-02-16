@@ -8,8 +8,8 @@
   "msgs": [
     [
       {
-        "type": "img",
-        "content": "C:\\Users\\Administrator\\Desktop\\1.jpg"
+        "type": "link",
+        "content": "http://book.km.com/"
       }
     ]
   ]

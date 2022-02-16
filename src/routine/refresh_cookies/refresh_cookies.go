@@ -10,12 +10,9 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
-type TestLoginResult struct {
-	inst *goinsta.Instagram
-	err  error
-}
 type Config struct {
 	ProxyPath  string `json:"proxy_path"`
 	ResIcoPath string `json:"res_ico_path"`
@@ -30,10 +27,9 @@ var ConfigPath = flag.String("config", "./config/refresh.json", "")
 var SendAllAccount = flag.String("acc", "all", "")
 
 var TestAccount = make(chan *goinsta.Instagram, 1000)
-var TestResult = make(chan *TestLoginResult, 1000)
-var TestResultList []*TestLoginResult
-var WaitTask sync.WaitGroup
 var WaitExit sync.WaitGroup
+var SuccessCount int32 = 0
+var ErrorCount int32 = 0
 var (
 	TaskLogin       = "relogin"
 	TaskRefreshInfo = "refresh_info"
@@ -100,143 +96,61 @@ func Login(username string, password string) (*goinsta.Instagram, error) {
 	}
 }
 
-func InstRelogin(inst *goinsta.Instagram) *TestLoginResult {
-	result := &TestLoginResult{}
-	var err error
-	result.inst, err = Login(inst.User, inst.Pass)
-
+func InstRelogin(inst *goinsta.Instagram) error {
+	inst, err := Login(inst.User, inst.Pass)
 	if err != nil {
-		result.err = err
-		return result
+		return err
 	}
 
-	err = result.inst.GetAccount().Sync()
+	err = inst.GetAccount().Sync()
+	return err
+}
+
+func InstRefreshAccountInfo(inst *goinsta.Instagram) error {
+	uploadID, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 	if err != nil {
-		result.err = err
+		log.Error("account %s upload ico error: %v", inst.User, err)
+		return err
 	}
-	return result
+
+	err = inst.GetAccount().ChangeProfilePicture(uploadID)
+	if err != nil {
+		log.Error("account %s change ico error: %v", inst.User, err)
+	}
+	return err
 }
 
-func RecvCleanAndLogin() {
-	index := 0
-	for result := range TestResult {
-		if result.err != nil {
-			result.inst.Status = result.err.Error()
-		}
-		TestResultList[index] = result
-		index++
-		goinsta.SaveInstToDB(result.inst)
-	}
-	PrintResult(TestResultList[:index])
-	WaitExit.Done()
-}
-
-func InstRefreshAccountInfo(inst *goinsta.Instagram) *TestLoginResult {
-	if !inst.IsLogin && inst.Status == "challenge_required" {
-		var result = &TestLoginResult{}
-		inst.IsLogin = true
-		if routine.SetProxy(inst) {
-			uploadID, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
-			if err == nil {
-				err = inst.GetAccount().EditProfile(&goinsta.UserProfile{
-					UploadId: uploadID,
-				})
-			}
-			result.inst = inst
-			if err == nil {
-			} else {
-				result.err = err
-			}
-		} else {
-		}
-		return result
-	} else {
-		return nil
-	}
-}
-
-func RecvRefreshAccountInfo() {
-	index := 0
-	for result := range TestResult {
-		TestResultList[index] = result
-		index++
-		//if !result.status {
-		//	if result.err.Error() == "no proxy" {
-		//		continue
-		//	}
-		//
-		//	if common.IsError(result.err, common.ChallengeRequiredError) {
-		//		result.inst.Status = "challenge_required"
-		//		result.inst.IsLogin = false
-		//		proxy.ProxyPool.Black(result.inst.Proxy, proxy.BlackType_RegisterRisk)
-		//	}
-		//} else {
-		//	result.inst.Status = ""
-		//	result.inst.IsLogin = true
-		//}
-		goinsta.SaveInstToDB(result.inst)
-	}
-	PrintResult(TestResultList[:index])
-	WaitExit.Done()
-	//proxy.ProxyPool.Dumps()
-}
-
-func InstTestAccount(inst *goinsta.Instagram) *TestLoginResult {
+func InstTestAccount(inst *goinsta.Instagram) error {
 	var err error
-	var result = &TestLoginResult{}
-	result.inst = inst
-
-	if routine.SetProxy(inst) {
-		if inst.ID == 0 || inst.IsLogin == false {
-			result.inst, err = Login(inst.User, inst.Pass)
-			if err != nil {
-				result.err = err
-				return result
-			}
-		}
-
-		//The password you entered is incorrect
-		//invalid character 'O' looking for beginning of value
-		//The username you entered doesn't appear to belong to an account
-		//invalid character '<' looking
-
-		result.inst.Status = ""
-		err = result.inst.GetAccount().Sync()
+	if inst.ID == 0 || inst.IsLogin == false {
+		inst, err = Login(inst.User, inst.Pass)
 		if err != nil {
-			result.err = err
-			log.Error("account: %s, error: %v", inst.User, err)
-			return result
-			//if strings.Index(err.Error(), "invalid character") != -1 {
-			//	log.Error("account: %s, cookies error: %v", inst.User, err)
-			//	inst.CleanCookiesAndHeader()
-			//	continue
-			//}
-		}
-	} else {
-		result.err = &common.MakeMoneyError{
-			ErrStr: "no proxy",
+			return err
 		}
 	}
 
-	return result
-}
+	//The password you entered is incorrect
+	//invalid character 'O' looking for beginning of value
+	//The username you entered doesn't appear to belong to an account
+	//invalid character '<' looking
 
-func RecvTestAccount() {
-	index := 0
-	for result := range TestResult {
-		TestResultList[index] = result
-		index++
-		if result.err.Error() != "no proxy" {
-			goinsta.SaveInstToDB(result.inst)
-		}
+	err = inst.GetAccount().Sync()
+	if err != nil {
+		log.Error("account: %s, error: %v", inst.User, err)
+
+		//if strings.Index(err.Error(), "invalid character") != -1 {
+		//	log.Error("account: %s, cookies error: %v", inst.User, err)
+		//	inst.CleanCookiesAndHeader()
+		//	continue
+		//}
 	}
-	WaitExit.Done()
-	PrintResult(TestResultList[:index])
+
+	return err
 }
 
 func DispatchAccount() {
-	defer WaitTask.Done()
-	var Consumer func(inst *goinsta.Instagram) *TestLoginResult
+	defer WaitExit.Done()
+	var Consumer func(inst *goinsta.Instagram) error
 	switch *TaskType {
 	case TaskLogin:
 		Consumer = InstRelogin
@@ -252,10 +166,13 @@ func DispatchAccount() {
 	}
 
 	for inst := range TestAccount {
-		result := Consumer(inst)
-		if result != nil {
-			TestResult <- result
+		err := Consumer(inst)
+		if err != nil {
+			atomic.AddInt32(&ErrorCount, 1)
+		} else {
+			atomic.AddInt32(&SuccessCount, 1)
 		}
+		goinsta.SaveInstToDB(inst)
 	}
 }
 
@@ -268,10 +185,12 @@ func send(inst *goinsta.Instagram) {
 		if inst.IsLogin && inst.ID != 0 && inst.Status == "" {
 			TestAccount <- inst
 		}
+		break
 	case SendNoDevice:
 		if inst.IsLogin && inst.ID != 0 && inst.Status == "" && inst.Device.DeviceID == "" {
 			TestAccount <- inst
 		}
+		break
 	case SendBad:
 		if !inst.IsLogin || inst.ID == 0 || inst.Status != "" {
 			TestAccount <- inst
@@ -293,11 +212,13 @@ func send(inst *goinsta.Instagram) {
 			inst.Device = goinsta.GenInstDeviceInfo()
 			TestAccount <- inst
 		}
+		break
 	case SendReqErr:
 		if strings.Index(inst.Status, "invalid character") != -1 {
 			inst.CleanCookiesAndHeader()
 			TestAccount <- inst
 		}
+		break
 		//case SendTagsCrawTags:
 		//
 		//	if  inst. == "" {
@@ -314,53 +235,7 @@ func SendAccount(insts []*goinsta.Instagram) {
 	}
 
 	close(TestAccount)
-	WaitTask.Wait()
-	close(TestResult)
 	WaitExit.Done()
-}
-
-func PrintResult(result []*TestLoginResult) {
-	log.Info("---------------  success   ---------------")
-	for index := range result {
-		if result[index].err == nil {
-			log.Info("username: %s", result[index].inst.User)
-		}
-	}
-	log.Info("-------------    failed   --------------")
-	for index := range result {
-		if result[index].err != nil && result[index].err.Error() != "no proxy" {
-			log.Error("username: %s, err: %v", result[index].inst.User, result[index].err)
-		}
-	}
-	log.Info("--------------- proxy error --------------")
-	for index := range result {
-		if result[index].err != nil && result[index].err.Error() == "no proxy" {
-			log.Warn("username: %s", result[index].inst.User)
-		}
-	}
-}
-
-func testOne(insts []*goinsta.Instagram, username string) {
-	var inst *goinsta.Instagram
-	for index := range insts {
-		if insts[index].User == username {
-			inst = insts[index]
-			break
-		}
-	}
-	if inst == nil {
-		log.Error("not find user: %s", username)
-		os.Exit(0)
-	}
-
-	result := InstTestAccount(inst)
-
-	if result.err == nil {
-		log.Info("islogin: %v, acc status: %s", result.inst.IsLogin, result.inst.Status)
-	} else {
-		log.Info("account: %s, err: %v", result.inst.Status, result.err)
-	}
-	goinsta.SaveInstToDB(inst)
 }
 
 func main() {
@@ -369,13 +244,14 @@ func main() {
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
+	var err error
+	//login, err := Login("fuchychh", "Xbyl1234")
+	//if err != nil {
+	//	return
+	//}
+	//goinsta.SaveInstToDB(login)
+	////goinsta.CleanStatus()
 
-	login, err := Login("fuchychh", "Xbyl1234")
-	if err != nil {
-		return
-	}
-	goinsta.SaveInstToDB(login)
-	//goinsta.CleanStatus()
 	err = common.InitResource(config.ResIcoPath, "")
 	if err != nil {
 		log.Error("load res error: %v", err)
@@ -389,30 +265,13 @@ func main() {
 		os.Exit(0)
 	}
 	log.Info("load account count: %d", len(insts))
-	TestResultList = make([]*TestLoginResult, len(insts))
 
 	if *TestOne != "" {
-		testOne(insts, *TestOne)
 		os.Exit(0)
 	}
 
-	WaitExit.Add(2)
-	WaitTask.Add(config.Coro)
+	WaitExit.Add(1 + config.Coro)
 	go SendAccount(insts)
-	switch *TaskType {
-	case TaskLogin:
-		go RecvCleanAndLogin()
-		break
-	case TaskRefreshInfo:
-		go RecvRefreshAccountInfo()
-		break
-	case TaskTestAccount:
-		go RecvTestAccount()
-		break
-	default:
-		log.Error("task type error")
-		os.Exit(0)
-	}
 
 	for i := 0; i < config.Coro; i++ {
 		go DispatchAccount()

@@ -17,6 +17,7 @@ type RespLikeUser struct {
 }
 
 func (this *UserOperate) LikeUser(userID int64) error {
+	this.inst.Increase(OperNameLikeUser)
 	params := map[string]interface{}{
 		"_uuid":            this.inst.Device.DeviceID,
 		"_uid":             this.inst.ID,
@@ -26,10 +27,11 @@ func (this *UserOperate) LikeUser(userID int64) error {
 	}
 	resp := &RespLikeUser{}
 	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath: fmt.Sprintf(urlUserFollow, userID),
-		IsPost:  true,
-		Signed:  true,
-		Query:   params,
+		ApiPath:        fmt.Sprintf(urlUserFollow, userID),
+		HeaderSequence: LoginHeaderMap[urlUserFollow],
+		IsPost:         true,
+		Signed:         true,
+		Query:          params,
 	}, resp)
 
 	err = resp.CheckError(err)

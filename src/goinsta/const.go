@@ -416,6 +416,7 @@ const (
 	urlShareVoice        = "api/v1/direct_v2/threads/broadcast/share_voice/"
 	urlSendImage         = "api/v1/direct_v2/threads/broadcast/configure_photo/"
 	urlCreateGroupThread = "api/v1/direct_v2/create_group_thread/"
+	urlSendLink          = "api/v1/direct_v2/threads/broadcast/link/"
 	//	graph
 	urlLoggingClientEvents = "logging_client_events"
 )

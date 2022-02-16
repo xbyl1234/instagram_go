@@ -241,12 +241,24 @@
     {
       "path": "api/v1/media/upload_finish/",
       "md5": "7fb66bcdd20c45244a01784da5c68d2e"
+    },
+    {
+      "path": "api/v1/friendships/create/%d/",
+      "md5": "392f23d848c4c90994590eb870fa489f"
+    },
+    {
+      "path": "api/v1/direct_v2/threads/broadcast/link/",
+      "md5": "9db3f1874ec450893db162498038febe"
     }
   ],
   "md5s": [
     {
       "md5": "9e1e51ef59ee58c94b1dbe4271a6adc1",
       "header": "Priority,X-Ig-Connection-Type,Ig-Intended-User-Id,Media_hash,X-Entity-Name,X-Entity-Type,X-Ig-Device-Id,Ig-U-Ig-Direct-Region-Hint,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Salt-Ids,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Family-Device-Id,Ig-U-Ds-User-Id,Offset,Accept-Language,Content-Type,X-Entity-Length,User-Agent,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Extended-Cdn-Thumbnail-Sizes,X_fb_video_waterfall_id,Authorization,X-Mid,X-Ig-Www-Claim,Content-Length,X-Instagram-Rupload-Params,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
+    },
+    {
+      "md5": "9db3f1874ec450893db162498038febe",
+      "header": "Priority,X-Ig-Connection-Speed,Content-Length,X-Ig-Device-Id,Ig-Intended-User-Id,X-Ig-App-Startup-Country,Ig-U-Ig-Direct-Region-Hint,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Salt-Ids,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Extended-Cdn-Thumbnail-Sizes,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
     },
     {
       "md5": "392f23d848c4c90994590eb870fa489f",

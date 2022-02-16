@@ -3,6 +3,7 @@ package goinsta
 import (
 	"fmt"
 	"makemoney/common"
+	"strings"
 	"time"
 )
 
@@ -190,6 +191,7 @@ var navChain = []string{
 	//"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
 	//"IGExploreViewController:explore_popular:19,IGProfileViewController:profile:21",
 	//"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+	//"IGProfileViewController:self_profile:2,IGFollowListTabPageViewController:self_unified_follow_lists:12,IGProfileViewController:profile:13"
 }
 
 var sendAttribution = []string{
@@ -259,6 +261,7 @@ func (this *Message) SendTextMessage(id int64, msg string) error {
 		return err
 	}
 
+	this.inst.Increase(OperNameSendMsg)
 	params := map[string]interface{}{
 		"thread_id":            threadID,
 		"action":               "send_item",
@@ -288,7 +291,7 @@ func (this *Message) SendImgMessage(id int64, imageID string) error {
 	if err != nil {
 		return err
 	}
-
+	this.inst.Increase(OperNameSendMsg)
 	params := map[string]interface{}{
 		"thread_id":        threadID,
 		"client_timestamp": time.Now().Unix(),
@@ -327,7 +330,7 @@ func (this *Message) SendVoiceMessage(id int64, voiceID string) error {
 	if err != nil {
 		return err
 	}
-
+	this.inst.Increase(OperNameSendMsg)
 	params := map[string]interface{}{
 		"is_shh_mode":                    0,
 		"thread_id":                      threadID,
@@ -357,6 +360,39 @@ func (this *Message) SendVoiceMessage(id int64, voiceID string) error {
 			//"X-Ig-Salt-Ids: 42139649",
 		},
 		Query: params,
+	}, resp)
+	err = resp.CheckError(err)
+	return err
+}
+
+func (this *Message) SendLinkMessage(id int64, link string) error {
+	msgID := GenChatID()
+	threadID, err := this.GetThreadId(id)
+	if err != nil {
+		return err
+	}
+
+	this.inst.Increase(OperNameSendMsg)
+	params := map[string]interface{}{
+		"thread_id":            threadID,
+		"mutation_token":       msgID,
+		"nav_chain":            navChain[common.GenNumber(0, len(navChain))],
+		"link_urls":            "[\"" + strings.ReplaceAll(link, "/", "\\/") + "\"]",
+		"_uuid":                this.inst.Device.DeviceID,
+		"link_text":            link,
+		"action":               "send_item",
+		"offline_threading_id": msgID,
+		"text":                 link,
+		"is_shh_mode":          0,
+		"client_context":       msgID,
+		"device_id":            this.inst.Device.DeviceID,
+		"send_attribution":     sendAttribution[common.GenNumber(0, len(sendAttribution))],
+	}
+	resp := &RespSendMsg{}
+	err = this.inst.HttpRequestJson(&reqOptions{
+		IsPost:  true,
+		ApiPath: urlSendLink,
+		Query:   params,
 	}, resp)
 	err = resp.CheckError(err)
 	return err
