@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"makemoney/common"
 	"makemoney/common/log"
@@ -20,6 +21,17 @@ type Config struct {
 
 type ShortLinkApp struct {
 	Router *mux.Router
+}
+
+func HelloHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("http: %s\n", r.RemoteAddr)
+	fmt.Printf("get: %s\n", r.URL.RequestURI())
+	fmt.Printf("header:\n")
+	for k, v := range r.Header {
+		fmt.Printf("---\t%s\t\t:\t%s\n", k, v)
+	}
+	fmt.Printf("\n\n")
+	w.Write([]byte("123"))
 }
 
 //time ip is_fb url ua
