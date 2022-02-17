@@ -30,7 +30,19 @@ func setColor(msg string, text int) string {
 	return fmt.Sprintf("%c[%dm%s%c[0m", 0x1B, text, msg, 0x1B)
 }
 
-func (this *Log) printLog(lev int, data string) {
+func (this *Log) Info(format string, v ...interface{}) {
+	this.PrintLog(infoBlue, fmt.Sprintf(format, v...))
+}
+
+func (this *Log) Error(format string, v ...interface{}) {
+	this.PrintLog(errorRed, fmt.Sprintf(format, v...))
+}
+
+func (this *Log) Warn(format string, v ...interface{}) {
+	this.PrintLog(warnYellow, fmt.Sprintf(format, v...))
+}
+
+func (this *Log) PrintLog(lev int, data string) {
 	_, file, line, ok := runtime.Caller(2)
 
 	var log = "["
@@ -87,15 +99,15 @@ func (this *Log) printLog(lev int, data string) {
 }
 
 func Info(format string, v ...interface{}) {
-	defaultLog.printLog(infoBlue, fmt.Sprintf(format, v...))
+	defaultLog.PrintLog(infoBlue, fmt.Sprintf(format, v...))
 }
 
 func Error(format string, v ...interface{}) {
-	defaultLog.printLog(errorRed, fmt.Sprintf(format, v...))
+	defaultLog.PrintLog(errorRed, fmt.Sprintf(format, v...))
 }
 
 func Warn(format string, v ...interface{}) {
-	defaultLog.printLog(warnYellow, fmt.Sprintf(format, v...))
+	defaultLog.PrintLog(warnYellow, fmt.Sprintf(format, v...))
 }
 
 func ListDir(dirPth string) (files []string, err error) {
@@ -184,4 +196,13 @@ func InitDefaultLog(logName string, write2Front bool, write2File bool) {
 
 	timeClean := time.NewTicker(time.Hour * 24)
 	go cleanLog(timeClean)
+}
+
+func NewFileLog(name string) *Log {
+	log := &Log{}
+	log.preFit = ""
+	log.write2Front = false
+	log.write2File = true
+	log.w = cronowriter.MustNew("./" + name + "_%Y%m%d.txt")
+	return log
 }
