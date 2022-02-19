@@ -21,6 +21,20 @@
 
 
 
-from urllib.parse import quote
+# from urllib.parse import quote
+#
+# print(quote("{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}", 'utf-8'))
 
-print(quote("{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}", 'utf-8'))
+
+import gzip
+import io
+import os
+
+read_file_name = r'C:\Users\Administrator\Desktop\1.gzip'
+file_mode = 'rb'
+
+with gzip.open(read_file_name, file_mode) as input_file:
+    with io.TextIOWrapper(input_file, encoding='utf-8') as dec:
+        print(dec.read())
+
+

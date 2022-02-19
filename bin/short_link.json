@@ -1,5 +1,6 @@
 {
-  "html_path": "/fake.html",
+  "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@62.216.92.183:27021",
+  "html_path": "./fake.html",
   "short_link": [
     {
       "key": "surprise",

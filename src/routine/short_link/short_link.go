@@ -16,6 +16,7 @@ type Config struct {
 		Link string `json:"link"`
 	} `json:"short_link"`
 	HtmlPath     string `json:"html_path"`
+	MogoUri      string `json:"mogo_uri"`
 	ShortLinkMap map[string]string
 }
 
@@ -44,7 +45,7 @@ func doHttpLog(ip string, isFb bool, url string, ua string) {
 	} else {
 		httpLog.Info(logFmtStr, time.Now().Unix(), ip, isFb, url, ua)
 	}
-	log.Info(logFmtStr, time.Now().Unix(), ip, isFb, url, ua)
+	//log.Info(logFmtStr, time.Now().Unix(), ip, isFb, url, ua)
 }
 
 func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request) {
@@ -67,6 +68,16 @@ func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request
 	}
 	http.Redirect(write, req, url, http.StatusTemporaryRedirect)
 	doHttpLog(req.RemoteAddr, false, req.URL.RequestURI(), req.Header.Get("User-Agent"))
+	err := ShortLinkLog2DB(&ShortLinkLogDB{
+		UserID:    vars["user_id"],
+		ShortLink: vars["short_link"],
+		Url:       req.URL.RequestURI(),
+		UA:        req.Header.Get("User-Agent"),
+		IP:        req.RemoteAddr,
+	})
+	if err != nil {
+		log.Error("save log error: %v", err)
+	}
 }
 
 var App ShortLinkApp
@@ -83,6 +94,11 @@ func main() {
 		log.Error("load config error: %v", err)
 		return
 	}
+	if config.MogoUri == "" {
+		log.Error("config MogoUri is null!")
+		return
+	}
+	InitShortLinkDB(config.MogoUri)
 	if config.HtmlPath == "" {
 		config.HtmlPath = "./fake.html"
 	}
@@ -97,7 +113,9 @@ func main() {
 	}
 
 	App.Router = mux.NewRouter()
+	App.Router.Handle("/{short_link:[a-zA-Z0-9]{0,}}/{user_id}", &App)
 	App.Router.Handle("/{short_link:[a-zA-Z0-9]{0,}}", &App)
+	App.Router.PathPrefix("/").Handler(&App)
 
 	err = http.ListenAndServe(":80", App.Router)
 	if err != nil {
