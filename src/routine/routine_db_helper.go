@@ -161,11 +161,10 @@ type UserComb struct {
 	Black       bool               `bson:"black"`
 }
 
-func SaveSendFlag(Coll *mongo.Collection, userComb *UserComb, sendTaskName string) error {
-	_, err := Coll.UpdateOne(context.TODO(), bson.D{{"user", bson.M{"pk": userComb.User.ID}}},
-		bson.D{{"$set", bson.M{"send_flag": bson.M{sendTaskName: true}}}},
+func SaveSendFlag(userComb *UserComb, sendTaskName string) error {
+	_, err := SendTargeUserColl.UpdateOne(context.TODO(), bson.M{"user.pk": userComb.User.ID},
+		bson.M{"$set": bson.M{"send_flag": bson.M{sendTaskName: true}}},
 		options.Update().SetUpsert(true))
-
 	if err != nil {
 		return err
 	}
@@ -183,20 +182,21 @@ func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
 	return nil
 }
 
-func LoadUser(sendTaskName string, limit int) ([]UserComb, error) {
+//{$and :[  {send_flag   :{$exists:false}},{$or[ {black:false} ,{black:{$exists:false} } ]}]}
+
+func LoadUser(sendTaskName string, limit int) ([]*UserComb, error) {
 	cursor, err := SendTargeUserColl.Find(context.TODO(),
-		bson.D{{"$and",
-			bson.D{
-				{"send_flag", bson.M{sendTaskName: bson.M{"$exists": false}}},
-				{"black", false},
-			},
-		}}, nil)
+		bson.M{"$and": []bson.M{
+			{"$or": []bson.M{{"send_flag": bson.M{sendTaskName: bson.M{"$exists": false}}}, {"send_flag": nil}}},
+			{"$or": []bson.M{{"black": bson.M{"$exists": false}}, {"black": false}}},
+		},
+		}, nil)
 
 	if err != nil {
 		return nil, err
 	}
 
-	var result = make([]UserComb, limit)
+	var result = make([]*UserComb, limit)
 	index := 0
 	for cursor.Next(context.TODO()) && index < limit {
 		err = cursor.Decode(&result[index])

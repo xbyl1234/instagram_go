@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
 	config2 "makemoney/config"
@@ -113,7 +114,7 @@ func SendTask() {
 				err = inst.GetMessage().SendTextMessage(user.User.ID, item.Content)
 				break
 			case TexeLink:
-				err = inst.GetMessage().SendLinkMessage(user.User.ID, item.Content)
+				err = inst.GetMessage().SendLinkMessage(user.User.ID, item.Content+fmt.Sprintf("%d", user.User.ID))
 				break
 			case ImgMsg:
 				uploadID, err = UploadRes(inst, item)
@@ -136,7 +137,7 @@ func SendTask() {
 			}
 		}
 
-		routine.SaveSendFlag(routine.SendTargeUserColl, user, config.TaskName)
+		routine.SaveSendFlag(user, config.TaskName)
 
 		if err != nil {
 			atomic.AddInt32(&SendErrorCount, 1)
@@ -152,19 +153,20 @@ func SendTask() {
 func SendUser() {
 	defer WaitAll.Done()
 	//51082952034
-	for true {
-		user := &routine.UserComb{
-			User:        &goinsta.User{ID: 51082952034},
-			Source:      "",
-			Followes:    nil,
-			SendHistory: nil,
-			Black:       false,
-		}
-		UserChan <- user
-	}
+	//for true {
+	//	user := &routine.UserComb{
+	//		User:        &goinsta.User{ID: 51082952034},
+	//		Source:      "",
+	//		Followes:    nil,
+	//		SendHistory: nil,
+	//		Black:       false,
+	//	}
+	//	UserChan <- user
+	//}
 
 	for true {
 		users, err := routine.LoadUser(config.TaskName, 100)
+		//routine.SaveSendFlag(users[0], config.TaskName)
 		if err != nil {
 			log.Error("load user error: %v", err)
 			time.Sleep(time.Minute)
@@ -177,7 +179,7 @@ func SendUser() {
 		}
 
 		for index := range users {
-			UserChan <- &users[index]
+			UserChan <- users[index]
 		}
 	}
 
@@ -244,7 +246,7 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)

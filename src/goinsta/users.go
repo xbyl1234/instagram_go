@@ -119,23 +119,23 @@ type UserDetail struct {
 }
 
 type User struct {
-	inst    *Instagram
-	HadSync bool
+	inst    *Instagram `bson:"-"`
+	HadSync bool       `bson:"-"`
 
-	ID                         int64         `json:"pk"`
-	AccountBadges              []interface{} `json:"account_badges"`
-	FollowFrictionType         int           `json:"follow_friction_type"`
-	FullName                   string        `json:"full_name"`
-	HasAnonymousProfilePicture bool          `json:"has_anonymous_profile_picture"`
-	IsPrivate                  bool          `json:"is_private"`
-	IsVerified                 bool          `json:"is_verified"`
-	LatestReelMedia            int           `json:"latest_reel_media"`
-	ProfilePicId               string        `json:"profile_pic_id"`
-	ProfilePicUrl              string        `json:"profile_pic_url"`
-	Username                   string        `json:"username"`
-	ShowPrivacyScreen          bool          `json:"show_privacy_screen"`
-	HasHighlightReels          bool          `json:"has_highlight_reels"`
-	Detail                     *UserDetail
+	ID                         int64         `json:"pk" bson:"pk"`
+	AccountBadges              []interface{} `json:"account_badges" bson:"account_badges"`
+	FollowFrictionType         int           `json:"follow_friction_type" bson:"follow_friction_type"`
+	FullName                   string        `json:"full_name" bson:"full_name"`
+	HasAnonymousProfilePicture bool          `json:"has_anonymous_profile_picture" bson:"has_anonymous_profile_picture"`
+	IsPrivate                  bool          `json:"is_private" bson:"is_private"`
+	IsVerified                 bool          `json:"is_verified" bson:"is_verified"`
+	LatestReelMedia            int           `json:"latest_reel_media" bson:"latest_reel_media"`
+	ProfilePicId               string        `json:"profile_pic_id" bson:"profile_pic_id"`
+	ProfilePicUrl              string        `json:"profile_pic_url" bson:"profile_pic_url"`
+	Username                   string        `json:"username" bson:"username"`
+	ShowPrivacyScreen          bool          `json:"show_privacy_screen" bson:"show_privacy_screen"`
+	HasHighlightReels          bool          `json:"has_highlight_reels" bson:"has_highlight_reels"`
+	Detail                     *UserDetail   `bson:"detail"`
 }
 
 type RespUserInfo struct {
