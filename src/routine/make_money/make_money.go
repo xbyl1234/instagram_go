@@ -163,7 +163,6 @@ func SendUser() {
 	//	}
 	//	UserChan <- user
 	//}
-
 	for true {
 		users, err := routine.LoadUser(config.TaskName, 100)
 		//routine.SaveSendFlag(users[0], config.TaskName)
@@ -250,6 +249,7 @@ func main() {
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)
+
 	intas := goinsta.LoadAccountByTags([]string{config.AccountTag, config.AccountTag})
 	if len(intas) == 0 {
 		log.Warn("there have no account!")

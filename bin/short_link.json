@@ -6,5 +6,46 @@
       "key": "surprise",
       "link": "https://secureclouddt-sm.com/smartlink/?a=156532&sm=16596&mt=29"
     }
+  ],
+  "hosts": [
+    "ins-email.xyz"
+  ],
+  "black": [
+    {
+      "type": "ua",
+      "data": "Mozilla/5.0 zgrab/0.x"
+    },
+    {
+      "type": "ua",
+      "data": "python-requests"
+    },
+    {
+      "type": "path",
+      "data": "/ads.txt"
+    },
+    {
+      "type": "path",
+      "data": "/HNAP1/"
+    },
+    {
+      "type": "path",
+      "data": "/hudson"
+    },
+    {
+      "type": "path",
+      "data": "/robots.txt"
+    },
+    {
+      "type": "path",
+      "data": "/humans.txt"
+    },
+    {
+      "type": "path",
+      "data": "/portal/redlion"
+    },
+    {
+      "type": "path",
+      "data": "/actuator/health"
+    }
   ]
 }

@@ -2,6 +2,7 @@ package routine
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -106,11 +107,7 @@ func SaveMedia(mediaComb *MediaComb) error {
 		}, bson.D{
 			{"$set", mediaComb}},
 		options.Update().SetUpsert(true))
-
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func LoadMedia(limit int) ([]MediaComb, error) {
@@ -165,10 +162,7 @@ func SaveSendFlag(userComb *UserComb, sendTaskName string) error {
 	_, err := SendTargeUserColl.UpdateOne(context.TODO(), bson.M{"user.pk": userComb.User.ID},
 		bson.M{"$set": bson.M{"send_flag": bson.M{sendTaskName: true}}},
 		options.Update().SetUpsert(true))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
@@ -176,13 +170,36 @@ func SaveUser(Coll *mongo.Collection, userComb *UserComb) error {
 		bson.D{
 			{"user", bson.M{"pk": userComb.User.ID}},
 		}, bson.D{{"$set", userComb}}, options.Update().SetUpsert(true))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
-//{$and :[  {send_flag   :{$exists:false}},{$or[ {black:false} ,{black:{$exists:false} } ]}]}
+func DelDup() {
+	cursor, err := SendTargeUserColl.Find(context.TODO(), bson.M{}, nil)
+	if err != nil {
+		return
+	}
+
+	set := make(map[int64]int)
+	var item UserComb
+	for cursor.Next(context.TODO()) {
+		err = cursor.Decode(&item)
+		if err != nil {
+			break
+		}
+		set[item.User.ID] = set[item.User.ID] + 1
+
+	}
+	_ = cursor.Close(context.TODO())
+
+	for k, v := range set {
+		if v > 1 {
+			for i := 0; i < v-1; i++ {
+				fmt.Println(k)
+				SendTargeUserColl.DeleteOne(context.TODO(), bson.M{"user.pk": k})
+			}
+		}
+	}
+}
 
 func LoadUser(sendTaskName string, limit int) ([]*UserComb, error) {
 	cursor, err := SendTargeUserColl.Find(context.TODO(),
