@@ -201,7 +201,7 @@ func DelDup() {
 	}
 }
 
-func LoadUser(sendTaskName string, limit int) ([]*UserComb, error) {
+func LoadUser(sendTaskName string, recvChan chan *UserComb) error {
 	cursor, err := SendTargeUserColl.Find(context.TODO(),
 		bson.M{"$and": []bson.M{
 			{"$or": []bson.M{{"send_flag": bson.M{sendTaskName: bson.M{"$exists": false}}}, {"send_flag": nil}}},
@@ -210,21 +210,19 @@ func LoadUser(sendTaskName string, limit int) ([]*UserComb, error) {
 		}, nil)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var result = make([]*UserComb, limit)
-	index := 0
-	for cursor.Next(context.TODO()) && index < limit {
-		err = cursor.Decode(&result[index])
+	for cursor.Next(context.TODO()) {
+		var result *UserComb
+		err = cursor.Decode(&result)
 		if err != nil {
 			break
 		}
-		index++
+		recvChan <- result
 	}
 	_ = cursor.Close(context.TODO())
-
-	return result[:index], err
+	return err
 }
 
 func LoadFansTargetUser(limit int) ([]UserComb, error) {

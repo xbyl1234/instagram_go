@@ -241,6 +241,7 @@ type RespSendMsg struct {
 	} `json:"payload"`
 }
 
+//58
 func (this *Message) GetThreadId(id int64) (string, error) {
 	var err error
 	var chatInfo = this.ChatMap[id]

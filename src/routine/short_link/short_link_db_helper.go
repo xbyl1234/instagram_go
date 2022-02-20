@@ -30,20 +30,22 @@ func InitShortLinkDB(mogoUri string) {
 		log.Error("mongo %v", err)
 	}
 
-	ShortLinkLogColl = Client.Database("make_money").Collection("short_link_log")
-	BlackHistoryColl = Client.Database("make_money").Collection("black_ip")
+	ShortLinkLogColl = Client.Database("short_link").Collection("short_link_log")
+	BlackHistoryColl = Client.Database("short_link").Collection("black_ip")
 }
 
 type ShortLinkLogDB struct {
-	TimeTick  int64  `bson:"time_tick"`
-	Time      string `bson:"time"`
-	UserID    string `bson:"user_id"`
-	ShortLink string `bson:"short_link"`
-	Url       string `bson:"url"`
-	UA        string `bson:"ua"`
-	IP        string `bson:"ip"`
-	IsFb      bool   `bson:"is_fb"`
-	IsBlack   bool   `bson:"is_black"`
+	TimeTick  int64               `bson:"time_tick"`
+	Time      string              `bson:"time"`
+	UserID    string              `bson:"user_id"`
+	ShortLink string              `bson:"short_link"`
+	Url       string              `bson:"url"`
+	UA        string              `bson:"ua"`
+	IP        string              `bson:"ip"`
+	Host      string              `bson:"host"`
+	IsFb      bool                `bson:"is_fb"`
+	IsBlack   bool                `bson:"is_black"`
+	ReqHeader map[string][]string `bson:"is_black"`
 }
 
 func ShortLinkLog2DB(log *ShortLinkLogDB) error {

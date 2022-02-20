@@ -66,8 +66,10 @@ func doHttpLog(vars map[string]string, isFb bool, isBlack bool, req *http.Reques
 		Url:       req.RequestURI,
 		UA:        req.UserAgent(),
 		IP:        req.RemoteAddr,
+		Host:      req.Host,
 		IsFb:      isFb,
 		IsBlack:   isBlack,
+		ReqHeader: req.Header,
 	})
 	if err != nil {
 		log.Error("save log error: %v", err)
@@ -139,6 +141,19 @@ func CheckBlack(req *http.Request, params map[string]string) bool {
 	return false
 }
 
+func CheckFB(req *http.Request) bool {
+	if req.Header.Get("X-Fb-Crawlerbot") != "" {
+		return true
+	}
+	if strings.Contains(req.RequestURI, "fbclid") {
+		return true
+	}
+	if !strings.Contains(req.UserAgent(), "Instagram") {
+		return true
+	}
+	return false
+}
+
 func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request) {
 	var isFB = false
 	var isBlack = false
@@ -147,7 +162,7 @@ func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request
 		write.Write([]byte("fuck your mather?"))
 		isBlack = true
 	} else {
-		if req.Header.Get("X-Fb-Crawlerbot") != "" {
+		if CheckFB(req) {
 			_, err := write.Write(htmlData)
 			if err != nil {
 				log.Error("write html body error: %v", err)

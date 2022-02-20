@@ -13,7 +13,6 @@ import (
 	"os"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 type MakeMoneyConfig struct {
@@ -98,45 +97,47 @@ func SendTask() {
 
 	for user := range UserChan {
 		inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
+		//236
 		err = inst.GetUserOperate().LikeUser(user.User.ID)
 		if err != nil {
-			log.Error("account %s like %d error: %v", inst.User, err)
+			log.Error("account %s like %d error: %v", inst.User, user.User.ID, err)
 			goinsta.AccountPool.ReleaseOne(inst)
 			continue
 		}
 
-		message := config.Msgs[common.GenNumber(0, len(config.Msgs))]
-		err = nil
+		if true {
+			message := config.Msgs[common.GenNumber(0, len(config.Msgs))]
+			err = nil
 
-		for _, item := range message {
-			switch item.Type {
-			case TexeMsg:
-				err = inst.GetMessage().SendTextMessage(user.User.ID, item.Content)
-				break
-			case TexeLink:
-				err = inst.GetMessage().SendLinkMessage(user.User.ID, item.Content+fmt.Sprintf("%d", user.User.ID))
-				break
-			case ImgMsg:
-				uploadID, err = UploadRes(inst, item)
-				if err == nil {
-					err = inst.GetMessage().SendImgMessage(user.User.ID, uploadID)
+			for _, item := range message {
+				switch item.Type {
+				case TexeMsg:
+					err = inst.GetMessage().SendTextMessage(user.User.ID, item.Content)
+					break
+				case TexeLink:
+					err = inst.GetMessage().SendLinkMessage(user.User.ID, item.Content+fmt.Sprintf("%d", user.User.ID))
+					break
+				case ImgMsg:
+					uploadID, err = UploadRes(inst, item)
+					if err == nil {
+						err = inst.GetMessage().SendImgMessage(user.User.ID, uploadID)
+					}
+					break
+				case VoiceMsg:
+					uploadID, err = UploadRes(inst, item)
+					if err == nil {
+						err = inst.GetMessage().SendVoiceMessage(user.User.ID, uploadID)
+					}
+					break
 				}
-				break
-			case VoiceMsg:
-				uploadID, err = UploadRes(inst, item)
-				if err == nil {
-					err = inst.GetMessage().SendVoiceMessage(user.User.ID, uploadID)
+				if err != nil {
+					log.Error("send %s msg %s to %d, error: %v", item.Type, inst.User, user.User.ID, err)
+					break
+				} else {
+					log.Info("send %s msg %s to %d success!", item.Type, inst.User, user.User.ID)
 				}
-				break
-			}
-			if err != nil {
-				log.Error("send %s msg %s to %d, error: %v", item.Type, inst.User, user.User.ID, err)
-				break
-			} else {
-				log.Info("send %s msg %s to %d success!", item.Type, inst.User, user.User.ID)
 			}
 		}
-
 		routine.SaveSendFlag(user, config.TaskName)
 
 		if err != nil {
@@ -146,6 +147,8 @@ func SendTask() {
 			atomic.AddInt32(&SendSuccessCount, 1)
 			log.Info("%s send to %d finish!", inst.User, user.User.ID)
 		}
+
+		log.Info("count: %d", SendSuccessCount)
 		goinsta.AccountPool.ReleaseOne(inst)
 	}
 }
@@ -163,25 +166,11 @@ func SendUser() {
 	//	}
 	//	UserChan <- user
 	//}
-	for true {
-		users, err := routine.LoadUser(config.TaskName, 100)
-		//routine.SaveSendFlag(users[0], config.TaskName)
-		if err != nil {
-			log.Error("load user error: %v", err)
-			time.Sleep(time.Minute)
-			continue
-		}
-		if len(users) == 0 {
-			log.Info("no more user to load")
-			time.Sleep(time.Minute)
-			continue
-		}
-
-		for index := range users {
-			UserChan <- users[index]
-		}
+	err := routine.LoadUser(config.TaskName, UserChan)
+	if err != nil {
+		log.Error("load user error: %v", err)
 	}
-
+	log.Info("load user finish!")
 	close(UserChan)
 }
 
