@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/gorilla/mux"
 	"makemoney/common"
@@ -11,16 +12,27 @@ import (
 	"sync"
 )
 
+//function encryptionCode(str){
+//   var len=str.length;
+//   var rs="";
+//   for(var i=0;i<len;i++){
+//          var k=str.substring(i,i+1);
+//          rs+= (i==0?"":",")+str.charCodeAt(i);
+//   }
+//   return rs;
+//}
+
 type Config struct {
 	ShortLink []struct {
 		Key  string `json:"key"`
 		Link string `json:"link"`
 	} `json:"short_link"`
-	HtmlPath     string   `json:"html_path"`
-	MogoUri      string   `json:"mogo_uri"`
-	Black        []Black  `json:"black"`
-	Hosts        []string `json:"hosts"`
-	ShortLinkMap map[string]string
+	FakeHtmlPath     string   `json:"fake_html_path"`
+	RedirectHtmlPath string   `json:"redirect_html_path"`
+	MogoUri          string   `json:"mogo_uri"`
+	Black            []Black  `json:"black"`
+	Hosts            []string `json:"hosts"`
+	ShortLinkMap     map[string]string
 }
 
 type ShortLinkApp struct {
@@ -40,9 +52,23 @@ type BlackHistory struct {
 	Reason string `bson:"reason"`
 }
 
+type ShortLinkLogDB struct {
+	TimeTick    int64               `bson:"time_tick"`
+	Time        string              `bson:"time"`
+	UserID      string              `bson:"user_id"`
+	ShortLink   string              `bson:"short_link"`
+	Url         string              `bson:"url"`
+	UA          string              `bson:"ua"`
+	IP          string              `bson:"ip"`
+	Host        string              `bson:"host"`
+	VisitorType string              `bson:"visitor_type"`
+	ReqHeader   map[string][]string `bson:"req_header"`
+}
+
 var App ShortLinkApp
 var config Config
-var htmlData []byte
+var FakeHtmlData []byte
+var RedirectHtmlData map[string][]byte
 var blackHistory map[string]*BlackHistory
 var historyLock sync.Mutex
 
@@ -59,18 +85,18 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 
 //time ip is_fb url ua
 
-func doHttpLog(vars map[string]string, isFb bool, isBlack bool, req *http.Request) {
+func doHttpLog(vars map[string]string, visitorType string, req *http.Request) {
 	err := ShortLinkLog2DB(&ShortLinkLogDB{
-		UserID:    vars["user_id"],
-		ShortLink: vars["short_link"],
-		Url:       req.RequestURI,
-		UA:        req.UserAgent(),
-		IP:        req.RemoteAddr,
-		Host:      req.Host,
-		IsFb:      isFb,
-		IsBlack:   isBlack,
-		ReqHeader: req.Header,
+		UserID:      vars["user_id"],
+		ShortLink:   vars["short_link"],
+		Url:         req.RequestURI,
+		UA:          req.UserAgent(),
+		IP:          req.RemoteAddr,
+		Host:        req.Host,
+		VisitorType: visitorType,
+		ReqHeader:   req.Header,
 	})
+
 	if err != nil {
 		log.Error("save log error: %v", err)
 	}
@@ -105,7 +131,13 @@ func CheckBlack(req *http.Request, params map[string]string) bool {
 	}
 	if !hasHost {
 		log.Warn("ip %s host is black", IP)
-		AddBlack(IP, "host", req)
+		//AddBlack(IP, "host", req)
+		//return true
+	}
+
+	if req.Method != "GET" {
+		log.Warn("ip %s method is black", IP)
+		AddBlack(IP, "method", req)
 		return true
 	}
 
@@ -141,46 +173,112 @@ func CheckBlack(req *http.Request, params map[string]string) bool {
 	return false
 }
 
-func CheckFB(req *http.Request) bool {
+func CheckFB(req *http.Request, params map[string]string) bool {
 	if req.Header.Get("X-Fb-Crawlerbot") != "" {
 		return true
 	}
-	if strings.Contains(req.RequestURI, "fbclid") {
+
+	url := strings.ToLower(req.RequestURI)
+	if strings.Contains(url, "fbclid") {
 		return true
 	}
-	if !strings.Contains(req.UserAgent(), "Instagram") {
+
+	ua := strings.ToLower(req.UserAgent())
+	if strings.Contains(ua, "facebookexternalhit") {
+		return true
+	}
+	if strings.Contains(ua, "www.facebook.com") {
 		return true
 	}
 	return false
 }
 
-func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request) {
-	var isFB = false
-	var isBlack = false
-	vars := mux.Vars(req)
-	if CheckBlack(req, vars) {
-		write.Write([]byte("fuck your mather?"))
-		isBlack = true
-	} else {
-		if CheckFB(req) {
-			_, err := write.Write(htmlData)
-			if err != nil {
-				log.Error("write html body error: %v", err)
-			}
-			write.WriteHeader(200)
-			isFB = true
-		} else {
-			url := config.ShortLinkMap[vars["short_link"]]
-			if url == "" {
-				for _, v := range config.ShortLinkMap {
-					url = v
-					break
-				}
-			}
-			http.Redirect(write, req, url, http.StatusTemporaryRedirect)
+func IsNumberStr(s string) bool {
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
 		}
 	}
-	doHttpLog(vars, isFB, isBlack, req)
+	return true
+}
+
+func CheckIsInstagram(req *http.Request, params map[string]string) bool {
+	if params["user_id"] == "" {
+		return false
+	}
+	if !IsNumberStr(params["user_id"]) {
+		return false
+	}
+
+	find := false
+	for _, item := range config.ShortLink {
+		if item.Key == params["short_link"] {
+			find = true
+			break
+		}
+	}
+	if !find {
+		return false
+	}
+
+	if !strings.Contains(req.UserAgent(), "Instagram") {
+		return false
+	}
+	return true
+}
+
+func CheckVisitor(req *http.Request, params map[string]string) string {
+	if CheckBlack(req, params) {
+		return "black"
+	}
+	if CheckFB(req, params) {
+		return "fb"
+	}
+	if CheckIsInstagram(req, params) {
+		return "ins"
+	}
+	return "other"
+}
+
+func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request) {
+	write.WriteHeader(200)
+	vars := mux.Vars(req)
+	visitor := CheckVisitor(req, vars)
+	switch visitor {
+	case "black":
+		visitor = "black"
+		write.Write([]byte("fuck your mather?"))
+		break
+	case "fb":
+		visitor = "fb"
+		write.Write(FakeHtmlData)
+		break
+	case "ins":
+		visitor = "ins"
+		data := RedirectHtmlData[vars["short_link"]]
+		if data == nil {
+			log.Error("write ins html is null!")
+			break
+		}
+		write.Write(data)
+		break
+	case "other":
+		visitor = "other"
+		var key string
+		for k := range config.ShortLinkMap {
+			key = k
+			break
+		}
+		data := RedirectHtmlData[key]
+		if data == nil {
+			log.Error("write ins html is null!")
+			break
+		}
+		write.Write(data)
+		break
+	}
+	log.Info("visitor: %s", visitor)
+	doHttpLog(vars, visitor, req)
 }
 
 func main() {
@@ -205,17 +303,28 @@ func main() {
 		blackHistory[item.IP] = item
 	}
 
-	if config.HtmlPath == "" {
-		config.HtmlPath = "./fake.html"
+	if config.FakeHtmlPath == "" {
+		config.FakeHtmlPath = "./fake.html"
 	}
+	if config.FakeHtmlPath == "" {
+		config.FakeHtmlPath = "./redirect.html"
+	}
+	FakeHtmlData, err = os.ReadFile(config.FakeHtmlPath)
+	if err != nil {
+		log.Error("load %s error: %v", config.FakeHtmlPath, err)
+		return
+	}
+	data, err := os.ReadFile(config.RedirectHtmlPath)
+	if err != nil {
+		log.Error("load %s error: %v", config.RedirectHtmlPath, err)
+		return
+	}
+
+	RedirectHtmlData = make(map[string][]byte)
 	config.ShortLinkMap = make(map[string]string)
 	for _, item := range config.ShortLink {
 		config.ShortLinkMap[item.Key] = item.Link
-	}
-
-	htmlData, err = os.ReadFile(config.HtmlPath)
-	if err != nil {
-		log.Error("load %s error: %v", config.HtmlPath, err)
+		RedirectHtmlData[item.Key] = bytes.ReplaceAll(data, []byte("flag1"), []byte(item.Link))
 	}
 
 	App.Router = mux.NewRouter()

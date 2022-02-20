@@ -1,0 +1,45 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>The students live</title>
+    <meta name="description"
+          content="A live streaming platform for foreign students to do part-time jobs, you can find sexy overseas girls here or earn a lot of money">
+</head>
+<body>
+<script type="text/javascript">
+    function go(t, url) {
+        document.write("<div id=text>Please wait <strong id='time'></strong> second, you will see my photo<span id='link'></span></div>");
+        document.getElementById("link").innerHTML = "<a href=" + url + ">" + url + "</a>";
+        ta = t - 1;
+        div_time = document.getElementById("time");
+        div_time.innerHTML = t;
+        window.setInterval(function () {
+            go_to(url);
+        }, 1000);
+    }
+
+    function go_to(url) {
+        div_time.innerHTML = ta--;
+        if (ta < 0) {
+            location.href = url;
+        }
+    }
+
+    function unEncryptionCode(str) {
+        var k = str.split(",");
+        var rs = "";
+        for (var i = 0; i < k.length; i++) {
+            rs += String.fromCharCode(k[i]);
+        }
+        return rs;
+    }
+
+    url = "flag1"
+    if (true) {
+        go(4, unEncryptionCode(url))
+    } else {
+        document.write("<div>" + "please open this url " + unEncryptionCode(url) + "</div>");
+    }
+</script>
+</body>
+</html>

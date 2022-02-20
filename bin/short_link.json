@@ -1,10 +1,12 @@
 {
   "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@108.61.163.242:55510",
-  "html_path": "./fake.html",
+  "fake_html_path": "./fake.html",
+  "redirect_html_path": "./redirect.html",
   "short_link": [
     {
       "key": "surprise",
-      "link": "https://secureclouddt-sm.com/smartlink/?a=156532&sm=16596&mt=29"
+      "raw": "https://secureclouddt-sm.com/smartlink/?a=156532&sm=16596&mt=29",
+      "link": "104,116,116,112,115,58,47,47,115,101,99,117,114,101,99,108,111,117,100,100,116,45,115,109,46,99,111,109,47,115,109,97,114,116,108,105,110,107,47,63,97,61,49,53,54,53,51,50,38,115,109,61,49,54,53,57,54,38,109,116,61,50,57"
     }
   ],
   "hosts": [
