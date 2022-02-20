@@ -188,17 +188,17 @@ type RespCreateGroup struct {
 
 var navChain = []string{
 	"IGProfileViewController:self_profile:2,IGFollowListTabPageViewController:self_unified_follow_lists:12,IGProfileViewController:profile:13",
-	//"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
-	//"IGExploreViewController:explore_popular:19,IGProfileViewController:profile:21",
-	//"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
-	//"IGProfileViewController:self_profile:2,IGFollowListTabPageViewController:self_unified_follow_lists:12,IGProfileViewController:profile:13"
+	"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+	"IGExploreViewController:explore_popular:19,IGProfileViewController:profile:21",
+	"IGMainFeedViewController:feed_timeline:1,IGDirectInboxNavigationController:direct_inbox:3,IGDirectInboxViewController:direct_inbox:4",
+	"IGProfileViewController:self_profile:2,IGFollowListTabPageViewController:self_unified_follow_lists:12,IGProfileViewController:profile:13",
 }
 
 var sendAttribution = []string{
 	"message_button",
-	//"inbox",
-	//"direct_inbox",
-	//"thread_view",
+	"inbox",
+	"direct_inbox",
+	"thread_view",
 }
 
 var waveform = [][]float32{

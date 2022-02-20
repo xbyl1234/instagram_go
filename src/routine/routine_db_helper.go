@@ -155,12 +155,19 @@ type UserComb struct {
 	Source      string             `bson:"source"`
 	Followes    *goinsta.Followers `bson:"followes"`
 	SendHistory []SendHistory      `bson:"send_history"`
-	Black       bool               `bson:"black"`
+	//Black       bool               `bson:"black"`
 }
 
 func SaveSendFlag(userComb *UserComb, sendTaskName string) error {
 	_, err := SendTargeUserColl.UpdateOne(context.TODO(), bson.M{"user.pk": userComb.User.ID},
 		bson.M{"$set": bson.M{"send_flag": bson.M{sendTaskName: true}}},
+		options.Update().SetUpsert(true))
+	return err
+}
+
+func SaveBlackUser(userComb *UserComb) error {
+	_, err := SendTargeUserColl.UpdateOne(context.TODO(), bson.M{"user.pk": userComb.User.ID},
+		bson.M{"$set": bson.M{"black": true}},
 		options.Update().SetUpsert(true))
 	return err
 }

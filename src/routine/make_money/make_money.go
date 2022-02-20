@@ -97,6 +97,13 @@ func SendTask() {
 
 	for user := range UserChan {
 		inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
+
+		_, err = inst.GetMessage().GetThreadId(user.User.ID)
+		if err != nil {
+			goinsta.AccountPool.ReleaseOne(inst)
+			routine.SaveBlackUser(user)
+			continue
+		}
 		//236
 		err = inst.GetUserOperate().LikeUser(user.User.ID)
 		if err != nil {
@@ -105,40 +112,37 @@ func SendTask() {
 			continue
 		}
 
-		if true {
-			message := config.Msgs[common.GenNumber(0, len(config.Msgs))]
-			err = nil
+		message := config.Msgs[common.GenNumber(0, len(config.Msgs))]
+		err = nil
 
-			for _, item := range message {
-				switch item.Type {
-				case TexeMsg:
-					err = inst.GetMessage().SendTextMessage(user.User.ID, item.Content)
-					break
-				case TexeLink:
-					err = inst.GetMessage().SendLinkMessage(user.User.ID, item.Content+fmt.Sprintf("%d", user.User.ID))
-					break
-				case ImgMsg:
-					uploadID, err = UploadRes(inst, item)
-					if err == nil {
-						err = inst.GetMessage().SendImgMessage(user.User.ID, uploadID)
-					}
-					break
-				case VoiceMsg:
-					uploadID, err = UploadRes(inst, item)
-					if err == nil {
-						err = inst.GetMessage().SendVoiceMessage(user.User.ID, uploadID)
-					}
-					break
+		for _, item := range message {
+			switch item.Type {
+			case TexeMsg:
+				err = inst.GetMessage().SendTextMessage(user.User.ID, item.Content)
+				break
+			case TexeLink:
+				err = inst.GetMessage().SendLinkMessage(user.User.ID, item.Content+fmt.Sprintf("%d", user.User.ID))
+				break
+			case ImgMsg:
+				uploadID, err = UploadRes(inst, item)
+				if err == nil {
+					err = inst.GetMessage().SendImgMessage(user.User.ID, uploadID)
 				}
-				if err != nil {
-					log.Error("send %s msg %s to %d, error: %v", item.Type, inst.User, user.User.ID, err)
-					break
-				} else {
-					log.Info("send %s msg %s to %d success!", item.Type, inst.User, user.User.ID)
+				break
+			case VoiceMsg:
+				uploadID, err = UploadRes(inst, item)
+				if err == nil {
+					err = inst.GetMessage().SendVoiceMessage(user.User.ID, uploadID)
 				}
+				break
+			}
+			if err != nil {
+				log.Error("send %s msg %s to %d, error: %v", item.Type, inst.User, user.User.ID, err)
+				break
+			} else {
+				log.Info("send %s msg %s to %d success!", item.Type, inst.User, user.User.ID)
 			}
 		}
-		routine.SaveSendFlag(user, config.TaskName)
 
 		if err != nil {
 			atomic.AddInt32(&SendErrorCount, 1)
@@ -146,6 +150,7 @@ func SendTask() {
 		} else {
 			atomic.AddInt32(&SendSuccessCount, 1)
 			log.Info("%s send to %d finish!", inst.User, user.User.ID)
+			routine.SaveSendFlag(user, config.TaskName)
 		}
 
 		log.Info("count: %d", SendSuccessCount)
@@ -234,7 +239,7 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)
