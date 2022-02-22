@@ -3,6 +3,7 @@ package goinsta
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"makemoney/common"
 	"makemoney/common/proxy"
@@ -337,6 +338,29 @@ func (this *Instagram) logAttribution() error {
 			},
 			IsPost: true,
 			Signed: true,
+		},
+	)
+	return err
+}
+
+func (this *Instagram) DeviceRegister() error {
+	query := map[string]interface{}{
+		"_uuid":                    this.Device.DeviceID,
+		"device_id":                this.Device.DeviceID,
+		"device_token":             this.Device.DeviceToken,
+		"family_device_id":         this.Device.DeviceID,
+		"device_app_installations": "{\"threads\":false,\"igtv\":false,\"instagram\":true}",
+		"users":                    fmt.Sprintf("%d", this.ID),
+		"device_type":              "ios",
+	}
+
+	_, err := this.HttpRequest(
+		&reqOptions{
+			ApiPath:        urlDeviceRegister,
+			HeaderSequence: LoginHeaderMap[urlDeviceRegister],
+			Query:          query,
+			IsPost:         true,
+			Signed:         false,
 		},
 	)
 	return err

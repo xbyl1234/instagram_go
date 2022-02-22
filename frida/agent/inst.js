@@ -60,6 +60,6 @@ function pass_ins_sslpinning() {
         console.log("pattern error len:" + result.length)
     }
 }
-
+//graph.instagram.com
 // pass_ins_sslpinning()
 // frida -U -n Instagram -l agent/inst.js --no-pause

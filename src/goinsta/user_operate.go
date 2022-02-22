@@ -1,6 +1,10 @@
 package goinsta
 
-import "fmt"
+import (
+	"fmt"
+	"makemoney/common"
+	"strings"
+)
 
 type UserOperate struct {
 	inst *Instagram
@@ -28,6 +32,119 @@ func (this *UserOperate) LikeUser(userID int64) error {
 	resp := &RespLikeUser{}
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath:        fmt.Sprintf(urlUserFollow, userID),
+		HeaderSequence: LoginHeaderMap[urlUserFollow],
+		IsPost:         true,
+		Signed:         true,
+		Query:          params,
+	}, resp)
+
+	err = resp.CheckError(err)
+	return err
+}
+
+type CameraSettings struct {
+	FocalLength  float64 `bson:"focal_length"`
+	Aperture     float64 `bson:"aperture"`
+	Iso          []int   `bson:"iso"`
+	ShutterSpeed float64 `bson:"shutter_speed"`
+	MeteringMode int     `bson:"metering_mode"`
+	ExposureTime float64 `bson:"exposure_time"`
+	Software     string  `bson:"software"`
+	LensModel    string  `bson:"lens_model"`
+	FlashStatus  int     `bson:"flash_status"`
+}
+
+type UploadMediaInfo struct {
+	uploadID  string
+	waterfall string
+	high      int
+	width     int
+}
+
+func (this *UserOperate) ConfigureToStory(uploadID string, waterfall string) error {
+	iso := 30
+	sourceType := "camera"
+	//sourceType:="library"
+	mediaType := "photo"
+	mediaInfo := &UploadMediaInfo{}
+	camera := map[string]interface{}{
+		"camera_settings": &CameraSettings{
+			FocalLength:  0,
+			Aperture:     0,
+			Iso:          []int{iso},
+			ShutterSpeed: 0,
+			MeteringMode: 0,
+			ExposureTime: 0,
+			Software:     this.inst.Device.SystemVersion,
+			LensModel:    this.inst.Device.LensModel,
+			FlashStatus:  0,
+		},
+	}
+
+	params := map[string]interface{}{
+		"device_id":                       this.inst.Device.DeviceID,
+		"private_mention_sharing_enabled": false,
+		"additional_exif_data":            camera,
+		"lens_make":                       "Apple",
+		"_uuid":                           this.inst.Device.DeviceID,
+		"like_and_view_counts_disabled":   false,
+		"capture_type":                    "normal",
+		"geotag_enabled":                  false,
+		"archived_media_id":               "",
+		//"client_timestamp":,
+		"edits":                map[string]interface{}{},
+		"original_media_size":  fmt.Sprintf("{%d, %d}", mediaInfo.width, mediaInfo.high),
+		"scene_type":           1,
+		"lens_model":           this.inst.Device.LensModel,
+		"camera_session_id":    common.GenString(common.CharSet_16_Num, 32),
+		"iso":                  iso,
+		"has_animated_sticker": false,
+		"upload_id":            uploadID,
+		"camera_entry_point":   13,
+		"source_type":          sourceType,
+		"configure_mode":       1,
+		"disable_comments":     false,
+		"timezone_offset":      this.inst.Device.TimezoneOffset,
+		//"date_time_original":
+		"waterfall_id":   waterfall,
+		"composition_id": strings.ToUpper(common.GenUUID()),
+		//"date_time_digitized":
+		"camera_position":     "back",
+		"_uid":                fmt.Sprintf("%d", this.inst.ID),
+		"client_context":      uploadID,
+		"original_media_type": mediaType,
+		//"client_shared_at", :
+		"allow_multi_configures":  true,
+		"container_module":        "direct_story_audience_picker",
+		"creation_surface":        "camera",
+		"video_subtitles_enabled": true,
+		"from_drafts":             false,
+		"software":                this.inst.Device.SystemVersion,
+		"media_gesture":           0,
+	}
+	resp := &RespLikeUser{}
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath: urlConfigureToStory,
+		IsPost:  true,
+		Signed:  true,
+		Query:   params,
+	}, resp)
+
+	err = resp.CheckError(err)
+	return err
+}
+
+func (this *UserOperate) CreateReel() {
+	params := map[string]interface{}{
+		"_uuid":            this.inst.Device.DeviceID,
+		"_uid":             this.inst.ID,
+		"user_id":          userID,
+		"device_id":        this.inst.Device.DeviceID,
+		"container_module": "profile",
+	}
+	resp := &RespLikeUser{}
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath:        urlCreateReel
 		HeaderSequence: LoginHeaderMap[urlUserFollow],
 		IsPost:         true,
 		Signed:         true,

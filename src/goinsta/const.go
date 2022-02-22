@@ -158,6 +158,9 @@ type InstDeviceInfo struct {
 	DeviceID       string `json:"device_id" bson:"device_id"`
 	FamilyID       string `json:"family_id" bson:"family_id"`
 	WaterID        string `json:"water_id" bson:"water_id"`
+	DeviceToken    string `json:"device_token" bson:"device_token"`
+	SystemVersion  string `json:"system_version" bson:"system_version"`
+	LensModel      string `json:"lens_model" bson:"lens_model"`
 }
 
 type AutoSetHeaderFun func(inst *Instagram, opt *reqOptions, req *http.Request)
@@ -234,6 +237,8 @@ func InitInstagramConst() error {
 	return err
 }
 
+//纽约 -18000
+
 func GenInstDeviceInfo() *InstDeviceInfo {
 	version := InstagramVersions[common.GenNumber(0, len(InstagramVersions))]
 	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
@@ -283,18 +288,23 @@ const (
 
 const (
 	// login
-	urlMsisdnHeader      = "api/v1/accounts/read_msisdn_header/"
-	urlContactPrefill    = "api/v1/accounts/contact_point_prefill/"
-	urlZrToken           = "api/v1/zr/token/result/"
-	urlLogin             = "api/v1/accounts/login/"
-	urlLogout            = "api/v1/accounts/logout/"
-	urlAutoComplete      = "api/v1/friendships/autocomplete_user_list/"
-	urlQeSync            = "api/v1/qe/sync/"
-	urlLogAttribution    = "api/v1/attribution/log_attribution/"
-	urlMegaphoneLog      = "api/v1/megaphone/log/"
-	urlExpose            = "api/v1/qe/expose/"
-	urlPrefillCandidates = "api/v1/accounts/get_prefill_candidates/"
-	//register  v1
+	urlMsisdnHeader          = "api/v1/accounts/read_msisdn_header/"
+	urlContactPrefill        = "api/v1/accounts/contact_point_prefill/"
+	urlZrToken               = "api/v1/zr/token/result/"
+	urlLogin                 = "api/v1/accounts/login/"
+	urlLogout                = "api/v1/accounts/logout/"
+	urlAutoComplete          = "api/v1/friendships/autocomplete_user_list/"
+	urlQeSync                = "api/v1/qe/sync/"
+	urlLogAttribution        = "api/v1/attribution/log_attribution/"
+	urlDeviceRegister        = "api/v1/push/register/"
+	urlMegaphoneLog          = "api/v1/megaphone/log/"
+	urlExpose                = "api/v1/qe/expose/"
+	urlPrefillCandidates     = "api/v1/accounts/get_prefill_candidates/"
+	urlBadge                 = "api/v1/notifications/badge/"
+	urlMobileConfig          = "api/v1/launcher/mobileconfig/"
+	urlWwwgraphql            = "api/v1/wwwgraphql/ig/query/"
+	urlGetAccountFamily      = "api/v1/multiple_accounts/get_account_family/"
+	urlGetCoolDowns          = "api/v1/qp/get_cooldowns/"
 	urlCheckPhoneNumber      = "api/v1/accounts/check_phone_number/"
 	urlSendSignupSmsCode     = "api/v1/accounts/send_signup_sms_code/"
 	urlValidateSignupSmsCode = "api/v1/accounts/validate_signup_sms_code/"
@@ -316,21 +326,26 @@ const (
 	urlSetPublic            = "api/v1/accounts/set_public/"
 	urlRemoveProfPic        = "api/v1/accounts/remove_profile_picture/"
 	urlFeedSaved            = "api/v1/feed/saved/"
-	urlSetBiography         = "api/v1/accounts/set_biography/"
 	urlFeedLiked            = "api/v1/feed/liked/"
 	urlChangeProfilePicture = "api/v1/accounts/change_profile_picture/"
 	urlEditProfile          = "api/v1/accounts/edit_profile/"
 	// account and profile
-	urlFollowers             = "api/v1/friendships/%d/followers/"
-	urlFollowing             = "api/v1/friendships/%d/following/"
-	urlGetSignupConfig       = "api/v1/consent/get_signup_config/"
-	urlGetCommonEmailDomains = "api/v1/accounts/get_common_email_domains/"
-	urlPrecheckCloudId       = "api/v1/accounts/precheck_cloud_id/"
-	urlIgUser                = "api/v1/fb/ig_user/"
-	urlCheckEmail            = "api/v1/users/check_email/"
-	urlSendVerifyEmail       = "api/v1/accounts/send_verify_email/"
-	urlCheckConfirmationCode = "api/v1/accounts/check_confirmation_code/"
-	urlAddressBookLink       = "api/v1/address_book/link/"
+	urlFollowers               = "api/v1/friendships/%d/followers/"
+	urlFollowing               = "api/v1/friendships/%d/following/"
+	urlGetSignupConfig         = "api/v1/consent/get_signup_config/"
+	urlGetCommonEmailDomains   = "api/v1/accounts/get_common_email_domains/"
+	urlPrecheckCloudId         = "api/v1/accounts/precheck_cloud_id/"
+	urlIgUser                  = "api/v1/fb/ig_user/"
+	urlCheckEmail              = "api/v1/users/check_email/"
+	urlSendVerifyEmail         = "api/v1/accounts/send_verify_email/"
+	urlCheckConfirmationCode   = "api/v1/accounts/check_confirmation_code/"
+	urlAddressBookLink         = "api/v1/address_book/link/"
+	urlSetGender               = "api/v1/accounts/set_gender/"
+	urlSendConfirmEmail        = "api/v1/accounts/send_confirm_email/"
+	urlSetBiography            = "api/v1/accounts/set_biography/"
+	urlWriteDeviceCapabilities = "api/v1/creatives/write_device_capabilities/"
+	urlUpdatePronouns          = "api/v1/bloks/apps/com.instagram.equity.pronouns.update_pronouns.action/"
+	urlGraphql                 = "api/v1/ads/graphql/"
 
 	// users
 	urlUserArchived      = "api/v1/feed/only_me_feed/"
@@ -369,14 +384,16 @@ const (
 	urlFeedTag        = "api/v1/feed/tag/%s/"
 
 	// media
-	urlMediaInfo   = "api/v1/media/%s/info/"
-	urlMediaDelete = "api/v1/media/%s/delete/"
-	urlMediaLike   = "api/v1/media/%s/like/"
-	urlMediaUnlike = "api/v1/media/%s/unlike/"
-	urlMediaSave   = "api/v1/media/%s/save/"
-	urlMediaUnsave = "api/v1/media/%s/unsave/"
-	urlMediaSeen   = "api/v1/media/seen/"
-	urlMediaLikers = "api/v1/media/%s/likers/"
+	urlMediaInfo        = "api/v1/media/%s/info/"
+	urlMediaDelete      = "api/v1/media/%s/delete/"
+	urlMediaLike        = "api/v1/media/%s/like/"
+	urlMediaUnlike      = "api/v1/media/%s/unlike/"
+	urlMediaSave        = "api/v1/media/%s/save/"
+	urlMediaUnsave      = "api/v1/media/%s/unsave/"
+	urlMediaSeen        = "api/v1/media/seen/"
+	urlMediaLikers      = "api/v1/media/%s/likers/"
+	urlConfigureToStory = "api/v1/media/configure_to_story/"
+	urlCreateReel       = "api/v1/highlights/create_reel/"
 
 	// comments
 	urlCommentAdd     = "api/v1/media/%d/comment/"

@@ -27,6 +27,7 @@ func (this *Graph) SendBeforeSendSMS() {
 		log.Warn("graph send beforeSendSMS3 err: %v", err)
 	}
 }
+
 func (this *Graph) SendAfterSendSMS() {
 	err := this.SendRequest(afterSendSMS, nil)
 	if err != nil {

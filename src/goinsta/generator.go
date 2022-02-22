@@ -7,21 +7,12 @@ import (
 	"time"
 )
 
-//func generateDeviceID(seed string) string {
-//	hash := generateMD5Hash(seed + volatileSeed)
-//	return "android-" + hash[:16]
-//}
-
-func generateDeviceID() string {
-	return "android-" + common.GenString(common.CharSet_16_Num, 16)
-}
-
 func generateSignature(data string) string {
 	return "signed_body=SIGNATURE." + data
 }
 
 func genJazoest(pid string) string {
-	var sum int = 0
+	var sum = 0
 	for ch := range pid {
 		sum += ch
 	}
