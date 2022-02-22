@@ -5,6 +5,7 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -22,70 +23,9 @@ var (
 	InstagramDeviceList2 = []string{"iPhone7,2 12_5_5 scale=2.00 750x1334"}
 
 	InstagramDeviceList = []string{
-		"iPhone10,1 15_2 scale=2.00 750x1334",
-		"iPhone10,1 14_8_1 scale=2.00 750x1334",
-		"iPhone10,3 15_1 scale=3.00 1125x2436",
-		"iPhone10,4 15_0 scale=2.00 750x1334",
-		"iPhone10,4 14_8_1 scale=2.00 750x1334",
-		"iPhone10,4 15_1 scale=2.00 750x1334",
-		"iPhone10,4 14_7_1 scale=2.00 750x1334",
-		"iPhone10,4 15_0_2 scale=2.00 750x1334",
-		"iPhone10,5 15_1 scale=2.88 1080x1920",
-		"iPhone10,5 15_0_1 scale=2.61 1080x1920",
-		"iPhone10,5 13_5_1 scale=2.61 1080x1920",
-		"iPhone10,6 15_2 scale=3.00 1125x2436",
-		"iPhone10,6 15_1 scale=3.00 1125x2436",
-		"iPhone11,2 14_7_1 scale=3.00 1125x2436",
-		"iPhone11,2 15_1 scale=3.00 1125x2436",
-		"iPhone11,2 14_6 scale=3.00 1125x2436",
-		"iPhone11,6 15_1 scale=3.00 1242x2688",
-		"iPhone11,6 14_8_1 scale=3.00 1242x2688",
-		"iPhone11,8 14_8_1 scale=2.00 828x1792",
-		"iPhone11,8 14_6 scale=2.00 828x1792",
-		"iPhone11,8 15_0_2 scale=2.00 828x1792",
-		"iPhone11,8 15_2 scale=2.00 828x1792",
-		"iPhone11,8 15_1 scale=2.00 828x1792",
-		"iPhone12,1 14_7_1 scale=2.00 828x1792",
-		"iPhone12,1 14_8_1 scale=2.00 828x1792",
-		"iPhone12,1 15_2 scale=2.00 828x1792",
-		"iPhone12,1 15_0 scale=2.00 828x1792",
-		"iPhone12,1 13_7 scale=2.00 828x1792",
-		"iPhone12,1 15_0_2 scale=2.00 828x1792",
-		"iPhone12,3 15_0_2 scale=3.00 1125x2436",
-		"iPhone12,3 14_6 scale=3.00 1125x2436",
-		"iPhone12,3 14_2 scale=3.00 1125x2436",
-		"iPhone12,3 15_1 scale=3.00 1125x2436",
-		"iPhone12,5 14_3 scale=3.00 1242x2688",
-		"iPhone12,5 15_1 scale=3.31 1242x2689",
-		"iPhone12,5 14_6 scale=3.00 1242x2688",
-		"iPhone12,5 13_3_1 scale=3.31 1242x2689",
-		"iPhone12,5 14_7_1 scale=3.00 1242x2688",
-		"iPhone12,5 14_8_1 scale=3.00 1242x2688",
-		"iPhone12,8 15_2 scale=2.00 750x1334",
-		"iPhone12,8 15_1 scale=2.00 750x1334",
-		"iPhone12,8 14_8_1 scale=2.00 750x1334",
-		"iPhone12,8 14_7_1 scale=2.00 750x1334",
-		"iPhone13,1 14_7_1 scale=2.88 1080x2338",
-		"iPhone13,2 15_2 scale=3.00 1170x2532",
-		"iPhone13,2 15_0_2 scale=3.00 1170x2532",
-		"iPhone13,2 15_1_1 scale=3.00 1170x2532",
-		"iPhone13,2 14_6 scale=3.00 1170x2532",
-		"iPhone13,2 14_7_1 scale=3.00 1170x2532",
-		"iPhone13,3 15_1_1 scale=3.00 1170x2532",
-		"iPhone13,3 15_2 scale=3.00 1170x2532",
-		"iPhone13,3 14_8 scale=3.00 1170x2532",
-		"iPhone13,3 14_8_1 scale=3.00 1170x2532",
-		"iPhone13,4 15_1_1 scale=3.00 1284x2778",
-		"iPhone13,4 15_2 scale=3.00 1284x2778",
-		"iPhone14,2 15_1_1 scale=3.00 1170x2532",
-		"iPhone14,3 15_2 scale=3.00 1284x2778",
-		"iPhone14,5 15_0 scale=3.00 1170x2532",
-		"iPhone14,5 15_2 scale=3.00 1170x2532",
-		"iPhone14,5 15_0 scale=3.66 1170x2533",
-		"iPhone14,5 15_1_1 scale=3.00 1170x2532",
 		"iPhone7,1 12_5_5 scale=2.61 1080x1920",
-		"iPhone7,2 12_5_5 scale=2.00 750x1334",
-		"iPhone7,2 11_2_2 scale=2.00 750x1334",
+		//"iPhone7,2 12_5_5 scale=2.00 750x1334",
+		//"iPhone7,2 11_2_2 scale=2.00 750x1334",
 		"iPhone8,1 13_7 scale=2.00 750x1334",
 		"iPhone8,1 14_6 scale=2.00 750x1334",
 		"iPhone8,1 12_1_4 scale=2.34 750x1331",
@@ -97,7 +37,86 @@ var (
 		"iPhone9,4 14_6 scale=2.61 1080x1920",
 		"iPhone9,4 15_1 scale=2.61 1080x1920",
 		"iPhone9,4 14_8_1 scale=2.61 1080x1920",
+		"iPhone10,1 15_2 scale=2.00 750x1334",
+		"iPhone10,1 14_8_1 scale=2.00 750x1334",
+		//"iPhone10,3 15_1 scale=3.00 1125x2436",
+		//"iPhone10,4 15_0 scale=2.00 750x1334",
+		//"iPhone10,4 14_8_1 scale=2.00 750x1334",
+		//"iPhone10,4 15_1 scale=2.00 750x1334",
+		//"iPhone10,4 14_7_1 scale=2.00 750x1334",
+		//"iPhone10,4 15_0_2 scale=2.00 750x1334",
+		//"iPhone10,5 15_1 scale=2.88 1080x1920",
+		//"iPhone10,5 15_0_1 scale=2.61 1080x1920",
+		//"iPhone10,5 13_5_1 scale=2.61 1080x1920",
+		//"iPhone10,6 15_2 scale=3.00 1125x2436",
+		//"iPhone10,6 15_1 scale=3.00 1125x2436",
+		"iPhone11,2 14_7_1 scale=3.00 1125x2436",
+		"iPhone11,2 15_1 scale=3.00 1125x2436",
+		"iPhone11,2 14_6 scale=3.00 1125x2436",
+		//"iPhone11,6 15_1 scale=3.00 1242x2688",
+		//"iPhone11,6 14_8_1 scale=3.00 1242x2688",
+		//"iPhone11,8 14_8_1 scale=2.00 828x1792",
+		//"iPhone11,8 14_6 scale=2.00 828x1792",
+		//"iPhone11,8 15_0_2 scale=2.00 828x1792",
+		//"iPhone11,8 15_2 scale=2.00 828x1792",
+		//"iPhone11,8 15_1 scale=2.00 828x1792",
+		"iPhone12,1 14_7_1 scale=2.00 828x1792",
+		"iPhone12,1 14_8_1 scale=2.00 828x1792",
+		"iPhone12,1 15_2 scale=2.00 828x1792",
+		"iPhone12,1 15_0 scale=2.00 828x1792",
+		"iPhone12,1 13_7 scale=2.00 828x1792",
+		"iPhone12,1 15_0_2 scale=2.00 828x1792",
+		"iPhone12,3 15_0_2 scale=3.00 1125x2436",
+		"iPhone12,3 14_6 scale=3.00 1125x2436",
+		"iPhone12,3 14_2 scale=3.00 1125x2436",
+		"iPhone12,3 15_1 scale=3.00 1125x2436",
+		//"iPhone12,5 14_3 scale=3.00 1242x2688",
+		//"iPhone12,5 15_1 scale=3.31 1242x2689",
+		//"iPhone12,5 14_6 scale=3.00 1242x2688",
+		//"iPhone12,5 13_3_1 scale=3.31 1242x2689",
+		//"iPhone12,5 14_7_1 scale=3.00 1242x2688",
+		//"iPhone12,5 14_8_1 scale=3.00 1242x2688",
+		"iPhone12,8 15_2 scale=2.00 750x1334",
+		"iPhone12,8 15_1 scale=2.00 750x1334",
+		"iPhone12,8 14_8_1 scale=2.00 750x1334",
+		"iPhone12,8 14_7_1 scale=2.00 750x1334",
+		"iPhone13,1 14_7_1 scale=2.88 1080x2338",
+		"iPhone13,2 15_2 scale=3.00 1170x2532",
+		"iPhone13,2 15_0_2 scale=3.00 1170x2532",
+		"iPhone13,2 15_1_1 scale=3.00 1170x2532",
+		"iPhone13,2 14_6 scale=3.00 1170x2532",
+		"iPhone13,2 14_7_1 scale=3.00 1170x2532",
+		//"iPhone13,3 15_1_1 scale=3.00 1170x2532",
+		//"iPhone13,3 15_2 scale=3.00 1170x2532",
+		//"iPhone13,3 14_8 scale=3.00 1170x2532",
+		//"iPhone13,3 14_8_1 scale=3.00 1170x2532",
+		"iPhone13,4 15_1_1 scale=3.00 1284x2778",
+		"iPhone13,4 15_2 scale=3.00 1284x2778",
+		//"iPhone14,2 15_1_1 scale=3.00 1170x2532",
+		//"iPhone14,3 15_2 scale=3.00 1284x2778",
+		//"iPhone14,5 15_0 scale=3.00 1170x2532",
+		//"iPhone14,5 15_2 scale=3.00 1170x2532",
+		//"iPhone14,5 15_0 scale=3.66 1170x2533",
+		//"iPhone14,5 15_1_1 scale=3.00 1170x2532",
 	}
+
+	LensModel = map[string]string{
+		"7,1":  "iPhone,6,back camera,4.15mm,f/2.2",
+		"8,1":  "iPhone,6s,back camera,4.15mm,f/2.2",
+		"9,1":  "iPhone,7,back camera,3.99mm,f/1.8",
+		"9,2":  "iPhone,7,Plus back dual camera,3.99mm,f/1.8",
+		"9,3":  "iPhone,7,back camera,3.99mm,f/1.8",
+		"9,4":  "iPhone,7,Plus back dual camera,3.99mm,f/1.8",
+		"10,1": "iPhone,8,back camera,3.99mm,f/1.8",
+		"11,2": "iPhone,XS,Max back dual camera,4.25mm,f/1.8",
+		"12,1": "iPhone,11,back dual wide camera,4.25mm,f/1.8",
+		"12,3": "iPhone,11,Pro back triple camera,4.25mm,f/1.8",
+		"12,8": "iPhone,SE,(2nd generation) back camera,3.99mm,f/1.8",
+		"13,1": "iPhone,12,mini back dual wide camera,4.2mm,f/1.6",
+		"13,2": "iPhone,12,back dual wide camera,4.2mm,f/1.6",
+		"13,4": "iPhone,12,Pro Max back triple camera,5.1mm,f/1.6",
+	}
+
 	InstagramVersionData = []string{
 		"190.0.0.26.119 294609445 5538d18f11cad2fa88efa530f8a717c5d5339d1d53fc5140af9125216d1f7a89",
 		"191.0.0.25.122 296543649 bf3e79f2304601044c85a6f9c44dab59a72558ca9f9a821b96882a4a54ca3c3a",
@@ -128,6 +147,7 @@ var (
 		"213.0.0.19.117 330663239 5bf3152c14a8e8651b2ec5a689994b294f4e0a74b86b5652da331aa7035d1c62",
 		"213.1.0.22.117 332048479 5bf3152c14a8e8651b2ec5a689994b294f4e0a74b86b5652da331aa7035d1c62",
 	}
+
 	InstagramReqSpeed = []string{
 		"35kbps",
 		"29kbps",
@@ -145,22 +165,24 @@ var (
 )
 
 type InstDeviceInfo struct {
-	Version        string `json:"version" bson:"version"`
-	VersionCode    string `json:"version_code" bson:"version_code"`
-	BloksVersionID string `json:"bloks_version_id" bson:"bloks_version_id"`
-	UserAgent      string `json:"user_agent" bson:"user_agent"`
-	IDFA           string `json:"idfa" bson:"idfa"`
-	AppLocale      string `json:"app_locale" bson:"app_locale"`
-	TimezoneOffset string `json:"timezone_offset" bson:"timezone_offset"`
-	StartupCountry string `json:"startup_country" bson:"startup_country"`
-	AcceptLanguage string `json:"accept_language" bson:"accept_language"`
-	NetWorkType    string `json:"net_work_type" bson:"net_work_type"`
-	DeviceID       string `json:"device_id" bson:"device_id"`
-	FamilyID       string `json:"family_id" bson:"family_id"`
-	WaterID        string `json:"water_id" bson:"water_id"`
-	DeviceToken    string `json:"device_token" bson:"device_token"`
-	SystemVersion  string `json:"system_version" bson:"system_version"`
-	LensModel      string `json:"lens_model" bson:"lens_model"`
+	Version        string  `json:"version" bson:"version"`
+	VersionCode    string  `json:"version_code" bson:"version_code"`
+	BloksVersionID string  `json:"bloks_version_id" bson:"bloks_version_id"`
+	UserAgent      string  `json:"user_agent" bson:"user_agent"`
+	IDFA           string  `json:"idfa" bson:"idfa"`
+	AppLocale      string  `json:"app_locale" bson:"app_locale"`
+	TimezoneOffset string  `json:"timezone_offset" bson:"timezone_offset"`
+	StartupCountry string  `json:"startup_country" bson:"startup_country"`
+	AcceptLanguage string  `json:"accept_language" bson:"accept_language"`
+	NetWorkType    string  `json:"net_work_type" bson:"net_work_type"`
+	DeviceID       string  `json:"device_id" bson:"device_id"`
+	FamilyID       string  `json:"family_id" bson:"family_id"`
+	WaterID        string  `json:"water_id" bson:"water_id"`
+	DeviceToken    string  `json:"device_token" bson:"device_token"`
+	SystemVersion  string  `json:"system_version" bson:"system_version"`
+	LensModel      string  `json:"lens_model" bson:"lens_model"`
+	FocalLength    float64 `json:"focal_length" bson:"focal_length"`
+	Aperture       float64 `json:"aperture" bson:"aperture"`
 }
 
 type AutoSetHeaderFun func(inst *Instagram, opt *reqOptions, req *http.Request)
@@ -243,6 +265,17 @@ func GenInstDeviceInfo() *InstDeviceInfo {
 	version := InstagramVersions[common.GenNumber(0, len(InstagramVersions))]
 	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
 	sp := strings.Split(device, " ")
+	SystemVersion := strings.ReplaceAll(sp[1], "_", ".")
+
+	spLens := strings.Split(LensModel[sp[0][6:]], ",")
+	Lens := ""
+	for _, item := range spLens {
+		Lens += item + " "
+	}
+	Lens = Lens[:len(Lens)-1]
+	FocalLength, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "f/", ""), 64)
+	Aperture, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "mm", ""), 64)
+
 	instVersion := &InstDeviceInfo{
 		IDFA:           strings.ToUpper(common.GenUUID()),
 		Version:        version.Version,
@@ -250,13 +283,16 @@ func GenInstDeviceInfo() *InstDeviceInfo {
 		BloksVersionID: version.BloksVersionID,
 		UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
 		AppLocale:      "en-US",
-		TimezoneOffset: "-28800",
+		TimezoneOffset: "-18000",
 		StartupCountry: "US",
 		AcceptLanguage: "en-US;q=1.0",
 		NetWorkType:    "WiFi",
 		DeviceID:       strings.ToUpper(common.GenUUID()),
-		//DeviceID: "307F6FD7-BE61-4314-B1A3-A43CE79F9F7C",
-		WaterID: common.GenString(common.CharSet_16_Num, 32),
+		WaterID:        common.GenString(common.CharSet_16_Num, 32),
+		SystemVersion:  SystemVersion,
+		LensModel:      Lens,
+		FocalLength:    FocalLength,
+		Aperture:       Aperture,
 	}
 
 	instVersion.FamilyID = instVersion.DeviceID

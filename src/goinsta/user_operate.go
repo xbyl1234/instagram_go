@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"makemoney/common"
 	"strings"
+	"time"
 )
 
 type UserOperate struct {
@@ -61,26 +62,26 @@ type UploadMediaInfo struct {
 	width     int
 }
 
-func (this *UserOperate) ConfigureToStory(uploadID string, waterfall string) error {
+func (this *UserOperate) ConfigureToStory(mediaInfo *UploadMediaInfo) error {
 	iso := 30
 	sourceType := "camera"
 	//sourceType:="library"
 	mediaType := "photo"
-	mediaInfo := &UploadMediaInfo{}
 	camera := map[string]interface{}{
 		"camera_settings": &CameraSettings{
-			FocalLength:  0,
-			Aperture:     0,
+			FocalLength:  this.inst.Device.FocalLength,
+			Aperture:     this.inst.Device.Aperture,
 			Iso:          []int{iso},
-			ShutterSpeed: 0,
-			MeteringMode: 0,
-			ExposureTime: 0,
+			ShutterSpeed: float64(common.GenNumber(1, 10)),
+			MeteringMode: 3,
+			ExposureTime: float64(common.GenNumber(1, 10)) / 100.0,
 			Software:     this.inst.Device.SystemVersion,
 			LensModel:    this.inst.Device.LensModel,
 			FlashStatus:  0,
 		},
 	}
 
+	timeStr := common.GetNewYorkTimeString()
 	params := map[string]interface{}{
 		"device_id":                       this.inst.Device.DeviceID,
 		"private_mention_sharing_enabled": false,
@@ -91,29 +92,30 @@ func (this *UserOperate) ConfigureToStory(uploadID string, waterfall string) err
 		"capture_type":                    "normal",
 		"geotag_enabled":                  false,
 		"archived_media_id":               "",
-		//"client_timestamp":,
-		"edits":                map[string]interface{}{},
-		"original_media_size":  fmt.Sprintf("{%d, %d}", mediaInfo.width, mediaInfo.high),
-		"scene_type":           1,
-		"lens_model":           this.inst.Device.LensModel,
-		"camera_session_id":    common.GenString(common.CharSet_16_Num, 32),
-		"iso":                  iso,
-		"has_animated_sticker": false,
-		"upload_id":            uploadID,
-		"camera_entry_point":   13,
-		"source_type":          sourceType,
-		"configure_mode":       1,
-		"disable_comments":     false,
-		"timezone_offset":      this.inst.Device.TimezoneOffset,
-		//"date_time_original":
-		"waterfall_id":   waterfall,
-		"composition_id": strings.ToUpper(common.GenUUID()),
-		//"date_time_digitized":
-		"camera_position":     "back",
-		"_uid":                fmt.Sprintf("%d", this.inst.ID),
-		"client_context":      uploadID,
-		"original_media_type": mediaType,
-		//"client_shared_at", :
+		"client_timestamp":                fmt.Sprintf("%d", time.Now().Unix()),
+		"edits":                           map[string]interface{}{},
+		"original_media_size":             fmt.Sprintf("{%d, %d}", mediaInfo.width, mediaInfo.high),
+		"scene_type":                      1,
+		"lens_model":                      this.inst.Device.LensModel,
+		"camera_session_id":               common.GenString(common.CharSet_16_Num, 32),
+		"iso":                             iso,
+		"has_animated_sticker":            false,
+		"upload_id":                       mediaInfo.uploadID,
+		"camera_entry_point":              13,
+		"source_type":                     sourceType,
+		"configure_mode":                  1,
+		"disable_comments":                false,
+		"timezone_offset":                 this.inst.Device.TimezoneOffset,
+		"date_time_original":              timeStr,
+		"waterfall_id":                    mediaInfo.waterfall,
+		"composition_id":                  strings.ToUpper(common.GenUUID()),
+		"date_time_digitized":             timeStr,
+		"camera_position":                 "back",
+		"_uid":                            fmt.Sprintf("%d", this.inst.ID),
+		"client_context":                  mediaInfo.uploadID,
+		"original_media_type":             mediaType,
+		//"client_shared_at":                fmt.Sprintf("%d", time.Now().Unix()),
+		"client_shared_at":        mediaInfo.uploadID[:10],
 		"allow_multi_configures":  true,
 		"container_module":        "direct_story_audience_picker",
 		"creation_surface":        "camera",
@@ -134,23 +136,24 @@ func (this *UserOperate) ConfigureToStory(uploadID string, waterfall string) err
 	return err
 }
 
-func (this *UserOperate) CreateReel() {
-	params := map[string]interface{}{
-		"_uuid":            this.inst.Device.DeviceID,
-		"_uid":             this.inst.ID,
-		"user_id":          userID,
-		"device_id":        this.inst.Device.DeviceID,
-		"container_module": "profile",
-	}
-	resp := &RespLikeUser{}
-	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath:        urlCreateReel
-		HeaderSequence: LoginHeaderMap[urlUserFollow],
-		IsPost:         true,
-		Signed:         true,
-		Query:          params,
-	}, resp)
-
-	err = resp.CheckError(err)
-	return err
-}
+//
+//func (this *UserOperate) CreateReel() {
+//	params := map[string]interface{}{
+//		"_uuid":            this.inst.Device.DeviceID,
+//		"_uid":             this.inst.ID,
+//		"user_id":          userID,
+//		"device_id":        this.inst.Device.DeviceID,
+//		"container_module": "profile",
+//	}
+//	resp := &RespLikeUser{}
+//	err := this.inst.HttpRequestJson(&reqOptions{
+//		ApiPath:        urlCreateReel
+//		HeaderSequence: LoginHeaderMap[urlUserFollow],
+//		IsPost:         true,
+//		Signed:         true,
+//		Query:          params,
+//	}, resp)
+//
+//	err = resp.CheckError(err)
+//	return err
+//}
