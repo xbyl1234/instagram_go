@@ -36,6 +36,7 @@ function cheatFBLigerSettings() {
             onLeave: function (retval) {
                 console.log("[i] -[FBLigerConfig *] called!");
                 retval.replace(0);
+
             }
         });
         console.log("[i] -[FBLIgerConfig " + resetSettings[i] + "] reset!")
