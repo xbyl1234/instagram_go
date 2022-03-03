@@ -438,6 +438,7 @@ const (
 	urlClipsAssets                = "api/v1/creatives/clips_assets/"
 	urlVerifyOriginalAudioTitle   = "api/v1/music/verify_original_audio_title/"
 	urlUpdateVideoWithQualityInfo = "api/v1/media/update_video_with_quality_info/"
+	urlConfigure                  = "api/v1/media/configure/"
 
 	// comments
 	urlCommentAdd     = "api/v1/media/%d/comment/"
