@@ -90,25 +90,19 @@ func UpdatePhoneRegisterOnce(area string, number string) error {
 }
 
 type AccountCookies struct {
-	ID                  int64                    `json:"id" bson:"id"`
-	Username            string                   `json:"username" bson:"username"`
-	Passwd              string                   `json:"passwd" bson:"passwd"`
-	HttpHeader          map[string]string        `json:"http_header" bson:"http_header"`
-	ProxyID             string                   `json:"proxy_id" bson:"proxy_id"`
-	IsLogin             bool                     `json:"is_login" bson:"is_login"`
-	Token               string                   `json:"token" bson:"token"`
-	Cookies             []*http.Cookie           `json:"cookies" bson:"cookies"`
-	CookiesB            []*http.Cookie           `json:"cookies_b" bson:"cookies_b"`
-	Device              *InstDeviceInfo          `json:"device" bson:"device"`
-	RegisterEmail       string                   `json:"register_email" bson:"register_email"`
-	RegisterPhoneNumber string                   `json:"register_phone_number" bson:"register_phone_number"`
-	RegisterPhoneArea   string                   `json:"register_phone_area" bson:"register_phone_area"`
-	RegisterIpCountry   string                   `json:"register_ip_country" bson:"register_ip_country"`
-	RegisterTime        int64                    `json:"register_time" bson:"register_time"`
-	Status              string                   `json:"status" bson:"status"`
-	LastSendMsgTime     int                      `json:"last_send_msg_time" bson:"last_send_msg_time"`
-	Tags                string                   `json:"tags" bson:"tags"`
-	SpeedControl        map[string]*SpeedControl `json:"speed_control" bson:"speed_control"`
+	ID           int64                    `json:"id" bson:"id"`
+	Username     string                   `json:"username" bson:"username"`
+	Passwd       string                   `json:"passwd" bson:"passwd"`
+	HttpHeader   map[string]string        `json:"http_header" bson:"http_header"`
+	ProxyID      string                   `json:"proxy_id" bson:"proxy_id"`
+	IsLogin      bool                     `json:"is_login" bson:"is_login"`
+	Token        string                   `json:"token" bson:"token"`
+	Cookies      []*http.Cookie           `json:"cookies" bson:"cookies"`
+	CookiesB     []*http.Cookie           `json:"cookies_b" bson:"cookies_b"`
+	AccountInfo  *InstAccountInfo         `json:"account_info" bson:"account_info"`
+	Status       string                   `json:"status" bson:"status"`
+	Tags         string                   `json:"tags" bson:"tags"`
+	SpeedControl map[string]*SpeedControl `json:"speed_control" bson:"speed_control"`
 }
 
 func SaveNewAccount(account AccountCookies) error {
@@ -116,7 +110,15 @@ func SaveNewAccount(account AccountCookies) error {
 		context.TODO(),
 		bson.M{"username": account.Username},
 		bson.M{"$set": account},
-		options.Update().SetUpsert(true))
+		options.Update().SetUpsert(false))
+	return err
+}
+
+func ReplaceAccount(account AccountCookies) error {
+	_, err := MogoHelper.Account.ReplaceOne(
+		context.TODO(),
+		bson.M{"username": account.Username},
+		bson.M{"$set": account})
 	return err
 }
 
@@ -165,25 +167,19 @@ func SaveInstToDB(inst *Instagram) error {
 	urlb, _ := neturl.Parse(InstagramHost_B)
 
 	Cookies := AccountCookies{
-		ID:                  inst.ID,
-		Username:            inst.User,
-		Passwd:              inst.Pass,
-		Token:               inst.token,
-		Device:              inst.Device,
-		Cookies:             inst.c.Jar.Cookies(url),
-		CookiesB:            inst.c.Jar.Cookies(urlb),
-		HttpHeader:          inst.httpHeader,
-		ProxyID:             inst.Proxy.ID,
-		IsLogin:             inst.IsLogin,
-		RegisterEmail:       inst.RegisterEmail,
-		RegisterPhoneNumber: inst.RegisterPhoneNumber,
-		RegisterPhoneArea:   inst.RegisterPhoneArea,
-		RegisterIpCountry:   inst.RegisterIpCountry,
-		RegisterTime:        inst.RegisterTime,
-		Status:              inst.Status,
-		LastSendMsgTime:     inst.LastSendMsgTime,
-		SpeedControl:        inst.SpeedControl,
-		Tags:                inst.Tags,
+		ID:           inst.ID,
+		Username:     inst.User,
+		Passwd:       inst.Pass,
+		Token:        inst.token,
+		AccountInfo:  inst.AccountInfo,
+		Cookies:      inst.c.Jar.Cookies(url),
+		CookiesB:     inst.c.Jar.Cookies(urlb),
+		HttpHeader:   inst.httpHeader,
+		ProxyID:      inst.Proxy.ID,
+		IsLogin:      inst.IsLogin,
+		Status:       inst.Status,
+		SpeedControl: inst.SpeedControl,
+		Tags:         inst.Tags,
 	}
 	return SaveNewAccount(Cookies)
 }
@@ -206,30 +202,24 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	jar.SetCookies(urlb, config.CookiesB)
 
 	inst := &Instagram{
-		ID:                  config.ID,
-		User:                config.Username,
-		Pass:                config.Passwd,
-		token:               config.Token,
-		Device:              config.Device,
-		httpHeader:          config.HttpHeader,
-		IsLogin:             config.IsLogin,
-		RegisterEmail:       config.RegisterEmail,
-		RegisterPhoneNumber: config.RegisterPhoneNumber,
-		RegisterPhoneArea:   config.RegisterPhoneArea,
-		RegisterIpCountry:   config.RegisterIpCountry,
-		Status:              config.Status,
-		SpeedControl:        config.SpeedControl,
-		sessionID:           strings.ToUpper(common.GenUUID()),
-		LastSendMsgTime:     config.LastSendMsgTime,
-		RegisterTime:        config.RegisterTime,
+		ID:           config.ID,
+		User:         config.Username,
+		Pass:         config.Passwd,
+		token:        config.Token,
+		AccountInfo:  config.AccountInfo,
+		httpHeader:   config.HttpHeader,
+		IsLogin:      config.IsLogin,
+		Status:       config.Status,
+		SpeedControl: config.SpeedControl,
+		sessionID:    strings.ToUpper(common.GenUUID()),
 		c: &http.Client{
 			Jar: jar,
 		},
 		Tags: config.Tags,
 	}
 
-	if inst.Device == nil {
-		inst.Device = GenInstDeviceInfo()
+	if inst.AccountInfo == nil {
+		inst.AccountInfo = GenInstDeviceInfo()
 	}
 	if inst.SpeedControl == nil {
 		inst.SpeedControl = make(map[string]*SpeedControl)

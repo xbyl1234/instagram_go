@@ -25,7 +25,7 @@ type Register struct {
 
 func (this *Register) GetSignupConfig() error {
 	params := map[string]interface{}{
-		"device_id":             this.Inst.Device.DeviceID,
+		"device_id":             this.Inst.AccountInfo.Device.DeviceID,
 		"main_account_selected": "0",
 	}
 
@@ -94,7 +94,7 @@ type RespCheckEmail struct {
 func (this *Register) CheckEmail() (*RespCheckEmail, error) {
 	params := map[string]interface{}{
 		"email": this.Account,
-		"qe_id": this.Inst.Device.DeviceID,
+		"qe_id": this.Inst.AccountInfo.Device.DeviceID,
 	}
 	resp := &RespCheckEmail{}
 	err := this.Inst.HttpRequestJson(&reqOptions{
@@ -121,9 +121,9 @@ type RespSendVerifyEmail struct {
 func (this *Register) SendVerifyEmail() (*RespSendVerifyEmail, error) {
 	params := map[string]interface{}{
 		"email":        this.Account,
-		"device_id":    this.Inst.Device.DeviceID,
-		"phone_id":     this.Inst.Device.DeviceID,
-		"waterfall_id": this.Inst.Device.WaterID,
+		"device_id":    this.Inst.AccountInfo.Device.DeviceID,
+		"phone_id":     this.Inst.AccountInfo.Device.DeviceID,
+		"waterfall_id": this.Inst.AccountInfo.Device.WaterID,
 	}
 
 	resp := &RespSendVerifyEmail{}
@@ -148,9 +148,9 @@ func (this *Register) CheckConfirmationCode(code string) (*RespCheckConfirmation
 		"email":            this.Account,
 		"code":             code,
 		"confirm_via_link": "0",
-		"device_id":        this.Inst.Device.DeviceID,
-		"phone_id":         this.Inst.Device.DeviceID,
-		"waterfall_id":     this.Inst.Device.WaterID,
+		"device_id":        this.Inst.AccountInfo.Device.DeviceID,
+		"phone_id":         this.Inst.AccountInfo.Device.DeviceID,
+		"waterfall_id":     this.Inst.AccountInfo.Device.WaterID,
 	}
 
 	resp := &RespCheckConfirmationCode{}
@@ -208,13 +208,13 @@ func (this *Register) setInstRegisterInfo(pk int64) {
 	this.Inst.User = this.RealUsername
 	this.Inst.Pass = this.Password
 	if this.RegisterType == "email" {
-		this.Inst.RegisterEmail = this.Account
+		this.Inst.AccountInfo.Register.RegisterEmail = this.Account
 	} else {
-		this.Inst.RegisterPhoneNumber = this.Account
-		this.Inst.RegisterPhoneArea = this.AreaCode
+		this.Inst.AccountInfo.Register.RegisterPhoneNumber = this.Account
+		this.Inst.AccountInfo.Register.RegisterPhoneArea = this.AreaCode
 	}
-	this.Inst.RegisterTime = time.Now().Unix()
-	this.Inst.RegisterIpCountry = this.Inst.Proxy.Country
+	this.Inst.AccountInfo.Register.RegisterTime = time.Now().Unix()
+	this.Inst.AccountInfo.Register.RegisterIpCountry = this.Inst.Proxy.Country
 	this.Inst.IsLogin = true
 	this.Inst.ID = pk
 }
@@ -228,12 +228,12 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 		"do_not_auto_login_if_credentials_match": "0",
 		"tos_version":                            this.tosVersion,
 		"month":                                  this.Month,
-		"device_id":                              this.Inst.Device.DeviceID,
+		"device_id":                              this.Inst.AccountInfo.Device.DeviceID,
 		"ck_container":                           "iCloud.com.burbn.instagram",
 		"has_seen_aart_on":                       "0",
 		"ck_error":                               "CKErrorDomain: 9",
 		"day":                                    this.Day,
-		"waterfall_id":                           this.Inst.Device.WaterID,
+		"waterfall_id":                           this.Inst.AccountInfo.Device.WaterID,
 		"year":                                   this.Year,
 		"email":                                  this.Account,
 		"enc_password":                           encodePasswd,
@@ -241,8 +241,8 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 		"attribution_details":                    "{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}",
 		"ck_environment":                         "production",
 		"force_sign_up_code":                     this.signUpCode,
-		"adid":                                   this.Inst.Device.IDFA,
-		"phone_id":                               this.Inst.Device.DeviceID,
+		"adid":                                   this.Inst.AccountInfo.Device.IDFA,
+		"phone_id":                               this.Inst.AccountInfo.Device.DeviceID,
 		"first_name":                             this.Username,
 		"username":                               this.RealUsername,
 	}
@@ -263,10 +263,10 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 //phone
 //func (this *Register) CheckPhoneNumber() error {
 //	params := map[string]interface{}{
-//		"phone_id":        this.Inst.Device.FamilyID,
+//		"phone_id":        this.Inst.AccountInfo.Device.FamilyID,
 //		"login_nonce_map": "{}",
 //		"phone_number":    this.Account,
-//		"guid":            this.Inst.Device.DeviceID,
+//		"guid":            this.Inst.AccountInfo.Device.DeviceID,
 //		"prefill_shown":   "False",
 //	}
 //
@@ -288,9 +288,9 @@ type RespSendSignupSmsCode struct {
 
 func (this *Register) SendSignupSmsCode() (*RespSendSignupSmsCode, error) {
 	params := map[string]interface{}{
-		"device_id":    this.Inst.Device.DeviceID,
+		"device_id":    this.Inst.AccountInfo.Device.DeviceID,
 		"phone_number": this.AreaCode + this.Account,
-		"phone_id":     this.Inst.Device.DeviceID,
+		"phone_id":     this.Inst.AccountInfo.Device.DeviceID,
 		"source":       "regular",
 	}
 	resp := &RespSendSignupSmsCode{}
@@ -318,9 +318,9 @@ type RespValidateSignupSmsCode struct {
 func (this *Register) ValidateSignupSmsCode(code string) (*RespValidateSignupSmsCode, error) {
 	this.signUpCode = code
 	params := map[string]interface{}{
-		"device_id":         this.Inst.Device.DeviceID,
+		"device_id":         this.Inst.AccountInfo.Device.DeviceID,
 		"phone_number":      this.AreaCode + this.Account,
-		"waterfall_id":      this.Inst.Device.WaterID,
+		"waterfall_id":      this.Inst.AccountInfo.Device.WaterID,
 		"verification_code": code,
 	}
 	resp := &RespValidateSignupSmsCode{}
@@ -347,15 +347,15 @@ func (this *Register) usernameSuggestions() (*RespUsernameSuggestions, error) {
 	if this.RegisterType == "email" {
 		params = map[string]interface{}{
 			"email":        this.Account,
-			"device_id":    this.Inst.Device.DeviceID,
+			"device_id":    this.Inst.AccountInfo.Device.DeviceID,
 			"name":         this.Username,
-			"waterfall_id": this.Inst.Device.WaterID,
+			"waterfall_id": this.Inst.AccountInfo.Device.WaterID,
 		}
 	} else {
 		params = map[string]interface{}{
 			"name":         this.Username,
-			"device_id":    this.Inst.Device.DeviceID,
-			"waterfall_id": this.Inst.Device.WaterID,
+			"device_id":    this.Inst.AccountInfo.Device.DeviceID,
+			"waterfall_id": this.Inst.AccountInfo.Device.WaterID,
 		}
 	}
 
@@ -428,7 +428,7 @@ func (this *Register) CheckUsername() (*RespCheckUsername, error) {
 	params := map[string]interface{}{
 		"enc_password": encodePasswd,
 		"username":     this.Username,
-		"device_id":    this.Inst.Device.DeviceID,
+		"device_id":    this.Inst.AccountInfo.Device.DeviceID,
 	}
 	resp := &RespCheckUsername{}
 
@@ -446,7 +446,7 @@ func (this *Register) CheckUsername() (*RespCheckUsername, error) {
 
 func (this *Register) NewUserFlowBegins() (*BaseApiResp, error) {
 	params := map[string]interface{}{
-		"device_id": this.Inst.Device.DeviceID,
+		"device_id": this.Inst.AccountInfo.Device.DeviceID,
 	}
 
 	resp := &BaseApiResp{}
@@ -483,21 +483,21 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 		"do_not_auto_login_if_credentials_match": "0",
 		"month":                                  this.Month,
 		"has_sms_consent":                        "true",
-		"device_id":                              this.Inst.Device.DeviceID,
+		"device_id":                              this.Inst.AccountInfo.Device.DeviceID,
 		"ck_container":                           "iCloud.com.burbn.instagram",
 		"has_seen_aart_on":                       "0",
 		"ck_error":                               "CKErrorDomain: 9",
 		"day":                                    this.Day,
-		"waterfall_id":                           this.Inst.Device.WaterID,
+		"waterfall_id":                           this.Inst.AccountInfo.Device.WaterID,
 		"year":                                   this.Year,
 		"phone_number":                           this.AreaCode + this.Account,
 		"enc_password":                           encodePasswd,
 		"attribution_details":                    "{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}",
 		"force_create_account":                   "0",
 		"ck_environment":                         "production",
-		"adid":                                   this.Inst.Device.IDFA,
+		"adid":                                   this.Inst.AccountInfo.Device.IDFA,
 		"first_name":                             this.Username,
-		"phone_id":                               this.Inst.Device.DeviceID,
+		"phone_id":                               this.Inst.AccountInfo.Device.DeviceID,
 		"username":                               this.RealUsername,
 	}
 	resp := &RespCreateValidated{}
@@ -517,7 +517,7 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 
 func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
 	params := map[string]interface{}{
-		"_uuid":           this.Inst.Device.DeviceID,
+		"_uuid":           this.Inst.AccountInfo.Device.DeviceID,
 		"_uid":            this.Inst.ID,
 		"is_fb_installed": "false",
 	}
@@ -538,12 +538,12 @@ func (this *Register) NewAccountNuxSeen() (*BaseApiResp, error) {
 
 func (this *Register) GetSteps() (*BaseApiResp, error) {
 	params := map[string]interface{}{
-		"_uuid":                         this.Inst.Device.DeviceID,
+		"_uuid":                         this.Inst.AccountInfo.Device.DeviceID,
 		"_uid":                          this.Inst.ID,
-		"device_id":                     this.Inst.Device.DeviceID,
+		"device_id":                     this.Inst.AccountInfo.Device.DeviceID,
 		"is_secondary_account_creation": "0",
 		"push_permission_requested":     "0",
-		"network_type":                  this.Inst.Device.NetWorkType + "-none",
+		"network_type":                  this.Inst.AccountInfo.Device.NetWorkType + "-none",
 		"is_account_linking_flow":       "0",
 	}
 

@@ -4,7 +4,7 @@
   "res_username_path": "./data/user_nameraw.txt",
   "country": "us",
   "coro": 10,
-  "provider_name": "guerrilla",
+  "provider_name": "taxin",
   "provider": [
     {
       "provider_type": "email",

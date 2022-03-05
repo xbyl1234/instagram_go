@@ -136,15 +136,15 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 
 	params := map[string]interface{}{
 		//"client_timestamp": fmt.Sprintf("%d", time.Now().Unix()),
-		//"timezone_offset":  this.inst.Device.TimezoneOffset,.
-		"_uuid":        this.inst.Device.DeviceID,
+		//"timezone_offset":  this.inst.AccountInfo.Location.Timezone,.
+		"_uuid":        this.inst.AccountInfo.Device.DeviceID,
 		"_uid":         this.inst.ID,
 		"phone_number": this.Detail.PhoneNumber,
 		"external_url": profile.ExternalUrl,
 		"biography":    profile.Biography,
 		"first_name":   profile.FirstName,
 		"username":     this.inst.User,
-		"device_id":    this.inst.Device.DeviceID,
+		"device_id":    this.inst.AccountInfo.Device.DeviceID,
 		"email":        profile.Email,
 	}
 
@@ -167,12 +167,12 @@ func (this *Account) ChangeProfilePicture(uploadID string) error {
 	params := map[string]interface{}{
 		"waterfall_id": "",
 		//"share_to_feed":    "true",
-		"_uuid":            this.inst.Device.DeviceID,
+		"_uuid":            this.inst.AccountInfo.Device.DeviceID,
 		"_uid":             this.inst.ID,
-		"device_id":        this.inst.Device.DeviceID,
+		"device_id":        this.inst.AccountInfo.Device.DeviceID,
 		"client_timestamp": time.Now().Unix(),
 		"upload_id":        uploadID,
-		"timezone_offset":  this.inst.Device.TimezoneOffset,
+		"timezone_offset":  this.inst.AccountInfo.Location.Timezone,
 	}
 
 	var resp RespChangeProfilePicture
@@ -189,10 +189,10 @@ func (this *Account) ChangeProfilePicture(uploadID string) error {
 
 func (this *Account) UpdatePronouns(pronouns string) error {
 	params := map[string]interface{}{
-		"_uuid":                      this.inst.Device.DeviceID,
+		"_uuid":                      this.inst.AccountInfo.Device.DeviceID,
 		"_uid":                       fmt.Sprintf("%d", this.inst.ID),
 		"is_pronouns_followers_only": "off",
-		"bloks_versioning_id":        this.inst.Device.BloksVersionID,
+		"bloks_versioning_id":        this.inst.AccountInfo.Device.BloksVersionID,
 		"pronouns":                   "[\n  \"" + pronouns + "\"\n]",
 	}
 
@@ -210,9 +210,9 @@ func (this *Account) UpdatePronouns(pronouns string) error {
 
 func (this *Account) SetBiography(bio string) error {
 	params := map[string]interface{}{
-		"_uuid":     this.inst.Device.DeviceID,
+		"_uuid":     this.inst.AccountInfo.Device.DeviceID,
 		"_uid":      fmt.Sprintf("%d", this.inst.ID),
-		"device_id": this.inst.Device.DeviceID,
+		"device_id": this.inst.AccountInfo.Device.DeviceID,
 		"raw_text":  bio,
 	}
 
@@ -230,7 +230,7 @@ func (this *Account) SetBiography(bio string) error {
 
 func (this *Account) SetGender() error {
 	params := map[string]interface{}{
-		"_uuid":         this.inst.Device.DeviceID,
+		"_uuid":         this.inst.AccountInfo.Device.DeviceID,
 		"custom_gender": "",
 		"gender":        "1",
 	}
@@ -249,9 +249,9 @@ func (this *Account) SetGender() error {
 
 func (this *Account) SendConfirmEmail(email string) error {
 	params := map[string]interface{}{
-		"_uuid":       this.inst.Device.DeviceID,
+		"_uuid":       this.inst.AccountInfo.Device.DeviceID,
 		"_uid":        fmt.Sprintf("%d", this.inst.ID),
-		"device_id":   this.inst.Device.DeviceID,
+		"device_id":   this.inst.AccountInfo.Device.DeviceID,
 		"send_source": "personal_information",
 		"email":       email,
 	}

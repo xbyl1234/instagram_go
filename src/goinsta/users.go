@@ -148,7 +148,7 @@ func (this *User) Sync() error {
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: fmt.Sprintf(urlUserInfo, this.ID),
 		Query: map[string]interface{}{
-			"device_id": this.inst.Device.DeviceID,
+			"device_id": this.inst.AccountInfo.Device.DeviceID,
 		}},
 		resp)
 

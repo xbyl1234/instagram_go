@@ -97,7 +97,7 @@ func RegisterByPhone() {
 		}
 
 		inst := goinsta.New("", "", _proxy)
-		inst.RegisterIpCountry = _proxy.Country
+		inst.AccountInfo.Register.RegisterIpCountry = _proxy.Country
 		inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
@@ -176,7 +176,7 @@ func RegisterByPhone() {
 		_, err = inst.AddressBookLink(GenAddressBook())
 
 		var uploadID string
-		uploadID, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
+		uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 		err = inst.GetAccount().ChangeProfilePicture(uploadID)
 
 		if err != nil {
@@ -234,7 +234,7 @@ func RegisterByEmail() {
 			Month:        fmt.Sprintf("%02d", common.GenNumber(1, 11)),
 			Day:          fmt.Sprintf("%02d", common.GenNumber(1, 27)),
 		}
-		inst.RegisterIpCountry = _proxy.Country
+		inst.AccountInfo.Register.RegisterIpCountry = _proxy.Country
 		inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 		err = regisert.GetSignupConfig()
@@ -296,7 +296,7 @@ func RegisterByEmail() {
 		err = goinsta.SaveInstToDB(inst)
 
 		var uploadID string
-		uploadID, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
+		uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 		err = inst.GetAccount().ChangeProfilePicture(uploadID)
 
 		if err != nil {

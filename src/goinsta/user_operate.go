@@ -36,10 +36,10 @@ type CameraSettings struct {
 }
 
 type UploadMediaInfo struct {
-	uploadID  string
-	waterfall string
-	high      int
-	width     int
+	UploadID  string
+	Waterfall string
+	High      int
+	Width     int
 }
 
 type UploadVideoInfo struct {
@@ -50,7 +50,7 @@ type UploadVideoInfo struct {
 	durationMs float64
 }
 
-type Location2 struct {
+type LocationSearch struct {
 	Name             string  `json:"name"`
 	ExternalId       int64   `json:"external_id"`
 	ExternalIdSource string  `json:"external_id_source"`
@@ -67,59 +67,59 @@ func (this *UserOperate) ConfigureToStory(mediaInfo *UploadMediaInfo) error {
 	mediaType := "photo"
 	camera := map[string]interface{}{
 		"camera_settings": &CameraSettings{
-			FocalLength:  this.inst.Device.FocalLength,
-			Aperture:     this.inst.Device.Aperture,
+			FocalLength:  this.inst.AccountInfo.Device.FocalLength,
+			Aperture:     this.inst.AccountInfo.Device.Aperture,
 			Iso:          []int{iso},
 			ShutterSpeed: float64(common.GenNumber(1, 10)),
 			MeteringMode: 3,
 			ExposureTime: float64(common.GenNumber(1, 10)) / 100.0,
-			Software:     this.inst.Device.SystemVersion,
-			LensModel:    this.inst.Device.LensModel,
+			Software:     this.inst.AccountInfo.Device.SystemVersion,
+			LensModel:    this.inst.AccountInfo.Device.LensModel,
 			FlashStatus:  0,
 		},
 	}
 
 	timeStr := common.GetNewYorkTimeString()
 	params := map[string]interface{}{
-		"device_id":                       this.inst.Device.DeviceID,
+		"device_id":                       this.inst.AccountInfo.Device.DeviceID,
 		"private_mention_sharing_enabled": false,
 		"additional_exif_data":            camera,
 		"lens_make":                       "Apple",
-		"_uuid":                           this.inst.Device.DeviceID,
+		"_uuid":                           this.inst.AccountInfo.Device.DeviceID,
 		"like_and_view_counts_disabled":   false,
 		"capture_type":                    "normal",
 		"geotag_enabled":                  false,
 		"archived_media_id":               "",
 		"client_timestamp":                fmt.Sprintf("%d", time.Now().Unix()),
 		"edits":                           map[string]interface{}{},
-		"original_media_size":             fmt.Sprintf("{%d, %d}", mediaInfo.width, mediaInfo.high),
+		"original_media_size":             fmt.Sprintf("{%d, %d}", mediaInfo.Width, mediaInfo.High),
 		"scene_type":                      1,
-		"lens_model":                      this.inst.Device.LensModel,
+		"lens_model":                      this.inst.AccountInfo.Device.LensModel,
 		"camera_session_id":               common.GenString(common.CharSet_16_Num, 32),
 		"iso":                             iso,
 		"has_animated_sticker":            false,
-		"upload_id":                       mediaInfo.uploadID,
+		"upload_id":                       mediaInfo.UploadID,
 		"camera_entry_point":              this.cameraEntryPoint,
 		"source_type":                     sourceType,
 		"configure_mode":                  1,
 		"disable_comments":                false,
-		"timezone_offset":                 this.inst.Device.TimezoneOffset,
+		"timezone_offset":                 this.inst.AccountInfo.Location.Timezone,
 		"date_time_original":              timeStr,
-		"waterfall_id":                    mediaInfo.waterfall,
+		"waterfall_id":                    mediaInfo.Waterfall,
 		"composition_id":                  strings.ToUpper(common.GenUUID()),
 		"date_time_digitized":             timeStr,
 		"camera_position":                 "back",
 		"_uid":                            fmt.Sprintf("%d", this.inst.ID),
-		"client_context":                  mediaInfo.uploadID,
+		"client_context":                  mediaInfo.UploadID,
 		"original_media_type":             mediaType,
 		//"client_shared_at":                fmt.Sprintf("%d", time.Now().Unix()),
-		"client_shared_at":        mediaInfo.uploadID[:10],
+		"client_shared_at":        mediaInfo.UploadID[:10],
 		"allow_multi_configures":  true,
 		"container_module":        "direct_story_audience_picker",
 		"creation_surface":        "camera",
 		"video_subtitles_enabled": true,
 		"from_drafts":             false,
-		"software":                this.inst.Device.SystemVersion,
+		"software":                this.inst.AccountInfo.Device.SystemVersion,
 		"media_gesture":           0,
 	}
 	resp := &RespLikeUser{}
@@ -275,29 +275,29 @@ type RespConfigure struct {
 	UploadId string `json:"upload_id"`
 }
 
-func (this *UserOperate) ConfigurePost(caption string, mediaInfo *UploadMediaInfo, locationReqID string, location Location2) (*RespConfigure, error) {
+func (this *UserOperate) ConfigurePost(caption string, mediaInfo *UploadMediaInfo, locationReqID string, location *LocationSearch) (*RespConfigure, error) {
 	iso := 30
 	camera := map[string]interface{}{
 		"camera_settings": &CameraSettings{
-			FocalLength:  this.inst.Device.FocalLength,
-			Aperture:     this.inst.Device.Aperture,
+			FocalLength:  this.inst.AccountInfo.Device.FocalLength,
+			Aperture:     this.inst.AccountInfo.Device.Aperture,
 			Iso:          []int{iso},
 			ShutterSpeed: float64(common.GenNumber(1, 10)),
 			MeteringMode: 3,
 			ExposureTime: float64(common.GenNumber(1, 10)) / 100.0,
-			Software:     this.inst.Device.SystemVersion,
-			LensModel:    this.inst.Device.LensModel,
+			Software:     this.inst.AccountInfo.Device.SystemVersion,
+			LensModel:    this.inst.AccountInfo.Device.LensModel,
 			FlashStatus:  0,
 		},
 	}
 
 	timeStr := common.GetNewYorkTimeString()
 	params := map[string]interface{}{
-		"device_id":                     this.inst.Device.DeviceID,
+		"device_id":                     this.inst.AccountInfo.Device.DeviceID,
 		"additional_exif_data":          camera,
 		"lens_make":                     "Apple",
 		"nav_chain":                     PostImgNavChain[common.GenNumber(0, len(PostImgNavChain))],
-		"_uuid":                         this.inst.Device.DeviceID,
+		"_uuid":                         this.inst.AccountInfo.Device.DeviceID,
 		"like_and_view_counts_disabled": false,
 		"geotag_enabled":                true,
 		"location": map[string]interface{}{
@@ -312,18 +312,18 @@ func (this *UserOperate) ConfigurePost(caption string, mediaInfo *UploadMediaInf
 		"client_timestamp":           time.Now().Unix(),
 		"edits":                      map[string]interface{}{},
 		"scene_type":                 1,
-		"lens_model":                 this.inst.Device.LensModel,
+		"lens_model":                 this.inst.AccountInfo.Device.LensModel,
 		"iso":                        iso,
 		"disable_comments":           false,
-		"upload_id":                  mediaInfo.uploadID,
+		"upload_id":                  mediaInfo.UploadID,
 		"caption_list":               []string{caption},
 		"source_type":                "library",
 		"caption":                    caption,
 		"camera_entry_point":         this.cameraEntryPoint,
-		"timezone_offset":            this.inst.Device.TimezoneOffset,
+		"timezone_offset":            this.inst.AccountInfo.Location.Timezone,
 		"date_time_original":         timeStr,
 		"foursquare_request_id":      locationReqID,
-		"waterfall_id":               mediaInfo.waterfall,
+		"waterfall_id":               mediaInfo.Waterfall,
 		"date_time_digitized":        timeStr,
 		"creation_logger_session_id": common.GenString(common.CharSet_16_Num, 32),
 		"camera_position":            "back",
@@ -335,7 +335,7 @@ func (this *UserOperate) ConfigurePost(caption string, mediaInfo *UploadMediaInf
 		"container_module":           "photo_edit",
 		"video_subtitles_enabled":    true,
 		"scene_capture_type":         "standard",
-		"software":                   this.inst.Device.SystemVersion,
+		"software":                   this.inst.AccountInfo.Device.SystemVersion,
 	}
 	resp := &RespConfigure{}
 	err := this.inst.HttpRequestJson(&reqOptions{
@@ -351,12 +351,12 @@ func (this *UserOperate) ConfigurePost(caption string, mediaInfo *UploadMediaInf
 
 type RespLocation struct {
 	BaseApiResp
-	Venues    []Location2 `json:"venues"`
-	RequestId string      `json:"request_id"`
-	RankToken string      `json:"rank_token"`
+	Venues    []LocationSearch `json:"venues"`
+	RequestId string           `json:"request_id"`
+	RankToken string           `json:"rank_token"`
 }
 
-func (this *UserOperate) LocationSearch(latitude float32, longitude float32) (*RespLocation, error) {
+func (this *UserOperate) LocationSearch(longitude float32, latitude float32) (*RespLocation, error) {
 	params := map[string]interface{}{
 		"latitude":  latitude,
 		"longitude": longitude,
@@ -382,7 +382,7 @@ type RespSetReel struct {
 
 func (this *UserOperate) SetReelSettings() (*RespSetReel, error) {
 	params := map[string]interface{}{
-		"_uuid":             this.inst.Device.DeviceID,
+		"_uuid":             this.inst.AccountInfo.Device.DeviceID,
 		"_uid":              fmt.Sprintf("%d", this.inst.ID),
 		"reel_auto_archive": 0,
 	}
@@ -546,7 +546,7 @@ type RespCreateReel struct {
 func (this *UserOperate) CreateReel(title string, mediaID string) (*RespCreateReel, error) {
 	sources := []string{"story_viewer_profile", "self_profile"}
 	params := map[string]interface{}{
-		"_uuid":       this.inst.Device.DeviceID,
+		"_uuid":       this.inst.AccountInfo.Device.DeviceID,
 		"_uid":        fmt.Sprintf("%d", this.inst.ID),
 		"source":      sources[common.GenNumber(0, len(sources))],
 		"creation_id": fmt.Sprintf("%d", time.Now().Unix()),
@@ -824,7 +824,7 @@ func (this *UserOperate) ConfigureToClips(caption string, audioTitle string, med
 		"remixed_original_sound_params": map[string]interface{}{
 			"original_media_id": "",
 		},
-		"_uuid":             this.inst.Device.DeviceID,
+		"_uuid":             this.inst.AccountInfo.Device.DeviceID,
 		"_uid":              fmt.Sprintf("%d", this.inst.ID),
 		"internal_features": "clips_format,clips_launch",
 		"source_type":       sourceType,
@@ -833,17 +833,17 @@ func (this *UserOperate) ConfigureToClips(caption string, audioTitle string, med
 		"additional_audio_info": map[string]interface{}{
 			"has_voiceover_attribution": "0",
 		},
-		"device_id":                   this.inst.Device.DeviceID,
+		"device_id":                   this.inst.AccountInfo.Device.DeviceID,
 		"client_timestamp":            fmt.Sprintf("%d", time.Now().Unix()),
 		"effect_ids":                  []int{},
-		"waterfall_id":                mediaInfo.waterfall,
+		"waterfall_id":                mediaInfo.Waterfall,
 		"caption":                     caption,
 		"camera_entry_point":          this.cameraEntryPoint,
 		"text_overlay":                []int{},
 		"clips_share_preview_to_feed": "1",
-		"upload_id":                   mediaInfo.uploadID,
+		"upload_id":                   mediaInfo.UploadID,
 		"sticker_ids":                 []int{},
-		"timezone_offset":             this.inst.Device.TimezoneOffset,
+		"timezone_offset":             this.inst.AccountInfo.Location.Timezone,
 		"capture_type":                "clips_v2",
 		"clips_audio_metadata": map[string]interface{}{
 			"original": map[string]interface{}{
@@ -937,8 +937,8 @@ func (this *UserOperate) ClipsAssets(latitude float32, longitude float32) (*Resp
 	params := map[string]interface{}{
 		"verticalAccuracy":   "10.000000",
 		"speed":              "-1.000000",
-		"_uuid":              this.inst.Device.DeviceID,
-		"timezone_offset":    this.inst.Device.TimezoneOffset,
+		"_uuid":              this.inst.AccountInfo.Device.DeviceID,
+		"timezone_offset":    this.inst.AccountInfo.Location.Timezone,
 		"horizontalAccuracy": "65.000000",
 		"alt":                "36.008301",
 		"_uid":               fmt.Sprintf("%d", this.inst.ID),
@@ -965,7 +965,7 @@ type RespVerifyAudioTitle struct {
 
 func (this *UserOperate) VerifyOriginalAudioTitle(originalAudioName string) (*RespVerifyAudioTitle, error) {
 	params := map[string]interface{}{
-		"_uuid":               this.inst.Device.DeviceID,
+		"_uuid":               this.inst.AccountInfo.Device.DeviceID,
 		"original_audio_name": originalAudioName,
 	}
 	resp := &RespVerifyAudioTitle{}
@@ -1005,7 +1005,7 @@ type QualityInfo struct {
 func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo QualityInfo) error {
 	qualityInfoStr, _ := json.Marshal(qualityInfo)
 	params := map[string]interface{}{
-		"_uuid":        this.inst.Device.DeviceID,
+		"_uuid":        this.inst.AccountInfo.Device.DeviceID,
 		"_uid":         fmt.Sprintf("%d", this.inst.ID),
 		"quality_info": common.B2s(qualityInfoStr),
 		"uploadID":     uploadID,
@@ -1025,10 +1025,10 @@ func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo
 func (this *UserOperate) LikeUser(userID int64) error {
 	this.inst.Increase(OperNameLikeUser)
 	params := map[string]interface{}{
-		"_uuid":            this.inst.Device.DeviceID,
+		"_uuid":            this.inst.AccountInfo.Device.DeviceID,
 		"_uid":             this.inst.ID,
 		"user_id":          userID,
-		"device_id":        this.inst.Device.DeviceID,
+		"device_id":        this.inst.AccountInfo.Device.DeviceID,
 		"container_module": "profile",
 	}
 	resp := &RespLikeUser{}

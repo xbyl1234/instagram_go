@@ -131,7 +131,7 @@ func (this *Search) NextTags() (*SearchResult, error) {
 	res := &SearchResult{}
 	var params = map[string]interface{}{
 		"search_surface":  "hashtag_search_page",
-		"timezone_offset": this.Inst.Device.TimezoneOffset,
+		"timezone_offset": this.Inst.AccountInfo.Location.Timezone,
 		"count":           30,
 		"q":               this.Q,
 		"is_typeahead":    true,
@@ -168,7 +168,7 @@ func (this *Search) NextLocation() (*SearchResult, error) {
 	insta := this.Inst
 	params := map[string]interface{}{
 		"places_search_page": "places_search_page",
-		"timezone_offset":    this.Inst.Device.TimezoneOffset,
+		"timezone_offset":    this.Inst.AccountInfo.Location.Timezone,
 		"query":              this.Q,
 		"is_typeahead":       true,
 	}

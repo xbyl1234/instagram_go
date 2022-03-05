@@ -107,7 +107,7 @@ func InstRelogin(inst *goinsta.Instagram) error {
 }
 
 func InstRefreshAccountInfo(inst *goinsta.Instagram) error {
-	uploadID, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
+	uploadID, _, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
 	if err != nil {
 		log.Error("account %s upload ico error: %v", inst.User, err)
 		return err
@@ -187,7 +187,7 @@ func send(inst *goinsta.Instagram) {
 		}
 		break
 	case SendNoDevice:
-		if inst.IsLogin && inst.ID != 0 && inst.Status == "" && inst.Device.DeviceID == "" {
+		if inst.IsLogin && inst.ID != 0 && inst.Status == "" && inst.AccountInfo.Device.DeviceID == "" {
 			TestAccount <- inst
 		}
 		break
@@ -209,7 +209,7 @@ func send(inst *goinsta.Instagram) {
 	case SendOldStruct:
 		if inst.ID == 0 && inst.Status == "" {
 			inst.CleanCookiesAndHeader()
-			inst.Device = goinsta.GenInstDeviceInfo()
+			inst.AccountInfo = goinsta.GenInstDeviceInfo()
 			TestAccount <- inst
 		}
 		break
@@ -245,13 +245,18 @@ func main() {
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	var err error
-	//login, err := Login("fuchychh", "Xbyl1234")
+	//login, err := Login("impatient2017116", "KJVEkjve8752")
 	//if err != nil {
 	//	return
 	//}
+	//err = login.GetAccount().Sync()
+	//if err != nil {
+	//	log.Error("account: %s, error: %v", login.User, err)
+	//}
 	//goinsta.SaveInstToDB(login)
-	////goinsta.CleanStatus()
-
+	//goinsta.CleanStatus()
+	//goinsta.ReStruct()
+	//return
 	err = common.InitResource(config.ResIcoPath, "")
 	if err != nil {
 		log.Error("load res error: %v", err)

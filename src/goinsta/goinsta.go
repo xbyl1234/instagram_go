@@ -45,32 +45,23 @@ type InstagramOperate struct {
 }
 
 type Instagram struct {
-	User                string
-	Pass                string
-	token               string
-	challengeURL        string
-	ID                  int64
-	httpHeader          map[string]string
-	IsLogin             bool
-	Device              *InstDeviceInfo
-	Status              string
-	sessionID           string
-	RegisterEmail       string
-	RegisterPhoneNumber string
-	RegisterPhoneArea   string
-	RegisterIpCountry   string
-	RegisterTime        int64
-	ReqSuccessCount     int
-	ReqErrorCount       int
-	ReqApiErrorCount    int
-	ReqContError        int
-	LastSendMsgTime     int
-	MatePoint           interface{}
-	Proxy               *proxy.Proxy
-	c                   *http.Client
-	SpeedControl        map[string]*SpeedControl
-	Tags                string
-	Operate             InstagramOperate
+	User         string
+	Pass         string
+	token        string
+	challengeURL string
+	ID           int64
+	httpHeader   map[string]string
+	IsLogin      bool
+	AccountInfo  *InstAccountInfo
+	sessionID    string
+
+	Status       string
+	Tags         string
+	Proxy        *proxy.Proxy
+	c            *http.Client
+	SpeedControl map[string]*SpeedControl
+	Operate      InstagramOperate
+	MatePoint    interface{}
 }
 
 func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
@@ -104,7 +95,7 @@ func New(username, password string, _proxy *proxy.Proxy) *Instagram {
 		},
 	}
 
-	inst.Device = GenInstDeviceInfo()
+	inst.AccountInfo = GenInstDeviceInfo()
 	inst.Operate.Graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
 	inst.SpeedControl = make(map[string]*SpeedControl)
@@ -227,8 +218,8 @@ func (this *Instagram) AfterLogin() {
 
 func (this *Instagram) getNamePrefill() error {
 	var query = map[string]interface{}{
-		"phone_id":  this.Device.DeviceID,
-		"device_id": this.Device.DeviceID,
+		"phone_id":  this.AccountInfo.Device.DeviceID,
+		"device_id": this.AccountInfo.Device.DeviceID,
 	}
 	_, err := this.HttpRequest(
 		&reqOptions{
@@ -246,7 +237,7 @@ func (this *Instagram) getNamePrefill() error {
 
 func (this *Instagram) contactPrefill() error {
 	var query = map[string]interface{}{
-		"phone_id": this.Device.DeviceID,
+		"phone_id": this.AccountInfo.Device.DeviceID,
 	}
 
 	_, err := this.HttpRequest(
@@ -268,13 +259,13 @@ func (this *Instagram) qeSync() error {
 	if this.IsLogin {
 		query = map[string]interface{}{
 			"id":                      this.ID,
-			"_uuid":                   this.Device.DeviceID,
+			"_uuid":                   this.AccountInfo.Device.DeviceID,
 			"_uid":                    this.ID,
 			"server_config_retrieval": "1",
 		}
 	} else {
 		query = map[string]interface{}{
-			"id":                      this.Device.DeviceID,
+			"id":                      this.AccountInfo.Device.DeviceID,
 			"server_config_retrieval": "1",
 		}
 	}
@@ -298,13 +289,13 @@ func (this *Instagram) launcherSync() error {
 	if this.IsLogin {
 		query = map[string]interface{}{
 			"id":                      this.ID,
-			"_uuid":                   this.Device.DeviceID,
+			"_uuid":                   this.AccountInfo.Device.DeviceID,
 			"_uid":                    this.ID,
 			"server_config_retrieval": "1",
 		}
 	} else {
 		query = map[string]interface{}{
-			"id":                      this.Device.DeviceID,
+			"id":                      this.AccountInfo.Device.DeviceID,
 			"server_config_retrieval": "1",
 		}
 	}
@@ -326,7 +317,7 @@ func (this *Instagram) launcherSync() error {
 func (this *Instagram) logAttribution() error {
 	query := map[string]interface{}{
 		"type": "app_first_launch",
-		"adid": this.Device.IDFA,
+		"adid": this.AccountInfo.Device.IDFA,
 	}
 
 	_, err := this.HttpRequest(
@@ -345,10 +336,10 @@ func (this *Instagram) logAttribution() error {
 
 func (this *Instagram) DeviceRegister() error {
 	query := map[string]interface{}{
-		"_uuid":                    this.Device.DeviceID,
-		"device_id":                this.Device.DeviceID,
-		"device_token":             this.Device.DeviceToken,
-		"family_device_id":         this.Device.DeviceID,
+		"_uuid":                    this.AccountInfo.Device.DeviceID,
+		"device_id":                this.AccountInfo.Device.DeviceID,
+		"device_token":             this.AccountInfo.Device.DeviceToken,
+		"family_device_id":         this.AccountInfo.Device.DeviceID,
 		"device_app_installations": "{\"threads\":false,\"igtv\":false,\"instagram\":true}",
 		"users":                    fmt.Sprintf("%d", this.ID),
 		"device_type":              "ios",
@@ -413,9 +404,9 @@ type RespLogin struct {
 func (this *Instagram) Login() error {
 	encodePasswd, _ := encryptPassword(this.Pass, this.GetHeader(IGHeader_EncryptionId), this.GetHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
-		"phone_id":            this.Device.DeviceID,
+		"phone_id":            this.AccountInfo.Device.DeviceID,
 		"reg_login":           "0",
-		"device_id":           this.Device.DeviceID,
+		"device_id":           this.AccountInfo.Device.DeviceID,
 		"has_seen_aart_on":    "0",
 		"username":            this.User,
 		"login_attempt_count": "0",
@@ -469,9 +460,9 @@ func (this *Instagram) UserLookup() (*LookResp, error) {
 			IsPost:  true,
 			Signed:  true,
 			Query: map[string]interface{}{
-				"q":             this.Device.DeviceID,
-				"skip_recovery": this.Device.DeviceID,
-				"waterfall_id":  this.Device.WaterID,
+				"q":             this.AccountInfo.Device.DeviceID,
+				"skip_recovery": this.AccountInfo.Device.DeviceID,
+				"waterfall_id":  this.AccountInfo.Device.WaterID,
 			},
 		}, resp)
 
@@ -499,7 +490,7 @@ func (this *Instagram) AddressBookLink(addr []AddressBook) (*RespAddressBookLink
 	}
 
 	body := spew.Sprintf("contacts=%s&_uuid=%s&device_id=%s&phone_id=%s", common.InstagramQueryEscape(common.B2s(addrJson)),
-		this.Device.DeviceID, this.Device.DeviceID, this.Device.DeviceID)
+		this.AccountInfo.Device.DeviceID, this.AccountInfo.Device.DeviceID, this.AccountInfo.Device.DeviceID)
 
 	resp := &RespAddressBookLink{}
 	err = this.HttpRequestJson(

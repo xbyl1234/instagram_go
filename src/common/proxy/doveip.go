@@ -75,7 +75,7 @@ func (this *DovePool) RequestProxy() bool {
 			continue
 		}
 		if resp.Errno == 409 {
-			log.Error("dove proxy request frequently...", err)
+			log.Error("dove proxy request frequently...")
 			time.Sleep(3 * time.Second)
 			continue
 		}

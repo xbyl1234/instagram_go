@@ -51,7 +51,7 @@ func initBaseExtra(inst *Instagram, extra interface{}) {
 
 	field = extraValue.FieldByName("WaterfallId")
 	if field.CanSet() {
-		field.SetString(inst.Device.WaterID)
+		field.SetString(inst.AccountInfo.Device.WaterID)
 	}
 
 	field = extraValue.FieldByName("StartTime")
@@ -76,12 +76,12 @@ func initBaseExtra(inst *Instagram, extra interface{}) {
 
 	field = extraValue.FieldByName("FbFamilyDeviceId")
 	if field.CanSet() {
-		field.SetString(inst.Device.FamilyID)
+		field.SetString(inst.AccountInfo.Device.FamilyID)
 	}
 
 	field = extraValue.FieldByName("AppDeviceId")
 	if field.CanSet() {
-		field.SetString(inst.Device.DeviceID)
+		field.SetString(inst.AccountInfo.Device.DeviceID)
 	}
 
 	field = extraValue.FieldByName("ContainerModule")
@@ -110,7 +110,7 @@ func MakeNextButtonTapped(inst *Instagram, params map[string]interface{}) *Graph
 	ret.Module = "app"
 	ret.Name = "next_button_tapped"
 	ret.Extra = &nextButtonTapped{
-		PhoneNumber: inst.RegisterPhoneArea + inst.RegisterPhoneNumber,
+		PhoneNumber: inst.AccountInfo.Register.RegisterPhoneArea + inst.AccountInfo.Register.RegisterPhoneNumber,
 	}
 
 	initBaseExtra(inst, ret.Extra)

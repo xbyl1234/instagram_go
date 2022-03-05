@@ -64,7 +64,7 @@ func SetProxy(inst *goinsta.Instagram) bool {
 	var _proxy *proxy.Proxy
 	if inst.Proxy != nil {
 		if inst.Proxy.ID != "" {
-			_proxy = proxy.ProxyPool.Get(inst.RegisterIpCountry, inst.Proxy.ID)
+			_proxy = proxy.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, inst.Proxy.ID)
 			if _proxy == nil {
 				log.Warn("find insta proxy %s error!", inst.Proxy.ID)
 			}
@@ -72,7 +72,7 @@ func SetProxy(inst *goinsta.Instagram) bool {
 	}
 
 	if _proxy == nil {
-		_proxy = proxy.ProxyPool.GetNoRisk(inst.RegisterIpCountry, false, false)
+		_proxy = proxy.ProxyPool.GetNoRisk(inst.AccountInfo.Register.RegisterIpCountry, false, false)
 		if _proxy == nil {
 			log.Error("get insta proxy error!")
 		}

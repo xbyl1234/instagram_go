@@ -1,26 +1,21 @@
 package goinsta
 
 import (
-	"fmt"
-	"makemoney/common"
-	"makemoney/common/log"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 var (
-	InstagramHost        = "https://i.instagram.com/"
-	InstagramHost_B      = "https://b.i.instagram.com/"
-	InstagramHost_Graph  = "https://graph.instagram.com/"
-	InstagramUserAgent2  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
-	InstagramUserAgent   = "Instagram %s (%s; iOS %s; en_US; en-US; %s; %s; %s) AppleWebKit/%s"
-	InstagramLocation    = "en_US"
+	InstagramHost       = "https://i.instagram.com/"
+	InstagramHost_B     = "https://b.i.instagram.com/"
+	InstagramHost_Graph = "https://graph.instagram.com/"
+	//InstagramUserAgent2  = "Instagram %s (iPhone7,2; iOS 12_5_5; en_US; en-US; scale=2.00; 750x1334; %s) AppleWebKit/420+"
+	InstagramUserAgent = "Instagram %s (%s; iOS %s; en_US; en-US; %s; %s; %s) AppleWebKit/%s"
+	//InstagramLocation    = "en_US"
 	InstagramVersions    []*InstDeviceInfo
 	InstagramAppID       = "124024574287414"
 	InstagramAccessToken = "124024574287414|84a456d620314b6e92a16d8ff1c792dc"
 
-	InstagramDeviceList2 = []string{"iPhone7,2 12_5_5 scale=2.00 750x1334"}
+	//InstagramDeviceList2 = []string{"iPhone7,2 12_5_5 scale=2.00 750x1334"}
 
 	InstagramDeviceList = []string{
 		"iPhone7,1 12_5_5 scale=2.61 1080x1920",
@@ -158,32 +153,23 @@ var (
 		"9kbps",
 		"46kbps",
 	}
+
+	CoordMap = map[string]InstLocationInfo{
+		"纽约": {
+			Lon:            -73.87141290786828,
+			Lat:            40.8385895611293,
+			Timezone:       "-18000",
+			AppLocale:      "en-US",
+			StartupCountry: "US",
+			AcceptLanguage: "en-US;q=1.0",
+		},
+	}
+
 	NoLoginHeaderMap map[string]*HeaderSequence
 	LoginHeaderMap   map[string]*HeaderSequence
 	HeaderMD5Map     map[string]*HeaderSequence
 	ReqHeaderJson    reqHeaderJson
 )
-
-type InstDeviceInfo struct {
-	Version        string  `json:"version" bson:"version"`
-	VersionCode    string  `json:"version_code" bson:"version_code"`
-	BloksVersionID string  `json:"bloks_version_id" bson:"bloks_version_id"`
-	UserAgent      string  `json:"user_agent" bson:"user_agent"`
-	IDFA           string  `json:"idfa" bson:"idfa"`
-	AppLocale      string  `json:"app_locale" bson:"app_locale"`
-	TimezoneOffset string  `json:"timezone_offset" bson:"timezone_offset"`
-	StartupCountry string  `json:"startup_country" bson:"startup_country"`
-	AcceptLanguage string  `json:"accept_language" bson:"accept_language"`
-	NetWorkType    string  `json:"net_work_type" bson:"net_work_type"`
-	DeviceID       string  `json:"device_id" bson:"device_id"`
-	FamilyID       string  `json:"family_id" bson:"family_id"`
-	WaterID        string  `json:"water_id" bson:"water_id"`
-	DeviceToken    string  `json:"device_token" bson:"device_token"`
-	SystemVersion  string  `json:"system_version" bson:"system_version"`
-	LensModel      string  `json:"lens_model" bson:"lens_model"`
-	FocalLength    float64 `json:"focal_length" bson:"focal_length"`
-	Aperture       float64 `json:"aperture" bson:"aperture"`
-}
 
 type AutoSetHeaderFun func(inst *Instagram, opt *reqOptions, req *http.Request)
 
@@ -206,97 +192,6 @@ type reqHeaderJson struct {
 		Header    string `json:"header"`
 		headerSeq HeaderSequence
 	} `json:"md5s"`
-}
-
-func InitInstagramConst() error {
-	InstagramVersions = make([]*InstDeviceInfo, len(InstagramVersionData))
-	for index, item := range InstagramVersionData {
-		sp := strings.Split(item, " ")
-		InstagramVersions[index] = &InstDeviceInfo{
-			Version:        sp[0],
-			VersionCode:    sp[1],
-			BloksVersionID: sp[2],
-		}
-	}
-
-	err := common.LoadJsonFile("config/http_header_sequence.json", &ReqHeaderJson)
-	if err != nil {
-		return err
-	}
-	HeaderMD5Map = make(map[string]*HeaderSequence)
-	for _, md5 := range ReqHeaderJson.Md5S {
-		sp := strings.Split(md5.Header, ",")
-		if len(sp) == 0 {
-			return &common.MakeMoneyError{
-				ErrStr: "header is null,md5: " + md5.Md5,
-			}
-		}
-		sp = sp[:len(sp)-1]
-		md5.headerSeq.HeaderFun = GetAutoHeaderFunc(sp)
-		md5.headerSeq.HeaderSeq = sp
-		HeaderMD5Map[md5.Md5] = &md5.headerSeq
-	}
-
-	var makeSeqMap = func(headerMap *map[string]*HeaderSequence, pahts []pathsMap) {
-		*headerMap = make(map[string]*HeaderSequence)
-		for _, path := range pahts {
-			find := false
-			for _, md5 := range ReqHeaderJson.Md5S {
-				if path.Md5 == md5.Md5 {
-					(*headerMap)[path.Path] = &md5.headerSeq
-					find = true
-					break
-				}
-			}
-			if !find {
-				log.Warn("not find header md5: %s", path.Md5)
-			}
-		}
-	}
-
-	makeSeqMap(&NoLoginHeaderMap, ReqHeaderJson.PathsNoLogin)
-	makeSeqMap(&LoginHeaderMap, ReqHeaderJson.PathsLogin)
-	return err
-}
-
-//纽约 -18000
-
-func GenInstDeviceInfo() *InstDeviceInfo {
-	version := InstagramVersions[common.GenNumber(0, len(InstagramVersions))]
-	device := InstagramDeviceList[common.GenNumber(0, len(InstagramDeviceList))]
-	sp := strings.Split(device, " ")
-	SystemVersion := strings.ReplaceAll(sp[1], "_", ".")
-
-	spLens := strings.Split(LensModel[sp[0][6:]], ",")
-	Lens := ""
-	for _, item := range spLens {
-		Lens += item + " "
-	}
-	Lens = Lens[:len(Lens)-1]
-	FocalLength, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "f/", ""), 64)
-	Aperture, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "mm", ""), 64)
-
-	instVersion := &InstDeviceInfo{
-		IDFA:           strings.ToUpper(common.GenUUID()),
-		Version:        version.Version,
-		VersionCode:    version.VersionCode,
-		BloksVersionID: version.BloksVersionID,
-		UserAgent:      fmt.Sprintf(InstagramUserAgent, version.Version, sp[0], sp[1], sp[2], sp[3], version.VersionCode, "420+"),
-		AppLocale:      "en-US",
-		TimezoneOffset: "-18000",
-		StartupCountry: "US",
-		AcceptLanguage: "en-US;q=1.0",
-		NetWorkType:    "WiFi",
-		DeviceID:       strings.ToUpper(common.GenUUID()),
-		WaterID:        common.GenString(common.CharSet_16_Num, 32),
-		SystemVersion:  SystemVersion,
-		LensModel:      Lens,
-		FocalLength:    FocalLength,
-		Aperture:       Aperture,
-	}
-
-	instVersion.FamilyID = instVersion.DeviceID
-	return instVersion
 }
 
 type muteOption string

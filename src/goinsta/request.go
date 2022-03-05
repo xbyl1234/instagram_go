@@ -282,15 +282,15 @@ func truncation(body []byte) []byte {
 func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 	if err != nil {
 		log.Error("account: %s, url: %s, request error: %v, resp: %s", this.User, url, err, truncation(body))
-		this.ReqErrorCount += 1
+		//this.ReqErrorCount += 1
 		if common.IsError(err, common.RequestError) {
-			this.ReqContError++
+			//this.ReqContError++
 		}
 	} else {
 		if config.IsDebug {
 			log.Info("account: %s, url: %s, api resp %s", this.User, url, truncation(body))
 		}
-		this.ReqContError = 0
+		//this.ReqContError = 0
 	}
 }
 
@@ -299,7 +299,7 @@ func (this *Instagram) PrepareProxy() error {
 	if this.Proxy != nil {
 		id = this.Proxy.ID
 	}
-	proxy, errProxy := ProxyCallBack(this.RegisterIpCountry, id)
+	proxy, errProxy := ProxyCallBack(this.AccountInfo.Register.RegisterIpCountry, id)
 	if errProxy != nil {
 		log.Error("account: %s, get proxy error: %v", this.User, errProxy)
 		return errProxy

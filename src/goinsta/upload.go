@@ -30,23 +30,23 @@ func GenUploadID() string {
 	return upId[:len(upId)-1]
 }
 
-func (this *Upload) UploadPhotoFromPath(path string) (string, error) {
+func (this *Upload) UploadPhotoFromPath(path string) (string, string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	return this.UploadPhoto(data)
 }
 
-func (this *Upload) UploadVoiceFromPath(path string) (string, error) {
+func (this *Upload) UploadVoiceFromPath(path string) (string, string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	return this.UploadVoice(data)
 }
 
-func (this *Upload) UploadPhoto(data []byte) (string, error) {
+func (this *Upload) UploadPhoto(data []byte) (string, string, error) {
 	upId := GenUploadID()
 	path := common.GenString(common.CharSet_16_Num, 32)
 
@@ -69,12 +69,13 @@ func (this *Upload) UploadPhoto(data []byte) (string, error) {
 	body := bytes.NewBuffer(data)
 
 	var resp = &RespUpload{}
+	waterfall := common.GenString(common.CharSet_16_Num, 32)
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath:        urlUploadPhone + path,
 		HeaderSequence: LoginHeaderMap[urlUploadPhone],
 		IsPost:         true,
 		Header: map[string]string{
-			"x_fb_photo_waterfall_id":    common.GenString(common.CharSet_16_Num, 32),
+			"x_fb_photo_waterfall_id":    waterfall,
 			"x-instagram-rupload-params": paramsStr,
 			"content-type":               "application/octet-stream",
 			"x-entity-type":              "image/jpeg",
@@ -86,7 +87,7 @@ func (this *Upload) UploadPhoto(data []byte) (string, error) {
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return upId, err
+	return upId, waterfall, err
 }
 
 func (this *Upload) UploadVideo(path string) (string, error) {
@@ -128,7 +129,7 @@ func (this *Upload) UploadVideo(path string) (string, error) {
 		HeaderSequence: LoginHeaderMap[urlUploadVideo],
 		IsPost:         true,
 		Header: map[string]string{
-			"x_fb_video_waterfall_id":    this.inst.Device.WaterID,
+			"x_fb_video_waterfall_id":    this.inst.AccountInfo.Device.WaterID,
 			"x-instagram-rupload-params": paramsStr,
 			"content-type":               "application/octet-stream",
 			"offset":                     "0",
@@ -151,7 +152,7 @@ func (this *Upload) UploadFinish(uploadID string) error {
 		Signed:  true,
 		Header: map[string]string{
 			"upload_id": uploadID,
-			"_uuid":     this.inst.Device.DeviceID,
+			"_uuid":     this.inst.AccountInfo.Device.DeviceID,
 			"_uid":      fmt.Sprintf("%d", this.inst.ID),
 		},
 	}, resp)
@@ -159,7 +160,7 @@ func (this *Upload) UploadFinish(uploadID string) error {
 	return err
 }
 
-func (this *Upload) UploadVoice(data []byte) (string, error) {
+func (this *Upload) UploadVoice(data []byte) (string, string, error) {
 	upId := GenUploadID()
 	path := common.GenString(common.CharSet_16_Num, 32)
 
@@ -174,6 +175,7 @@ func (this *Upload) UploadVoice(data []byte) (string, error) {
 	body := bytes.NewBuffer(data)
 
 	var resp = &RespUpload{}
+	waterfall := common.GenString(common.CharSet_16_Num, 32)
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath:        urlUploadVideo + path,
 		HeaderSequence: LoginHeaderMap[urlUploadVideo],
@@ -185,15 +187,15 @@ func (this *Upload) UploadVoice(data []byte) (string, error) {
 			"Offset":                     "0",
 			"Content-Type":               "application/octet-stream",
 			"X-Entity-Length":            fmt.Sprintf("%d", len(data)),
-			"X_fb_video_waterfall_id":    common.GenString(common.CharSet_16_Num, 32),
+			"X_fb_video_waterfall_id":    waterfall,
 			"X-Instagram-Rupload-Params": uploadParamsStr,
 		},
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
 	if err != nil {
-		return "", err
+		return "", waterfall, err
 	}
 	err = this.UploadFinish(upId)
-	return upId, err
+	return upId, waterfall, err
 }

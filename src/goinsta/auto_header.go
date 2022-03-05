@@ -93,13 +93,13 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Idfa":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Idfa", inst.Device.IDFA)
+				req.Header.Set("X-Idfa", inst.AccountInfo.Device.IDFA)
 			}
 			index++
 			break
 		case "X-Ig-App-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-App-Locale", inst.Device.AppLocale)
+				req.Header.Set("X-Ig-App-Locale", inst.AccountInfo.Location.AppLocale)
 			}
 			index++
 			break
@@ -112,7 +112,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Timezone-Offset":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Timezone-Offset", inst.Device.TimezoneOffset)
+				req.Header.Set("X-Ig-Timezone-Offset", inst.AccountInfo.Location.Timezone)
 			}
 			index++
 			break
@@ -157,7 +157,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 
 		case "X-Ig-App-Startup-Country":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-App-Startup-Country", inst.Device.StartupCountry)
+				req.Header.Set("X-Ig-App-Startup-Country", inst.AccountInfo.Location.StartupCountry)
 			}
 			index++
 			break
@@ -187,7 +187,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Device-Id", inst.Device.DeviceID)
+				req.Header.Set("X-Ig-Device-Id", inst.AccountInfo.Device.DeviceID)
 			}
 			index++
 			break
@@ -205,39 +205,39 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "Accept-Language":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("Accept-Language", inst.Device.AcceptLanguage)
+				req.Header.Set("Accept-Language", inst.AccountInfo.Location.AcceptLanguage)
 			}
 			index++
 			break
 		case "X-Ig-Connection-Type":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Connection-Type", inst.Device.NetWorkType)
+				req.Header.Set("X-Ig-Connection-Type", inst.AccountInfo.Device.NetWorkType)
 			}
 			index++
 			break
 		case "X-Bloks-Version-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Bloks-Version-Id", inst.Device.BloksVersionID)
+				req.Header.Set("X-Bloks-Version-Id", inst.AccountInfo.Device.BloksVersionID)
 			}
 			index++
 			break
 
 		case "X-Ig-Device-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Device-Locale", inst.Device.AppLocale)
+				req.Header.Set("X-Ig-Device-Locale", inst.AccountInfo.Location.AppLocale)
 			}
 			index++
 			break
 
 		case "X-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Device-Id", inst.Device.DeviceID)
+				req.Header.Set("X-Device-Id", inst.AccountInfo.Device.DeviceID)
 			}
 			index++
 			break
 		case "X-Ig-Family-Device-Id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Family-Device-Id", inst.Device.FamilyID)
+				req.Header.Set("X-Ig-Family-Device-Id", inst.AccountInfo.Device.FamilyID)
 			}
 			index++
 			break
@@ -249,7 +249,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Mapped-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Mapped-Locale", strings.Replace(inst.Device.AppLocale, "-", "_", -1))
+				req.Header.Set("X-Ig-Mapped-Locale", strings.Replace(inst.AccountInfo.Location.AppLocale, "-", "_", -1))
 			}
 			index++
 			break
@@ -267,13 +267,13 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "Family_device_id":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("Family_device_id", inst.Device.FamilyID)
+				req.Header.Set("Family_device_id", inst.AccountInfo.Device.FamilyID)
 			}
 			index++
 			break
 		case "User-Agent":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("User-Agent", inst.Device.UserAgent)
+				req.Header.Set("User-Agent", inst.AccountInfo.Device.UserAgent)
 			}
 			index++
 			break

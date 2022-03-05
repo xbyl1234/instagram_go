@@ -184,7 +184,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 
 	this.Inst.Increase(OperNameCrawMedia)
 	var params = map[string]interface{}{
-		"_uuid":              this.Inst.Device.DeviceID,
+		"_uuid":              this.Inst.AccountInfo.Device.DeviceID,
 		"include_persistent": 0,
 		"supported_tabs":     "[\"recent\",\"top\",\"igtv\",\"places\",\"shopping\"]",
 		"tab":                TabTop,
