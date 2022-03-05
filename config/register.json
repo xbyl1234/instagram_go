@@ -2,7 +2,7 @@
   "proxy_path": "./config/proxy_config_ios.json",
   "res_ico_path": "./data/girl_picture",
   "res_username_path": "./data/user_nameraw.txt",
-  "country": "us",
+  "country": "GB",
   "coro": 10,
   "provider_name": "taxin",
   "provider": [

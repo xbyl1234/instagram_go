@@ -110,7 +110,7 @@ func SaveNewAccount(account AccountCookies) error {
 		context.TODO(),
 		bson.M{"username": account.Username},
 		bson.M{"$set": account},
-		options.Update().SetUpsert(false))
+		options.Update().SetUpsert(true))
 	return err
 }
 

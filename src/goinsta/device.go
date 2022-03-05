@@ -114,7 +114,7 @@ func GenInstDeviceInfo() *InstAccountInfo {
 	}
 	Lens = Lens[:len(Lens)-1]
 	FocalLength, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "f/", ""), 64)
-	Aperture, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "mm", ""), 64)
+	Aperture, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[3], "mm", ""), 64)
 
 	coord := CoordMap["纽约"]
 
