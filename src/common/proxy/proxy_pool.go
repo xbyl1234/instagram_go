@@ -159,6 +159,12 @@ func InitProxyPool(configPath string) error {
 		case "luminati":
 			_proxy, err = InitLuminatiPool(provider.Url)
 			break
+		case "idea":
+			_proxy, err = InitIdeaPool(provider.Url)
+			break
+		case "rola":
+			_proxy, err = InitRolaPool(provider.Url)
+			break
 		default:
 			return &common.MakeMoneyError{ErrStr: fmt.Sprintf("proxy config provider error: %s",
 				provider.ProviderName), ErrType: common.OtherError}

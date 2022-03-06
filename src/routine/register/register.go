@@ -168,9 +168,14 @@ func RegisterByPhone() {
 			log.Error("phone %s create error: %v", account, err)
 			continue
 		}
-		err = goinsta.SaveInstToDB(inst)
 
 		_, err = regisert.GetSteps()
+		_ = goinsta.SaveInstToDB(inst)
+		if err != nil {
+			log.Error("phone %s create error: %v", account, err)
+			continue
+		}
+
 		_, err = regisert.NewAccountNuxSeen()
 
 		_, err = inst.AddressBookLink(GenAddressBook())
