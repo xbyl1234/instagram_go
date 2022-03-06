@@ -18,9 +18,13 @@
   "url": "http://tiqu.ipidea.io:2330/getProxyIp?num=100&return_type=json&lb=1&sb=0&flow=1&regions=us&protocol=socks5",
   "country": "us"
 }
-
+{
+  "provider": "rola",
+  "url": "http://list.rola.info:8088/user_get_ip_list?token=01cdYiGBGYz5U25j1646544689940&type=4g&qty=10&country=us&time=10&format=json&protocol=socks5&filter=1",
+  "country": "us"
+}
 {
   "provider": "dove",
   "url": "https://dvapi.doveip.com/cmapi.php?rq=distribute&user=safrg534524&token=RklaOXZUbFp6WTFZQjBSUzVJTkt4QT09&auth=1&geo=us&city=all&agreement=0&timeout=35&num=10",
   "country": "us"
-}  
+}

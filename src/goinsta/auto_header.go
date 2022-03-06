@@ -5,7 +5,6 @@ import (
 	"makemoney/common/log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -249,7 +248,7 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Mapped-Locale":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Mapped-Locale", strings.Replace(inst.AccountInfo.Location.AppLocale, "-", "_", -1))
+				req.Header.Set("X-Ig-Mapped-Locale", inst.AccountInfo.Location.MappedLocale)
 			}
 			index++
 			break

@@ -2,6 +2,7 @@ package goinsta
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"makemoney/common"
@@ -220,7 +221,7 @@ func (this *Register) setInstRegisterInfo(pk int64) {
 }
 
 func (this *Register) CreateEmail() (*RespCreatUser, error) {
-	encodePasswd, err := encryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
+	encodePasswd, err := EncryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
 	if err != nil {
 		return nil, err
 	}
@@ -287,19 +288,25 @@ type RespSendSignupSmsCode struct {
 }
 
 func (this *Register) SendSignupSmsCode() (*RespSendSignupSmsCode, error) {
-	params := map[string]interface{}{
-		"device_id":    this.Inst.AccountInfo.Device.DeviceID,
-		"phone_number": this.AreaCode + this.Account,
-		"phone_id":     this.Inst.AccountInfo.Device.DeviceID,
-		"source":       "regular",
+	params := &struct {
+		DeviceId    string `json:"device_id"`
+		PhoneNumber string `json:"phone_number"`
+		PhoneId     string `json:"phone_id"`
+		Source      string `json:"source"`
+	}{
+		DeviceId:    this.Inst.AccountInfo.Device.DeviceID,
+		PhoneNumber: this.AreaCode + this.Account,
+		PhoneId:     this.Inst.AccountInfo.Device.DeviceID,
+		Source:      "regular",
 	}
+
 	resp := &RespSendSignupSmsCode{}
 	err := this.Inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlSendSignupSmsCode,
 			IsPost:  true,
 			Signed:  true,
-			Query:   params,
+			Json:    params,
 		}, resp)
 
 	err = resp.CheckError(err)
@@ -317,11 +324,16 @@ type RespValidateSignupSmsCode struct {
 
 func (this *Register) ValidateSignupSmsCode(code string) (*RespValidateSignupSmsCode, error) {
 	this.signUpCode = code
-	params := map[string]interface{}{
-		"device_id":         this.Inst.AccountInfo.Device.DeviceID,
-		"phone_number":      this.AreaCode + this.Account,
-		"waterfall_id":      this.Inst.AccountInfo.Device.WaterID,
-		"verification_code": code,
+	params := &struct {
+		DeviceId         string `json:"device_id"`
+		PhoneNumber      string `json:"phone_number"`
+		WaterfallId      string `json:"waterfall_id"`
+		VerificationCode string `json:"verification_code"`
+	}{
+		DeviceId:         this.Inst.AccountInfo.Device.DeviceID,
+		PhoneNumber:      this.AreaCode + this.Account,
+		WaterfallId:      this.Inst.AccountInfo.Device.WaterID,
+		VerificationCode: code,
 	}
 	resp := &RespValidateSignupSmsCode{}
 
@@ -330,7 +342,7 @@ func (this *Register) ValidateSignupSmsCode(code string) (*RespValidateSignupSms
 			ApiPath: urlValidateSignupSmsCode,
 			IsPost:  true,
 			Signed:  true,
-			Query:   params,
+			Json:    params,
 		}, resp)
 
 	err = resp.CheckError(err)
@@ -421,7 +433,7 @@ type RespCheckUsername struct {
 }
 
 func (this *Register) CheckUsername() (*RespCheckUsername, error) {
-	encodePasswd, err := encryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
+	encodePasswd, err := EncryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
 	if err != nil {
 		return nil, err
 	}
@@ -472,42 +484,70 @@ type RespCreateValidated struct {
 }
 
 func (this *Register) CreatePhone() (*RespCreateValidated, error) {
-	encodePasswd, err := encryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
+	var err error
+	encodePasswd, err := EncryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
 	if err != nil {
 		return nil, err
 	}
 
-	params := map[string]interface{}{
-		"verification_code":                      this.signUpCode,
-		"tos_version":                            this.tosVersion,
-		"do_not_auto_login_if_credentials_match": "0",
-		"month":                                  this.Month,
-		"has_sms_consent":                        "true",
-		"device_id":                              this.Inst.AccountInfo.Device.DeviceID,
-		"ck_container":                           "iCloud.com.burbn.instagram",
-		"has_seen_aart_on":                       "0",
-		"ck_error":                               "CKErrorDomain: 9",
-		"day":                                    this.Day,
-		"waterfall_id":                           this.Inst.AccountInfo.Device.WaterID,
-		"year":                                   this.Year,
-		"phone_number":                           this.AreaCode + this.Account,
-		"enc_password":                           encodePasswd,
-		"attribution_details":                    "{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}",
-		"force_create_account":                   "0",
-		"ck_environment":                         "production",
-		"adid":                                   this.Inst.AccountInfo.Device.IDFA,
-		"first_name":                             this.Username,
-		"phone_id":                               this.Inst.AccountInfo.Device.DeviceID,
-		"username":                               this.RealUsername,
+	params := &struct {
+		VerificationCode                 string `json:"verification_code"`
+		TosVersion                       string `json:"tos_version"`
+		DoNotAutoLoginIfCredentialsMatch string `json:"do_not_auto_login_if_credentials_match"`
+		Month                            string `json:"month"`
+		HasSmsConsent                    string `json:"has_sms_consent"`
+		DeviceId                         string `json:"device_id"`
+		CkContainer                      string `json:"ck_container"`
+		HasSeenAartOn                    string `json:"has_seen_aart_on"`
+		CkError                          string `json:"ck_error"`
+		Day                              string `json:"day"`
+		WaterfallId                      string `json:"waterfall_id"`
+		Year                             string `json:"year"`
+		PhoneNumber                      string `json:"phone_number"`
+		EncPassword                      string `json:"enc_password"`
+		AttributionDetails               string `json:"attribution_details"`
+		ForceCreateAccount               string `json:"force_create_account"`
+		CkEnvironment                    string `json:"ck_environment"`
+		Adid                             string `json:"adid"`
+		FirstName                        string `json:"first_name"`
+		PhoneId                          string `json:"phone_id"`
+		Username                         string `json:"username"`
+	}{
+		VerificationCode:                 this.signUpCode,
+		TosVersion:                       this.tosVersion,
+		DoNotAutoLoginIfCredentialsMatch: "0",
+		Month:                            this.Month,
+		HasSmsConsent:                    "true",
+		DeviceId:                         this.Inst.AccountInfo.Device.DeviceID,
+		CkContainer:                      "iCloud.com.burbn.instagram",
+		HasSeenAartOn:                    "0",
+		CkError:                          "CKErrorDomain: 9",
+		Day:                              this.Day,
+		WaterfallId:                      this.Inst.AccountInfo.Device.WaterID,
+		Year:                             this.Year,
+		PhoneNumber:                      this.AreaCode + this.Account,
+		EncPassword:                      encodePasswd,
+		AttributionDetails:               "{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}",
+		ForceCreateAccount:               "0",
+		CkEnvironment:                    "production",
+		Adid:                             this.Inst.AccountInfo.Device.IDFA,
+		FirstName:                        this.Username,
+		PhoneId:                          this.Inst.AccountInfo.Device.DeviceID,
+		Username:                         this.RealUsername,
 	}
 	resp := &RespCreateValidated{}
+
+	body, _ := json.Marshal(params)
+	body1 := string(body)
+	print(body1)
 
 	err = this.Inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlCreateValidated,
 			IsPost:  true,
 			Signed:  true,
-			Query:   params,
+			//Body:    bytes.NewBuffer(body),
+			Json: params,
 		}, resp)
 
 	err = resp.CheckError(err)

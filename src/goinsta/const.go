@@ -95,7 +95,11 @@ var (
 		//"iPhone14,5 15_1_1 scale=3.00 1170x2532",
 	}
 
+	//InstagramDeviceList = []string{
+	//	"iPhone7,2 12_5_5 scale=2.00 750x1334",
+	//}
 	LensModel = map[string]string{
+		"7,2":  "iPhone,6,back camera,4.15mm,f/2.2",
 		"7,1":  "iPhone,6,back camera,4.15mm,f/2.2",
 		"8,1":  "iPhone,6s,back camera,4.15mm,f/2.2",
 		"9,1":  "iPhone,7,back camera,3.99mm,f/1.8",
@@ -155,14 +159,32 @@ var (
 	}
 
 	CoordMap = map[string]InstLocationInfo{
+		"纽约中文": {
+			Lon:            -73.87141290786828,
+			Lat:            40.8385895611293,
+			Timezone:       "-28800",
+			AppLocale:      "en-US",
+			StartupCountry: "US",
+			MappedLocale:   "en_US",
+			AcceptLanguage: "en-US;q=1.0",
+		},
 		"纽约": {
 			Lon:            -73.87141290786828,
 			Lat:            40.8385895611293,
 			Timezone:       "-18000",
-			AppLocale:      "en-US",
-			StartupCountry: "US",
-			AcceptLanguage: "en-US;q=1.0",
+			AppLocale:      "zh-Hans-US",
+			StartupCountry: "JP",
+			MappedLocale:   "zh_CN",
+			AcceptLanguage: "zh-CN;q=1.0",
 		},
+		//			"纽约": {
+		//			Lon:            -73.87141290786828,
+		//			Lat:            40.8385895611293,
+		//			Timezone:       "-28800",
+		//			AppLocale:      "en-US",
+		//			StartupCountry: "US",
+		//			AcceptLanguage: "en-US;q=1.0",
+		//		},
 	}
 
 	NoLoginHeaderMap map[string]*HeaderSequence

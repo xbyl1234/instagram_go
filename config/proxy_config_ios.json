@@ -1,6 +1,6 @@
 {
   "providers": [
-   {
+    {
       "provider": "rola",
       "url": "http://list.rola.info:8088/user_get_ip_list?token=01cdYiGBGYz5U25j1646544689940&type=4g&qty=10&country=us&time=10&format=json&protocol=socks5&filter=1",
       "country": "us"

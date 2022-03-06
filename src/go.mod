@@ -11,7 +11,7 @@ require (
 	github.com/klauspost/compress v1.13.6
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/utahta/go-cronowriter v1.2.0
+	github.com/virtuald/go-ordered-json v0.0.0-20170621173500-b18e6e673d74
 	go.mongodb.org/mongo-driver v1.7.4
-	gocv.io/x/gocv v0.29.0
 	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 )

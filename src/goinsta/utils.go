@@ -63,7 +63,7 @@ func AesGcmEncrypt(key []byte, iv []byte, plainText []byte, add []byte) ([]byte,
 	return ciphertext, nil
 }
 
-func encryptPassword(password string, encId string, encPubKey string) (string, error) {
+func EncryptPassword(password string, encId string, encPubKey string) (string, error) {
 	//byte[] rand_key = new byte[32], iv = new byte[12];
 	_time := strconv.FormatInt(time.Now().Unix(), 10)
 	randKey := common.GenString(common.CharSet_All, 32)

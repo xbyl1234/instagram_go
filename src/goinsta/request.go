@@ -25,6 +25,7 @@ type reqOptions struct {
 	Signed         bool
 	Query          map[string]interface{}
 	Body           *bytes.Buffer
+	Json           interface{}
 	Header         map[string]string
 	HeaderSequence *HeaderSequence
 	DisAutoHeader  bool
@@ -204,6 +205,32 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 		}
 	} else if reqOpt.Body != nil {
 		bf = reqOpt.Body
+	} else if reqOpt.Json != nil {
+		bf = bytes.NewBuffer([]byte{})
+		var query string
+
+		if reqOpt.IsPost && this.IsLogin && !reqOpt.IsApiGraph {
+			if this.token != "" {
+				reqOpt.Query["_csrftoken"] = this.token
+			}
+			//reqOpt.Query["_uuid"] = this.Device.DeviceID
+			//reqOpt.Query["_uid"] = this.ID
+		}
+
+		if reqOpt.Signed {
+			_query, err := json.Marshal(reqOpt.Json)
+			if err != nil {
+				return nil, err
+			}
+			query = strings.ReplaceAll(common.B2s(_query), "\\\\", "\\") //for password
+			query = "signed_body=SIGNATURE." + common.InstagramQueryEscape(query)
+		}
+
+		if reqOpt.IsPost {
+			bf.WriteString(query)
+		} else {
+			_url.RawQuery = query
+		}
 	} else {
 		bf = bytes.NewBuffer([]byte{})
 	}

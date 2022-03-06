@@ -155,6 +155,7 @@ func RegisterByPhone() {
 			continue
 		}
 
+		regisert.RealUsername = username
 		regisert.GenUsername()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
 		_, err = regisert.CheckAgeEligibility()

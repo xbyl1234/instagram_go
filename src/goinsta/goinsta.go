@@ -255,25 +255,27 @@ func (this *Instagram) contactPrefill() error {
 }
 
 func (this *Instagram) qeSync() error {
-	var query map[string]interface{}
-	if this.IsLogin {
-		query = map[string]interface{}{
-			"id":                      this.ID,
-			"_uuid":                   this.AccountInfo.Device.DeviceID,
-			"_uid":                    this.ID,
-			"server_config_retrieval": "1",
-		}
-	} else {
-		query = map[string]interface{}{
-			"id":                      this.AccountInfo.Device.DeviceID,
-			"server_config_retrieval": "1",
-		}
+	//if this.IsLogin {
+	//	query = map[string]interface{}{
+	//		"id":                      this.ID,
+	//		"_uuid":                   this.AccountInfo.Device.DeviceID,
+	//		"_uid":                    this.ID,
+	//		"server_config_retrieval": "1",
+	//	}
+	//} else {
+	query := &struct {
+		Id                    string `json:"id"`
+		ServerConfigRetrieval string `json:"server_config_retrieval"`
+	}{
+		Id:                    this.AccountInfo.Device.DeviceID,
+		ServerConfigRetrieval: "1",
 	}
+	//}
 
 	_, err := this.HttpRequest(
 		&reqOptions{
 			ApiPath: urlQeSync,
-			Query:   query,
+			Json:    query,
 			Header: map[string]string{
 				"X-Ig-Connection-Speed": "-1kbps",
 			},
@@ -402,7 +404,7 @@ type RespLogin struct {
 }
 
 func (this *Instagram) Login() error {
-	encodePasswd, _ := encryptPassword(this.Pass, this.GetHeader(IGHeader_EncryptionId), this.GetHeader(IGHeader_EncryptionKey))
+	encodePasswd, _ := EncryptPassword(this.Pass, this.GetHeader(IGHeader_EncryptionId), this.GetHeader(IGHeader_EncryptionKey))
 	params := map[string]interface{}{
 		"phone_id":            this.AccountInfo.Device.DeviceID,
 		"reg_login":           "0",

@@ -24,6 +24,7 @@ type InstLocationInfo struct {
 	Timezone       string  `json:"timezone" bson:"timezone"`
 	AppLocale      string  `json:"app_locale" bson:"app_locale"`
 	StartupCountry string  `json:"startup_country" bson:"startup_country"`
+	MappedLocale   string  `json:"mapped_locale" bson:"mappedLocale"`
 	AcceptLanguage string  `json:"accept_language" bson:"accept_language"`
 }
 
