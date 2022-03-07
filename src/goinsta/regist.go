@@ -2,7 +2,6 @@ package goinsta
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"makemoney/common"
@@ -535,12 +534,8 @@ func (this *Register) CreatePhone() (*RespCreateValidated, error) {
 		PhoneId:                          this.Inst.AccountInfo.Device.DeviceID,
 		Username:                         this.RealUsername,
 	}
+
 	resp := &RespCreateValidated{}
-
-	body, _ := json.Marshal(params)
-	body1 := string(body)
-	print(body1)
-
 	err = this.Inst.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlCreateValidated,

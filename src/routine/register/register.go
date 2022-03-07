@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"makemoney/common"
@@ -98,7 +99,7 @@ func RegisterByPhone() {
 
 		inst := goinsta.New("", "", _proxy)
 		inst.AccountInfo.Register.RegisterIpCountry = _proxy.Country
-		inst.PrepareNewClient()
+		prepare := inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
 		username := common.Resource.ChoiceUsername()
@@ -168,8 +169,11 @@ func RegisterByPhone() {
 			continue
 		}
 
+		prepareStr, _ := json.Marshal(prepare)
 		_, err = regisert.GetSteps()
+
 		if err == nil {
+			log.Info("phone: %s register success! prepare: %s, account: %s password: %s", account, prepareStr, inst.User, inst.Pass)
 			_ = goinsta.SaveInstToDB(inst)
 			_, err = regisert.NewAccountNuxSeen()
 			_, err = inst.AddressBookLink(GenAddressBook())
@@ -178,12 +182,14 @@ func RegisterByPhone() {
 			err = inst.GetAccount().ChangeProfilePicture(uploadID)
 			SuccessCount++
 		} else {
-			log.Error("phone %s create error: %v", account, err)
+			_ = goinsta.SaveInstToDB(inst)
+			accInfo, _ := json.Marshal(inst.AccountInfo)
+			log.Error("phone %s create error: %v, prepare: %s, account info: %s", account, err, prepareStr, accInfo)
 			statError(err)
 			ErrorCreateCount++
+
 			//if common.IsError(err, common.ChallengeRequiredError) {
 			//	log.Error("phone: %s had been challenge_required", account)
-			//
 			//	continue
 			//} else if common.IsError(err, common.FeedbackError) {
 			//	ErrorCreateCount++
@@ -192,7 +198,6 @@ func RegisterByPhone() {
 			//}
 		}
 
-		log.Info("phone: %s register success!", account)
 	}
 	WaitAll.Done()
 }

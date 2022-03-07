@@ -343,7 +343,8 @@ func (this *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 		}
 	}
 
-	for true {
+	//for true {
+	for i := 0; i < 3; i++ {
 		result, err := this._HttpRequest(reqOpt)
 		if common.IsError(err, common.RequestError) {
 			log.Warn("account: %s,url: %s, request error: %v...", this.User, reqOpt.ApiPath, err)
@@ -366,7 +367,8 @@ func (this *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{})
 		}
 	}
 
-	for true {
+	//for true {
+	for i := 0; i < 3; i++ {
 		err := this._HttpRequestJson(reqOpt, response)
 		if common.IsError(err, common.RequestError) {
 			//log.Warn("account: %s,url: %s, request error: %v...", this.User, reqOpt.ApiPath, err)

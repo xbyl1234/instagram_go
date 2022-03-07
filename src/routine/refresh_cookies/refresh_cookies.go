@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"makemoney/common"
 	"makemoney/common/log"
+	"makemoney/common/proxy"
 	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
@@ -75,11 +77,11 @@ func Login(username string, password string) (*goinsta.Instagram, error) {
 	var err error
 
 	if routine.SetProxy(inst) {
-		err = inst.PrepareNewClient()
-		if err != nil {
-			log.Warn("username: %s, init error: %v", inst.User, err.Error())
-			return inst, err
-		}
+		inst.PrepareNewClient()
+		//if err != nil {
+		//	log.Warn("username: %s, init error: %v", inst.User, err.Error())
+		//	return inst, err
+		//}
 
 		err = inst.Login()
 		if err != nil {
@@ -253,13 +255,37 @@ func SendAccount(insts []*goinsta.Instagram) {
 	WaitExit.Done()
 }
 
+func TestDevice() {
+	for true {
+		_proxy := proxy.ProxyPool.GetNoRisk("us", true, true)
+		if _proxy == nil {
+			log.Error("get proxy error: %v", _proxy)
+			continue
+		}
+
+		inst := goinsta.New("", "", _proxy)
+		accInfo, _ := json.Marshal(inst.AccountInfo)
+		err := inst.QeSync()
+		if err != nil {
+			log.Error("err: %s", accInfo)
+		} else {
+			log.Info("suc: %s", accInfo)
+		}
+	}
+}
+
 func main() {
-	config2.UseCharles = true
+	config2.UseCharles = false
 	config2.UseTruncation = true
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	var err error
+
+	for i := 0; i < 10; i++ {
+		go TestDevice()
+	}
+	select {}
 	//login, err := Login("impatient2017116", "KJVEkjve8752")
 	//if err != nil {
 	//	return
@@ -271,7 +297,7 @@ func main() {
 	//goinsta.SaveInstToDB(login)
 	//goinsta.CleanStatus()
 	//goinsta.ReStruct()
-	//return
+	return
 	err = common.InitResource(config.ResIcoPath, "")
 	if err != nil {
 		log.Error("load res error: %v", err)

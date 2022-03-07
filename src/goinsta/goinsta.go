@@ -199,20 +199,26 @@ func (this *Instagram) GetHeader(key string) string {
 	return this.httpHeader[key]
 }
 
-func (this *Instagram) PrepareNewClient() error {
-	_ = this.launcherSync()
-	_ = this.getNamePrefill()
-	err := this.contactPrefill()
-	if err != nil {
-		return err
-	}
-	_ = this.qeSync()
-	_ = this.logAttribution()
-	return nil
+type PrepareResult struct {
+	LauncherSync   bool `json:"launcher_sync"`
+	GetNamePrefill bool `json:"get_name_prefill"`
+	ContactPrefill bool `json:"contact_prefill"`
+	QeSync         bool `json:"qe_sync"`
+	LogAttribution bool `json:"log_attribution"`
+}
+
+func (this *Instagram) PrepareNewClient() PrepareResult {
+	var ret PrepareResult
+	ret.LauncherSync = this.launcherSync() == nil
+	ret.GetNamePrefill = this.getNamePrefill() == nil
+	ret.ContactPrefill = this.contactPrefill() == nil
+	ret.QeSync = this.QeSync() == nil
+	ret.LogAttribution = this.logAttribution() == nil
+	return ret
 }
 
 func (this *Instagram) AfterLogin() {
-	_ = this.qeSync()
+	_ = this.QeSync()
 	_ = this.launcherSync()
 }
 
@@ -221,7 +227,9 @@ func (this *Instagram) getNamePrefill() error {
 		"phone_id":  this.AccountInfo.Device.DeviceID,
 		"device_id": this.AccountInfo.Device.DeviceID,
 	}
-	_, err := this.HttpRequest(
+
+	resp := &BaseApiResp{}
+	err := this.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlGetNamePrefill,
 			Query:   query,
@@ -230,8 +238,9 @@ func (this *Instagram) getNamePrefill() error {
 			},
 			IsPost: true,
 			Signed: true,
-		},
-	)
+		}, resp)
+
+	err = resp.CheckError(err)
 	return err
 }
 
@@ -239,8 +248,8 @@ func (this *Instagram) contactPrefill() error {
 	var query = map[string]interface{}{
 		"phone_id": this.AccountInfo.Device.DeviceID,
 	}
-
-	_, err := this.HttpRequest(
+	resp := &BaseApiResp{}
+	err := this.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlContactPrefill,
 			Query:   query,
@@ -249,30 +258,46 @@ func (this *Instagram) contactPrefill() error {
 			},
 			IsPost: true,
 			Signed: true,
-		},
-	)
+		}, resp)
+
+	err = resp.CheckError(err)
 	return err
 }
 
-func (this *Instagram) qeSync() error {
-	//if this.IsLogin {
-	//	query = map[string]interface{}{
-	//		"id":                      this.ID,
-	//		"_uuid":                   this.AccountInfo.Device.DeviceID,
-	//		"_uid":                    this.ID,
-	//		"server_config_retrieval": "1",
-	//	}
-	//} else {
-	query := &struct {
-		Id                    string `json:"id"`
-		ServerConfigRetrieval string `json:"server_config_retrieval"`
-	}{
-		Id:                    this.AccountInfo.Device.DeviceID,
-		ServerConfigRetrieval: "1",
-	}
-	//}
+type RespQeSync struct {
+	BaseApiResp
+	Experiments []struct {
+		Name             string        `json:"name"`
+		Group            string        `json:"group"`
+		AdditionalParams []interface{} `json:"additional_params"`
+		Params           []struct {
+			Name  string `json:"name"`
+			Value string `json:"value"`
+		} `json:"params"`
+		LoggingId string `json:"logging_id,omitempty"`
+	} `json:"experiments"`
+	NoClose bool `json:"no_close"`
+}
 
-	_, err := this.HttpRequest(
+func (this *Instagram) QeSync() error {
+	query := &struct {
+		Id                    string `json:"id,omitempty"`
+		Uuid                  string `json:"_uuid,omitempty"`
+		Uid                   string `json:"_uid,omitempty"`
+		ServerConfigRetrieval string `json:"server_config_retrieval,omitempty"`
+	}{}
+
+	if this.IsLogin {
+		query.Id = fmt.Sprintf("%d", this.ID)
+		query.Uuid = this.AccountInfo.Device.DeviceID
+		query.Uid = fmt.Sprintf("%d", this.ID)
+		query.ServerConfigRetrieval = "1"
+	} else {
+		query.Id = this.AccountInfo.Device.DeviceID
+		query.ServerConfigRetrieval = "1"
+	}
+	resp := &RespQeSync{}
+	err := this.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlQeSync,
 			Json:    query,
@@ -281,8 +306,15 @@ func (this *Instagram) qeSync() error {
 			},
 			IsPost: true,
 			Signed: true,
-		},
-	)
+		}, resp)
+	err = resp.CheckError(err)
+	if err != nil {
+		return err
+	}
+
+	//if len(resp.Experiments) == 0 {
+	//	return &common.MakeMoneyError{ErrStr: "device info error!"}
+	//}
 	return err
 }
 
@@ -301,8 +333,8 @@ func (this *Instagram) launcherSync() error {
 			"server_config_retrieval": "1",
 		}
 	}
-
-	_, err := this.HttpRequest(
+	resp := &BaseApiResp{}
+	err := this.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlLauncherSync,
 			Query:   query,
@@ -311,8 +343,9 @@ func (this *Instagram) launcherSync() error {
 			},
 			IsPost: true,
 			Signed: true,
-		},
-	)
+		}, resp)
+
+	err = resp.CheckError(err)
 	return err
 }
 
@@ -322,7 +355,8 @@ func (this *Instagram) logAttribution() error {
 		"adid": this.AccountInfo.Device.IDFA,
 	}
 
-	_, err := this.HttpRequest(
+	resp := &BaseApiResp{}
+	err := this.HttpRequestJson(
 		&reqOptions{
 			ApiPath: urlLogAttribution,
 			Query:   query,
@@ -331,8 +365,9 @@ func (this *Instagram) logAttribution() error {
 			},
 			IsPost: true,
 			Signed: true,
-		},
-	)
+		}, resp)
+
+	err = resp.CheckError(err)
 	return err
 }
 
