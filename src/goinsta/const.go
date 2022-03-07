@@ -159,16 +159,20 @@ var (
 	}
 
 	CoordMap = map[string]InstLocationInfo{
-		"纽约中文": {
-			Lon:            -73.87141290786828,
-			Lat:            40.8385895611293,
-			Timezone:       "-28800",
-			AppLocale:      "en-US",
-			StartupCountry: "US",
-			MappedLocale:   "en_US",
-			AcceptLanguage: "en-US;q=1.0",
-		},
+		//"纽约中文": {
+		//	Country:        "美国",
+		//	City:           "纽约",
+		//	Lon:            -73.87141290786828,
+		//	Lat:            40.8385895611293,
+		//	Timezone:       "-28800",
+		//	AppLocale:      "en-US",
+		//	StartupCountry: "US",
+		//	MappedLocale:   "en_US",
+		//	AcceptLanguage: "en-US;q=1.0",
+		//},
 		"纽约": {
+			Country:        "美国",
+			City:           "纽约",
 			Lon:            -73.87141290786828,
 			Lat:            40.8385895611293,
 			Timezone:       "-18000",
@@ -177,14 +181,6 @@ var (
 			MappedLocale:   "zh_CN",
 			AcceptLanguage: "zh-CN;q=1.0",
 		},
-		//			"纽约": {
-		//			Lon:            -73.87141290786828,
-		//			Lat:            40.8385895611293,
-		//			Timezone:       "-28800",
-		//			AppLocale:      "en-US",
-		//			StartupCountry: "US",
-		//			AcceptLanguage: "en-US;q=1.0",
-		//		},
 	}
 
 	NoLoginHeaderMap map[string]*HeaderSequence

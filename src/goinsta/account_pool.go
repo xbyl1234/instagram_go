@@ -13,7 +13,7 @@ type ListWrap struct {
 }
 
 type AccountPoolt struct {
-	accounts     []*Instagram
+	Accounts     []*Instagram
 	notAvailable *list.List
 	Available    map[string]*ListWrap
 	Cooling      *list.List
@@ -32,7 +32,7 @@ func InitAccountPool(accounts []*Instagram) {
 	AccountPool.Cooling = list.New()
 	AccountPool.Available = make(map[string]*ListWrap)
 	AccountPool.notAvailable = list.New()
-	AccountPool.accounts = make([]*Instagram, len(accounts))
+	AccountPool.Accounts = make([]*Instagram, len(accounts))
 	var accountsIndex = 0
 	for idx := range accounts {
 		if accounts[idx].IsLogin && accounts[idx].Status == "" {
@@ -45,13 +45,13 @@ func InitAccountPool(accounts []*Instagram) {
 				AccountPool.Available[accounts[idx].Tags] = Available
 			}
 			Available.list.PushBack(accounts[idx])
-			AccountPool.accounts[accountsIndex] = accounts[idx]
+			AccountPool.Accounts[accountsIndex] = accounts[idx]
 			accountsIndex++
 		} else {
 			AccountPool.notAvailable.PushBack(accounts[idx])
 		}
 	}
-	AccountPool.accounts = AccountPool.accounts[:accountsIndex]
+	AccountPool.Accounts = AccountPool.Accounts[:accountsIndex]
 
 	if CallBackCheckAccount != nil {
 		AccountPool.checkTimer = time.NewTicker(time.Second * 10)

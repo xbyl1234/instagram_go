@@ -34,6 +34,7 @@ var (
 	TaskLogin       = "relogin"
 	TaskRefreshInfo = "refresh_info"
 	TaskTestAccount = "test"
+	TaskSetEmail    = "email"
 )
 var (
 	SendAll          = "all"
@@ -148,6 +149,18 @@ func InstTestAccount(inst *goinsta.Instagram) error {
 	return err
 }
 
+//root:Hty741852..@tcp(127.0.0.1:7707)/email?readTimeout=10s&writeTimeout=10
+func InstEmail(inst *goinsta.Instagram) error {
+	//err := inst.GetAccount().Sync()
+	email := inst.User + "@insemail.work"
+	err := inst.GetAccount().SendConfirmEmail(email)
+	if err != nil {
+		log.Error("send email %s error: %v", email, err)
+		return err
+	}
+	return nil
+}
+
 func DispatchAccount() {
 	defer WaitExit.Done()
 	var Consumer func(inst *goinsta.Instagram) error
@@ -161,6 +174,8 @@ func DispatchAccount() {
 	case TaskTestAccount:
 		Consumer = InstTestAccount
 		break
+	case TaskSetEmail:
+		Consumer = InstEmail
 	default:
 		return
 	}
@@ -239,7 +254,7 @@ func SendAccount(insts []*goinsta.Instagram) {
 }
 
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	config2.UseTruncation = true
 
 	initParams()
@@ -272,6 +287,12 @@ func main() {
 	log.Info("load account count: %d", len(insts))
 
 	if *TestOne != "" {
+		for _, item := range insts {
+			if item.User == *TestOne {
+				send(item)
+				DispatchAccount()
+			}
+		}
 		os.Exit(0)
 	}
 

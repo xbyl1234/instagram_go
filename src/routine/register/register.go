@@ -136,6 +136,7 @@ func RegisterByPhone() {
 		if err != nil {
 			ErrorSendCodeCount++
 			statError(err)
+			provider.ReleaseAccount(regisert.Account)
 			log.Error("phone %s send error: %v", account, err)
 			continue
 		}
@@ -171,36 +172,29 @@ func RegisterByPhone() {
 		}
 
 		_, err = regisert.GetSteps()
-		_ = goinsta.SaveInstToDB(inst)
-		if err != nil {
+		if err == nil {
+			_ = goinsta.SaveInstToDB(inst)
+			_, err = regisert.NewAccountNuxSeen()
+			_, err = inst.AddressBookLink(GenAddressBook())
+			var uploadID string
+			uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
+			err = inst.GetAccount().ChangeProfilePicture(uploadID)
+			SuccessCount++
+		} else {
 			log.Error("phone %s create error: %v", account, err)
-			continue
-		}
-
-		_, err = regisert.NewAccountNuxSeen()
-
-		_, err = inst.AddressBookLink(GenAddressBook())
-
-		var uploadID string
-		uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
-		err = inst.GetAccount().ChangeProfilePicture(uploadID)
-
-		if err != nil {
 			statError(err)
-			if common.IsError(err, common.ChallengeRequiredError) {
-				log.Error("phone: %s had been challenge_required", account)
-				ErrorCreateCount++
-				continue
-			} else if common.IsError(err, common.FeedbackError) {
-				ErrorCreateCount++
-				log.Error("phone: %s had been feedback_required", account)
-				continue
-			}
-
-			log.Warn("phone: %s change ico error: %v", account, err)
+			ErrorCreateCount++
+			//if common.IsError(err, common.ChallengeRequiredError) {
+			//	log.Error("phone: %s had been challenge_required", account)
+			//
+			//	continue
+			//} else if common.IsError(err, common.FeedbackError) {
+			//	ErrorCreateCount++
+			//	log.Error("phone: %s had been feedback_required", account)
+			//	continue
+			//}
 		}
 
-		SuccessCount++
 		log.Info("phone: %s register success!", account)
 	}
 	WaitAll.Done()
