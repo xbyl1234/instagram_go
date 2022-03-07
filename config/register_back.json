@@ -7,6 +7,17 @@
   "provider_name": "taxin",
   "provider": [
     {
+      "provider_type": "email",
+      "provider_name": "guerrilla",
+      "email": {
+        "domain": "insemail.work",
+        "retry_timeout": 120,
+        "retry_delay": 3,
+        "provider": "guerrilla",
+        "email_mysql_url": "root:Hty741852..@tcp(155.138.145.209:7707)/email"
+      }
+    },
+    {
       "provider_type": "phone",
       "provider_name": "taxin",
       "phone": {

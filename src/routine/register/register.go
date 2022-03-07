@@ -102,9 +102,7 @@ func RegisterByPhone() {
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
 		username := common.Resource.ChoiceUsername()
-		password := common.GenString(common.CharSet_ABC, 4) +
-			common.GenString(common.CharSet_abc, 4) +
-			common.GenString(common.CharSet_123, 4)
+		password := "XBYLxbyl1234"
 		regisert := goinsta.Register{
 			Inst:         inst,
 			RegisterType: "phone",
@@ -156,7 +154,6 @@ func RegisterByPhone() {
 			continue
 		}
 
-		regisert.RealUsername = username
 		regisert.GenUsername()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
 		_, err = regisert.CheckAgeEligibility()
