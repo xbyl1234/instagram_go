@@ -1002,7 +1002,7 @@ type QualityInfo struct {
 	EncodedTransferFunction string `json:"encoded_transfer_function"`
 }
 
-func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo QualityInfo) error {
+func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo *QualityInfo) error {
 	qualityInfoStr, _ := json.Marshal(qualityInfo)
 	params := map[string]interface{}{
 		"_uuid":        this.inst.AccountInfo.Device.DeviceID,

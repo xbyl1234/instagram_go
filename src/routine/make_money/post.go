@@ -4,7 +4,6 @@ import (
 	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/goinsta"
-	"makemoney/routine"
 )
 
 func Post(inst *goinsta.Instagram, rawMedia *RawImgMedia) {
@@ -39,11 +38,13 @@ func Post(inst *goinsta.Instagram, rawMedia *RawImgMedia) {
 }
 
 func PostTask() {
-	inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
-	rawMedia := &RawImgMedia{
-		Caption: "hi boy,this is me, do you love me?",
-		Loc:     nil,
+	//inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
+	for _, inst := range goinsta.AccountPool.Accounts {
+		rawMedia := &RawImgMedia{
+			Caption: "hi boy,this is me, do you love me?",
+			Loc:     nil,
+		}
+		rawMedia.LoadImage("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture\\0ae56c901f796d10f8c944b7d5612daf.jpg")
+		Post(inst, rawMedia)
 	}
-	rawMedia.LoadImage("C:\\Users\\Administrator\\Desktop\\project\\github\\instagram_project\\data\\girl_picture\\0ae56c901f796d10f8c944b7d5612daf.jpg")
-	Post(inst, rawMedia)
 }

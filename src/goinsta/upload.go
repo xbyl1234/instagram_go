@@ -30,12 +30,12 @@ func GenUploadID() string {
 	return upId[:len(upId)-1]
 }
 
-func (this *Upload) UploadPhotoFromPath(path string) (string, string, error) {
+func (this *Upload) UploadPhotoFromPath(path string, params *ImageUploadParams) (string, string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", "", err
 	}
-	return this.UploadPhoto(data)
+	return this.UploadPhoto(data, params)
 }
 
 func (this *Upload) UploadVoiceFromPath(path string) (string, string, error) {
@@ -46,37 +46,76 @@ func (this *Upload) UploadVoiceFromPath(path string) (string, string, error) {
 	return this.UploadVoice(data)
 }
 
-func (this *Upload) UploadPhoto(data []byte) (string, string, error) {
-	upId := GenUploadID()
-	path := common.GenString(common.CharSet_16_Num, 32)
+func (this *Upload) UploadVideoFromPath(path string, params *VideoUploadParams) (string, string, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", "", err
+	}
+	return this.UploadVideo(data, params)
+}
 
-	imageCompression, _ := json.Marshal(map[string]interface{}{
-		"lib_name":    "uikit",
-		"lib_version": "1575.230000",
-		"quality":     64,
-		"colorspace":  "kCGColorSpaceDeviceRGB",
-		"ssim":        0.96855711936950684,
-	})
+type UploadParamsBase struct {
+	IsClipsVideo    string   `json:"is_clips_video,omitempty"`
+	UploadId        string   `json:"upload_id,omitempty"`
+	XsharingUserIds []string `json:"xsharing_user_ids,omitempty"`
+	MediaType       int      `json:"media_type,omitempty"`
+	ContentTags     string   `json:"content_tags,omitempty"`
+}
 
-	params, _ := json.Marshal(map[string]interface{}{
-		"upload_id":         upId,
-		"xsharing_user_ids": []int{},
-		"media_type":        1,
-		"image_compression": string(imageCompression),
-	})
-	paramsStr := string(params)
+type ImageCompression struct {
+	LibName    string  `json:"lib_name,omitempty"`
+	LibVersion string  `json:"lib_version,omitempty"`
+	Quality    int     `json:"quality,omitempty"`
+	Colorspace string  `json:"colorspace,omitempty"`
+	Ssim       float64 `json:"ssim,omitempty"`
+}
+
+type ImageUploadParams struct {
+	UploadParamsBase
+	ImageCompression string `json:"image_compression,omitempty"`
+}
+
+type VideoUploadParams struct {
+	UploadParamsBase
+	UploadMediaHeight     int     `json:"upload_media_height,omitempty"`
+	UploadMediaWidth      int     `json:"upload_media_width,omitempty"`
+	UploadMediaDurationMs float64 `json:"upload_media_duration_ms,omitempty"`
+}
+
+const UploadImageMediaTypeImage = 1
+const UploadImageMediaTypeVideo = 2
+
+func (this *Upload) UploadPhoto(data []byte, params *ImageUploadParams) (string, string, error) {
+
+	if params.UploadId == "" {
+		params.UploadId = GenUploadID()
+	}
+	if params.ImageCompression == "" {
+		imageCompression, _ := json.Marshal(&ImageCompression{
+			LibName:    "uikit",
+			LibVersion: "1575.230000",
+			Quality:    64,
+			Colorspace: "kCGColorSpaceDeviceRGB",
+			Ssim:       0.96855711936950684,
+		})
+		params.ImageCompression = string(imageCompression)
+	}
+	if params.XsharingUserIds == nil {
+		params.XsharingUserIds = []string{}
+	}
+
+	paramsStr, _ := json.Marshal(params)
 
 	body := bytes.NewBuffer(data)
-
 	var resp = &RespUpload{}
 	waterfall := common.GenString(common.CharSet_16_Num, 32)
 	err := this.inst.HttpRequestJson(&reqOptions{
-		ApiPath:        urlUploadPhone + path,
+		ApiPath:        urlUploadPhone + common.GenString(common.CharSet_16_Num, 32),
 		HeaderSequence: LoginHeaderMap[urlUploadPhone],
 		IsPost:         true,
 		Header: map[string]string{
 			"x_fb_photo_waterfall_id":    waterfall,
-			"x-instagram-rupload-params": paramsStr,
+			"x-instagram-rupload-params": string(paramsStr),
 			"content-type":               "application/octet-stream",
 			"x-entity-type":              "image/jpeg",
 			"x-entity-name":              "image.jpeg",
@@ -87,61 +126,53 @@ func (this *Upload) UploadPhoto(data []byte) (string, string, error) {
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return upId, waterfall, err
+	return params.UploadId, waterfall, err
 }
 
-func (this *Upload) UploadVideo(path string) (string, error) {
-	upId := common.GenString(common.CharSet_123, 15)
-	timeTick := strconv.FormatInt(time.Now().Unix(), 15) + "000"
-	entityName := common.GenString(common.CharSet_16_Num, 32) + "-0-" +
-		common.GenString(common.CharSet_123, 7) + "-" +
-		timeTick + "-" + timeTick
+func (this *Upload) UploadVideo(data []byte, params *VideoUploadParams) (string, string, error) {
+	//retryContext, _ := json.Marshal(map[string]interface{}{
+	//	"num_reupload":          0,
+	//	"num_step_auto_retry":   0,
+	//	"num_step_manual_retry": 0,
+	//})
+	//params, _ := json.Marshal(map[string]interface{}{
+	//	"upload_media_height":      1280,
+	//	"upload_media_width":       720,
+	//	"direct_v2":                1,
+	//	"rotate":                   3,
+	//	"xsharing_user_ids":        "[]",
+	//	"hflip":                    false,
+	//	"upload_media_duration_ms": common.GenNumber(1000, 5000),
+	//	"upload_id":                upId,
+	//	"retry_context":            retryContext,
+	//	"media_type":               2})
 
-	retryContext, _ := json.Marshal(map[string]interface{}{
-		"num_reupload":          0,
-		"num_step_auto_retry":   0,
-		"num_step_manual_retry": 0,
-	})
+	waterfall := common.GenString(common.CharSet_16_Num, 32)
+	path := common.GenUUID()
+	params.UploadId = GenUploadID()
+	paramsStr, _ := json.Marshal(params)
 
-	params, _ := json.Marshal(map[string]interface{}{
-		"upload_media_height":      1280,
-		"upload_media_width":       720,
-		"direct_v2":                1,
-		"rotate":                   3,
-		"xsharing_user_ids":        "[]",
-		"hflip":                    false,
-		"upload_media_duration_ms": common.GenNumber(1000, 5000),
-		"upload_id":                upId,
-		"retry_context":            retryContext,
-		"media_type":               2})
-
-	paramsStr := string(params)
-
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
 	body := bytes.NewBuffer(data)
 
 	var resp = &RespUpload{}
-	err = this.inst.HttpRequestJson(&reqOptions{
-		ApiPath:        urlUploadVideo + entityName,
+	err := this.inst.HttpRequestJson(&reqOptions{
+		ApiPath:        urlUploadVideo + path,
 		HeaderSequence: LoginHeaderMap[urlUploadVideo],
 		IsPost:         true,
 		Header: map[string]string{
-			"x_fb_video_waterfall_id":    this.inst.AccountInfo.Device.WaterID,
-			"x-instagram-rupload-params": paramsStr,
+			"x_fb_video_waterfall_id":    waterfall,
+			"x-instagram-rupload-params": string(paramsStr),
 			"content-type":               "application/octet-stream",
 			"offset":                     "0",
 			"segment-start-offset":       "0",
-			"x-entity-name":              entityName,
+			"x-entity-name":              "video.mp4",
 			"x-entity-type":              "video/mp4",
 			"x-entity-length":            strconv.Itoa(len(data)),
 		},
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return upId, err
+	return params.UploadId, waterfall, err
 }
 
 func (this *Upload) UploadFinish(uploadID string) error {

@@ -117,7 +117,8 @@ func GenInstDeviceInfo() *InstAccountInfo {
 	FocalLength, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "f/", ""), 64)
 	Aperture, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[3], "mm", ""), 64)
 
-	coord := CoordMap["纽约中文"]
+	key := "纽约中文" + common.GenString("1234", 1)
+	coord := CoordMap[key]
 
 	instVersion := &InstAccountInfo{
 		Device: InstDeviceInfo{
