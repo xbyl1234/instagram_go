@@ -44,8 +44,7 @@ type UploadMediaInfo struct {
 
 type UploadVideoInfo struct {
 	UploadMediaInfo
-	// "camera"
-	// "library"
+
 	from       string
 	durationMs float64
 }
@@ -809,10 +808,10 @@ type RespConfigureClips struct {
 	UploadId string `json:"upload_id"`
 }
 
-func (this *UserOperate) ConfigureToClips(caption string, audioTitle string, mediaInfo *UploadVideoInfo) (*RespConfigureClips, error) {
+func (this *UserOperate) ConfigureToClips(mediaInfo *RawVideoMedia) (*RespConfigureClips, error) {
 	var cameraPosition int
 	var sourceType string
-	if mediaInfo.from == "camera" {
+	if mediaInfo.From == FromCamera {
 		cameraPosition = 2
 		sourceType = "1"
 	} else {
@@ -837,11 +836,11 @@ func (this *UserOperate) ConfigureToClips(caption string, audioTitle string, med
 		"client_timestamp":            fmt.Sprintf("%d", time.Now().Unix()),
 		"effect_ids":                  []int{},
 		"waterfall_id":                mediaInfo.Waterfall,
-		"caption":                     caption,
+		"caption":                     mediaInfo.Caption,
 		"camera_entry_point":          this.cameraEntryPoint,
 		"text_overlay":                []int{},
 		"clips_share_preview_to_feed": "1",
-		"upload_id":                   mediaInfo.UploadID,
+		"upload_id":                   mediaInfo.UploadId,
 		"sticker_ids":                 []int{},
 		"timezone_offset":             this.inst.AccountInfo.Location.Timezone,
 		"capture_type":                "clips_v2",
@@ -849,7 +848,7 @@ func (this *UserOperate) ConfigureToClips(caption string, audioTitle string, med
 			"original": map[string]interface{}{
 				"volume_level": 1,
 			},
-			"original_audio_title": audioTitle,
+			"original_audio_title": mediaInfo.AudioTitle,
 		},
 		"clips_segments_metadata": map[string]interface{}{
 			"num_segments": 1,
@@ -863,9 +862,9 @@ func (this *UserOperate) ConfigureToClips(caption string, audioTitle string, med
 				"media_folder":        "",
 				"audio_type":          "original",
 				"face_effect_id":      "",
-				"source":              mediaInfo.from,
+				"source":              mediaInfo.From,
 				"camera_position":     cameraPosition,
-				"duration_ms":         mediaInfo.durationMs,
+				"duration_ms":         mediaInfo.Duration,
 			}},
 		},
 		"overlay_data": []int{},
@@ -979,27 +978,28 @@ func (this *UserOperate) VerifyOriginalAudioTitle(originalAudioName string) (*Re
 	return resp, err
 }
 
+type MeasuredFrames struct {
+	Ssim      float64 `json:"ssim"`
+	Timestamp float64 `json:"timestamp"`
+}
 type QualityInfo struct {
-	OriginalVideoCodec       string  `json:"original_video_codec"`
-	EncodedVideoCodec        string  `json:"encoded_video_codec"`
-	OriginalColorPrimaries   string  `json:"original_color_primaries"`
-	OriginalWidth            int     `json:"original_width"`
-	OriginalFrameRate        float64 `json:"original_frame_rate"`
-	OriginalTransferFunction string  `json:"original_transfer_function"`
-	EncodedHeight            int     `json:"encoded_height"`
-	OriginalBitRate          int     `json:"original_bit_rate"`
-	EncodedColorPrimaries    string  `json:"encoded_color_primaries"`
-	OriginalHeight           int     `json:"original_height"`
-	EncodedBitRate           float64 `json:"encoded_bit_rate"`
-	EncodedFrameRate         float64 `json:"encoded_frame_rate"`
-	EncodedYcbcrMatrix       string  `json:"encoded_ycbcr_matrix"`
-	OriginalYcbcrMatrix      string  `json:"original_ycbcr_matrix"`
-	EncodedWidth             int     `json:"encoded_width"`
-	MeasuredFrames           []struct {
-		Ssim      float64 `json:"ssim"`
-		Timestamp float64 `json:"timestamp"`
-	} `json:"measured_frames"`
-	EncodedTransferFunction string `json:"encoded_transfer_function"`
+	OriginalVideoCodec       string           `json:"original_video_codec"`
+	EncodedVideoCodec        string           `json:"encoded_video_codec"`
+	OriginalColorPrimaries   string           `json:"original_color_primaries"`
+	OriginalWidth            int              `json:"original_width"`
+	OriginalFrameRate        float64          `json:"original_frame_rate"`
+	OriginalTransferFunction string           `json:"original_transfer_function"`
+	EncodedHeight            int              `json:"encoded_height"`
+	OriginalBitRate          int              `json:"original_bit_rate"`
+	EncodedColorPrimaries    string           `json:"encoded_color_primaries"`
+	OriginalHeight           int              `json:"original_height"`
+	EncodedBitRate           float64          `json:"encoded_bit_rate"`
+	EncodedFrameRate         float64          `json:"encoded_frame_rate"`
+	EncodedYcbcrMatrix       string           `json:"encoded_ycbcr_matrix"`
+	OriginalYcbcrMatrix      string           `json:"original_ycbcr_matrix"`
+	EncodedWidth             int              `json:"encoded_width"`
+	MeasuredFrames           []MeasuredFrames `json:"measured_frames"`
+	EncodedTransferFunction  string           `json:"encoded_transfer_function"`
 }
 
 func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo *QualityInfo) error {

@@ -1,9 +1,11 @@
 package main
 
-import "makemoney/goinsta"
+import (
+	"makemoney/common/log"
+	"makemoney/goinsta"
+)
 
-func SendShortVideo(inst *goinsta.Instagram, video *RawVideoMedia) {
-
+func SendShortVideo(inst *goinsta.Instagram, video *goinsta.RawVideoMedia) {
 	opt := inst.GetUserOperate()
 	upload := inst.GetUpload()
 
@@ -15,58 +17,113 @@ func SendShortVideo(inst *goinsta.Instagram, video *RawVideoMedia) {
 	if err != nil {
 		return
 	}
+	print(assets)
 
-	uploadVideo, waterfall, err := upload.UploadVideo(video.VideoData, &goinsta.VideoUploadParams{
+	uploadVideo, waterfallVideo, err := upload.UploadVideo(video.VideoData, &goinsta.VideoUploadParams{
 		UploadParamsBase: goinsta.UploadParamsBase{
 			ContentTags:     "source-type-library,landscape",
 			XsharingUserIds: []string{},
-			MediaType:       2,
+			MediaType:       goinsta.UploadImageMediaTypeVideo,
 			IsClipsVideo:    "1",
 		},
 		UploadMediaHeight:     video.High,
 		UploadMediaWidth:      video.Width,
 		UploadMediaDurationMs: video.Duration,
 	})
+	if err != nil {
+		log.Error("upload video error: %v", err)
+		return
+	}
+	video.UploadId = uploadVideo
+	video.Waterfall = waterfallVideo
 
-	if err != nil {
+	verifyTitle, err := opt.VerifyOriginalAudioTitle(video.AudioTitle)
+	if err != nil || !verifyTitle.IsValid {
+		log.Error("verify title error: %v", err)
 		return
 	}
-	title, err := opt.VerifyOriginalAudioTitle(video.AudioTitle)
-	if err != nil {
-		return
-	}
-	upload.UploadPhoto(video.ImageData, &goinsta.ImageUploadParams{
+
+	_, _, err = upload.UploadPhoto(video.ImageData, &goinsta.ImageUploadParams{
 		UploadParamsBase: goinsta.UploadParamsBase{
-			IsClipsVideo:    "",
+			IsClipsVideo:    "1",
 			UploadId:        uploadVideo,
+			WaterfallId:     waterfallVideo,
 			XsharingUserIds: nil,
-			MediaType:       0,
-			ContentTags:     "",
+			MediaType:       goinsta.UploadImageMediaTypeVideo,
+			ContentTags:     "portrait,source-type-library",
 		},
 		ImageCompression: "",
 	})
-	//ClipsAssets
-	upload.UploadFinish(uploadVideo)
-	opt.UpdateVideoWithQualityInfo(uploadVideo, &goinsta.QualityInfo{
-		OriginalVideoCodec:       "",
-		EncodedVideoCodec:        "",
-		OriginalColorPrimaries:   "",
-		OriginalWidth:            0,
-		OriginalFrameRate:        0,
-		OriginalTransferFunction: "",
-		EncodedHeight:            0,
-		OriginalBitRate:          0,
-		EncodedColorPrimaries:    "",
-		OriginalHeight:           0,
-		EncodedBitRate:           0,
-		EncodedFrameRate:         0,
-		EncodedYcbcrMatrix:       "",
-		OriginalYcbcrMatrix:      "",
-		EncodedWidth:             0,
-		MeasuredFrames:           nil,
-		EncodedTransferFunction:  "",
-	})
+	if err != nil {
+		log.Error("upload cover error: %v", err)
+		return
+	}
 
-	opt.ConfigureToClips()
-	configure_to_clips
+	//ClipsAssets
+	err = upload.UploadFinish(uploadVideo)
+	if err != nil {
+		log.Error("upload finish error: %v", err)
+		return
+	}
+	frames := make([]goinsta.MeasuredFrames, int(video.Duration/1000/0.9))
+	for idx := range frames {
+		frames[idx].Ssim = 0.95175731182098389
+		frames[idx].Timestamp = float64(idx) * 0.9
+	}
+
+	//err = opt.UpdateVideoWithQualityInfo(uploadVideo, &goinsta.QualityInfo{
+	//	OriginalVideoCodec:       video.VideoCodec,
+	//	EncodedVideoCodec:        video.VideoCodec,
+	//	OriginalColorPrimaries:   video.YcbcrMatrix,
+	//	OriginalWidth:            video.Width,
+	//	OriginalFrameRate:        video.FrameRate,
+	//	OriginalTransferFunction: video.YcbcrMatrix,
+	//	EncodedHeight:            video.High,
+	//	OriginalBitRate:          int(video.BitRate),
+	//	EncodedColorPrimaries:    video.YcbcrMatrix,
+	//	OriginalHeight:           video.High,
+	//	EncodedBitRate:           video.BitRate,
+	//	EncodedFrameRate:         video.FrameRate,
+	//	EncodedYcbcrMatrix:       video.YcbcrMatrix,
+	//	OriginalYcbcrMatrix:      video.YcbcrMatrix,
+	//	EncodedWidth:             video.Width,
+	//	MeasuredFrames:           frames,
+	//	EncodedTransferFunction:  video.YcbcrMatrix,
+	//})
+	//if err != nil {
+	//	log.Error("upload video with quality error: %v", err)
+	//	return
+	//}
+
+	clips, err := opt.ConfigureToClips(video)
+	if err != nil {
+		log.Error("configure to clips error: %v", err)
+		return
+	}
+	print(clips)
+}
+
+func ShortVideoTask() {
+	//inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
+	//rawMedia := &goinsta.RawVideoMedia{
+	//	Caption:    "Are you ready for the boys of summer",
+	//	AudioTitle: "Like and follow",
+	//	From:       goinsta.FromCamera,
+	//}
+	//
+	//rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\test.mp4",
+	//	"C:\\Users\\Administrator\\Desktop\\mn\\暴风截图2022310297691375.jpg")
+	//SendShortVideo(inst, rawMedia)
+
+	for _, inst := range goinsta.AccountPool.Accounts {
+		rawMedia := &goinsta.RawVideoMedia{
+			Caption:    "Are you ready for the boys of summer #test5555555555555555555",
+			AudioTitle: "Like and follow",
+			From:       goinsta.FromCamera,
+		}
+
+		rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\test.mp4",
+			"C:\\Users\\Administrator\\Desktop\\mn\\暴风截图2022310297691375.jpg")
+		SendShortVideo(inst, rawMedia)
+	}
 }

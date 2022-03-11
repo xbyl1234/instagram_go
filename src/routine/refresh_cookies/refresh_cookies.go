@@ -110,7 +110,7 @@ func InstRelogin(inst *goinsta.Instagram) error {
 }
 
 func InstRefreshAccountInfo(inst *goinsta.Instagram) error {
-	uploadID, _, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
+	uploadID, _, err := inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco(), nil)
 	if err != nil {
 		log.Error("account %s upload ico error: %v", inst.User, err)
 		return err

@@ -60,6 +60,7 @@ type UploadParamsBase struct {
 	XsharingUserIds []string `json:"xsharing_user_ids,omitempty"`
 	MediaType       int      `json:"media_type,omitempty"`
 	ContentTags     string   `json:"content_tags,omitempty"`
+	WaterfallId     string   `json:"-"`
 }
 
 type ImageCompression struct {
@@ -86,9 +87,20 @@ const UploadImageMediaTypeImage = 1
 const UploadImageMediaTypeVideo = 2
 
 func (this *Upload) UploadPhoto(data []byte, params *ImageUploadParams) (string, string, error) {
-
+	if params == nil {
+		params = &ImageUploadParams{
+			UploadParamsBase: UploadParamsBase{
+				IsClipsVideo: "",
+				MediaType:    UploadImageMediaTypeImage,
+				ContentTags:  "",
+			},
+		}
+	}
 	if params.UploadId == "" {
 		params.UploadId = GenUploadID()
+	}
+	if params.WaterfallId == "" {
+		params.WaterfallId = common.GenString(common.CharSet_16_Num, 32)
 	}
 	if params.ImageCompression == "" {
 		imageCompression, _ := json.Marshal(&ImageCompression{
@@ -108,13 +120,12 @@ func (this *Upload) UploadPhoto(data []byte, params *ImageUploadParams) (string,
 
 	body := bytes.NewBuffer(data)
 	var resp = &RespUpload{}
-	waterfall := common.GenString(common.CharSet_16_Num, 32)
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath:        urlUploadPhone + common.GenString(common.CharSet_16_Num, 32),
 		HeaderSequence: LoginHeaderMap[urlUploadPhone],
 		IsPost:         true,
 		Header: map[string]string{
-			"x_fb_photo_waterfall_id":    waterfall,
+			"x_fb_photo_waterfall_id":    params.WaterfallId,
 			"x-instagram-rupload-params": string(paramsStr),
 			"content-type":               "application/octet-stream",
 			"x-entity-type":              "image/jpeg",
@@ -126,7 +137,7 @@ func (this *Upload) UploadPhoto(data []byte, params *ImageUploadParams) (string,
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return params.UploadId, waterfall, err
+	return params.UploadId, params.WaterfallId, err
 }
 
 func (this *Upload) UploadVideo(data []byte, params *VideoUploadParams) (string, string, error) {
@@ -181,7 +192,7 @@ func (this *Upload) UploadFinish(uploadID string) error {
 		ApiPath: urlUploadFinish,
 		IsPost:  true,
 		Signed:  true,
-		Header: map[string]string{
+		Query: map[string]interface{}{
 			"upload_id": uploadID,
 			"_uuid":     this.inst.AccountInfo.Device.DeviceID,
 			"_uid":      fmt.Sprintf("%d", this.inst.ID),

@@ -1,5 +1,5 @@
 {
-  "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@108.61.163.242:55510",
+  "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@207.148.103.9:55510",
   "fake_html_path": "./fake.html",
   "redirect_html_path": "./redirect.html",
   "short_link": [

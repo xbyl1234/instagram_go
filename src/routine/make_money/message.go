@@ -56,7 +56,7 @@ func UploadRes(inst *goinsta.Instagram, msg *Message) (string, error) {
 
 	var err error
 	if msg.Type == ImgMsg {
-		uploadID, _, err = inst.GetUpload().UploadPhoto(msg.Data)
+		uploadID, _, err = inst.GetUpload().UploadPhoto(msg.Data, nil)
 	} else if msg.Type == VoiceMsg {
 		uploadID, _, err = inst.GetUpload().UploadVoice(msg.Data)
 	}
