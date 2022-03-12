@@ -188,8 +188,9 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			query = strings.ReplaceAll(common.B2s(_query), "\\\\", "\\") //for password
-			query = "signed_body=SIGNATURE." + common.InstagramQueryEscape(query)
+			//query = strings.ReplaceAll(common.B2s(_query), "\\\\", "\\") //for password
+			//query = "signed_body=SIGNATURE." + common.InstagramQueryEscape(query)
+			query = "signed_body=SIGNATURE." + common.InstagramQueryEscape(common.B2s(_query))
 		} else {
 			vurl := url.Values{}
 			for key, vul := range reqOpt.Query {

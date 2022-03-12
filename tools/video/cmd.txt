@@ -1,0 +1,4 @@
+ffmpeg -i  C:\Users\Administrator\Desktop\mn\liu2\video\3xg4gzxbbr6i7t4.mp4  -color_primaries bt709 -y out.mp4
+ffmpeg -i out.mp4 -i 20_1b4ae321ca8a2c48d94cdd9dcd511dd0.png  -filter_complex "overlay=10:10"  o2.mp4
+ffprobe -print_format json -show_streams o2.mp4
+ffmpeg -i out.mp4 -vf drawtext="fontfile=comic.ttf:text='welcome you':x=(w-t*300):y=(h-th)/5:fontcolor=green:fontsize=100" 1.mp4

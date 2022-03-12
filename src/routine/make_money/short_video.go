@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"makemoney/common/log"
 	"makemoney/goinsta"
+	"time"
 )
 
 func SendShortVideo(inst *goinsta.Instagram, video *goinsta.RawVideoMedia) {
@@ -13,11 +15,10 @@ func SendShortVideo(inst *goinsta.Instagram, video *goinsta.RawVideoMedia) {
 	if err != nil {
 		return
 	}
-	assets, err := opt.ClipsAssets(video.Latitude, video.Longitude)
+	_, err = opt.ClipsAssets(video.Latitude, video.Longitude)
 	if err != nil {
 		return
 	}
-	print(assets)
 
 	uploadVideo, waterfallVideo, err := upload.UploadVideo(video.VideoData, &goinsta.VideoUploadParams{
 		UploadParamsBase: goinsta.UploadParamsBase{
@@ -25,6 +26,7 @@ func SendShortVideo(inst *goinsta.Instagram, video *goinsta.RawVideoMedia) {
 			XsharingUserIds: []string{},
 			MediaType:       goinsta.UploadImageMediaTypeVideo,
 			IsClipsVideo:    "1",
+			UploadId:        fmt.Sprintf("%d", time.Now().UnixMicro()),
 		},
 		UploadMediaHeight:     video.High,
 		UploadMediaWidth:      video.Width,
@@ -67,33 +69,36 @@ func SendShortVideo(inst *goinsta.Instagram, video *goinsta.RawVideoMedia) {
 	}
 	frames := make([]goinsta.MeasuredFrames, int(video.Duration/1000/0.9))
 	for idx := range frames {
+		if float64(idx)*0.9 > video.Duration {
+			break
+		}
 		frames[idx].Ssim = 0.95175731182098389
 		frames[idx].Timestamp = float64(idx) * 0.9
 	}
 
-	//err = opt.UpdateVideoWithQualityInfo(uploadVideo, &goinsta.QualityInfo{
-	//	OriginalVideoCodec:       video.VideoCodec,
-	//	EncodedVideoCodec:        video.VideoCodec,
-	//	OriginalColorPrimaries:   video.YcbcrMatrix,
-	//	OriginalWidth:            video.Width,
-	//	OriginalFrameRate:        video.FrameRate,
-	//	OriginalTransferFunction: video.YcbcrMatrix,
-	//	EncodedHeight:            video.High,
-	//	OriginalBitRate:          int(video.BitRate),
-	//	EncodedColorPrimaries:    video.YcbcrMatrix,
-	//	OriginalHeight:           video.High,
-	//	EncodedBitRate:           video.BitRate,
-	//	EncodedFrameRate:         video.FrameRate,
-	//	EncodedYcbcrMatrix:       video.YcbcrMatrix,
-	//	OriginalYcbcrMatrix:      video.YcbcrMatrix,
-	//	EncodedWidth:             video.Width,
-	//	MeasuredFrames:           frames,
-	//	EncodedTransferFunction:  video.YcbcrMatrix,
-	//})
-	//if err != nil {
-	//	log.Error("upload video with quality error: %v", err)
-	//	return
-	//}
+	err = opt.UpdateVideoWithQualityInfo(uploadVideo, &goinsta.QualityInfo{
+		OriginalVideoCodec: video.VideoCodec,
+		EncodedVideoCodec:  video.VideoCodec,
+		//OriginalColorPrimaries: video.YcbcrMatrix,
+		OriginalWidth:     video.Width,
+		OriginalFrameRate: video.FrameRate,
+		//OriginalTransferFunction: video.YcbcrMatrix,
+		EncodedHeight:           video.High,
+		OriginalBitRate:         video.BitRate,
+		EncodedColorPrimaries:   video.YcbcrMatrix,
+		OriginalHeight:          video.High,
+		EncodedBitRate:          video.BitRate,
+		EncodedFrameRate:        video.FrameRate,
+		EncodedYcbcrMatrix:      video.YcbcrMatrix,
+		OriginalYcbcrMatrix:     video.YcbcrMatrix,
+		EncodedWidth:            video.Width,
+		MeasuredFrames:          frames,
+		EncodedTransferFunction: video.YcbcrMatrix,
+	})
+	if err != nil {
+		log.Error("upload video with quality error: %v", err)
+		//return
+	}
 
 	clips, err := opt.ConfigureToClips(video)
 	if err != nil {
@@ -110,20 +115,24 @@ func ShortVideoTask() {
 	//	AudioTitle: "Like and follow",
 	//	From:       goinsta.FromCamera,
 	//}
-	//
 	//rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\test.mp4",
 	//	"C:\\Users\\Administrator\\Desktop\\mn\\暴风截图2022310297691375.jpg")
 	//SendShortVideo(inst, rawMedia)
-
-	for _, inst := range goinsta.AccountPool.Accounts {
+	video := []string{"3x4xi3fbcrnyxx2",
+		"3x7xezca43zbzjq",
+		"3x8ed8wkpaeyg4a",
+		"3x84ah9q8gejs2e",
+		"3x84swhrem9inpq",
+	}
+	for idx, inst := range goinsta.AccountPool.Accounts {
 		rawMedia := &goinsta.RawVideoMedia{
-			Caption:    "Are you ready for the boys of summer #test5555555555555555555",
+			Caption:    "can you give me a start? #fashion #followme #like4like #love#test5555555555555555555",
 			AudioTitle: "Like and follow",
-			From:       goinsta.FromCamera,
+			From:       goinsta.FromLibrary,
 		}
 
-		rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\test.mp4",
-			"C:\\Users\\Administrator\\Desktop\\mn\\暴风截图2022310297691375.jpg")
+		rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\刘二\\video_ico_text\\"+video[idx]+".mp4",
+			"C:\\Users\\Administrator\\Desktop\\mn\\刘二\\cover\\"+video[idx]+".jpg")
 		SendShortVideo(inst, rawMedia)
 	}
 }

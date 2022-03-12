@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"makemoney/common"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -158,9 +159,13 @@ func (this *Upload) UploadVideo(data []byte, params *VideoUploadParams) (string,
 	//	"retry_context":            retryContext,
 	//	"media_type":               2})
 
-	waterfall := common.GenString(common.CharSet_16_Num, 32)
-	path := common.GenUUID()
-	params.UploadId = GenUploadID()
+	if params.UploadId == "" {
+		params.UploadId = GenUploadID()
+	}
+	if params.WaterfallId == "" {
+		params.WaterfallId = common.GenString(common.CharSet_16_Num, 32)
+	}
+	path := strings.ToUpper(common.GenUUID())
 	paramsStr, _ := json.Marshal(params)
 
 	body := bytes.NewBuffer(data)
@@ -171,19 +176,19 @@ func (this *Upload) UploadVideo(data []byte, params *VideoUploadParams) (string,
 		HeaderSequence: LoginHeaderMap[urlUploadVideo],
 		IsPost:         true,
 		Header: map[string]string{
-			"x_fb_video_waterfall_id":    waterfall,
+			"x_fb_video_waterfall_id":    params.WaterfallId,
 			"x-instagram-rupload-params": string(paramsStr),
 			"content-type":               "application/octet-stream",
 			"offset":                     "0",
 			"segment-start-offset":       "0",
 			"x-entity-name":              "video.mp4",
-			"x-entity-type":              "video/mp4",
+			"x-entity-type":              "video/mpeg",
 			"x-entity-length":            strconv.Itoa(len(data)),
 		},
 		Body: body,
 	}, resp)
 	err = resp.CheckError(err)
-	return params.UploadId, waterfall, err
+	return params.UploadId, params.WaterfallId, err
 }
 
 func (this *Upload) UploadFinish(uploadID string) error {

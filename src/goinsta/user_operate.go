@@ -983,23 +983,23 @@ type MeasuredFrames struct {
 	Timestamp float64 `json:"timestamp"`
 }
 type QualityInfo struct {
-	OriginalVideoCodec       string           `json:"original_video_codec"`
-	EncodedVideoCodec        string           `json:"encoded_video_codec"`
-	OriginalColorPrimaries   string           `json:"original_color_primaries"`
-	OriginalWidth            int              `json:"original_width"`
-	OriginalFrameRate        float64          `json:"original_frame_rate"`
-	OriginalTransferFunction string           `json:"original_transfer_function"`
-	EncodedHeight            int              `json:"encoded_height"`
-	OriginalBitRate          int              `json:"original_bit_rate"`
-	EncodedColorPrimaries    string           `json:"encoded_color_primaries"`
-	OriginalHeight           int              `json:"original_height"`
-	EncodedBitRate           float64          `json:"encoded_bit_rate"`
-	EncodedFrameRate         float64          `json:"encoded_frame_rate"`
-	EncodedYcbcrMatrix       string           `json:"encoded_ycbcr_matrix"`
-	OriginalYcbcrMatrix      string           `json:"original_ycbcr_matrix"`
-	EncodedWidth             int              `json:"encoded_width"`
-	MeasuredFrames           []MeasuredFrames `json:"measured_frames"`
-	EncodedTransferFunction  string           `json:"encoded_transfer_function"`
+	OriginalVideoCodec       string           `json:"original_video_codec,omitempty"`
+	EncodedVideoCodec        string           `json:"encoded_video_codec,omitempty"`
+	OriginalColorPrimaries   string           `json:"original_color_primaries,omitempty"`
+	OriginalWidth            int              `json:"original_width,omitempty"`
+	OriginalFrameRate        float64          `json:"original_frame_rate,omitempty"`
+	OriginalTransferFunction string           `json:"original_transfer_function,omitempty"`
+	EncodedHeight            int              `json:"encoded_height,omitempty"`
+	OriginalBitRate          float64          `json:"original_bit_rate,omitempty"`
+	EncodedColorPrimaries    string           `json:"encoded_color_primaries,omitempty"`
+	OriginalHeight           int              `json:"original_height,omitempty"`
+	EncodedBitRate           float64          `json:"encoded_bit_rate,omitempty"`
+	EncodedFrameRate         float64          `json:"encoded_frame_rate,omitempty"`
+	EncodedYcbcrMatrix       string           `json:"encoded_ycbcr_matrix,omitempty"`
+	OriginalYcbcrMatrix      string           `json:"original_ycbcr_matrix,omitempty"`
+	EncodedWidth             int              `json:"encoded_width,omitempty"`
+	MeasuredFrames           []MeasuredFrames `json:"measured_frames,omitempty"`
+	EncodedTransferFunction  string           `json:"encoded_transfer_function,omitempty"`
 }
 
 func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo *QualityInfo) error {
@@ -1008,7 +1008,7 @@ func (this *UserOperate) UpdateVideoWithQualityInfo(uploadID string, qualityInfo
 		"_uuid":        this.inst.AccountInfo.Device.DeviceID,
 		"_uid":         fmt.Sprintf("%d", this.inst.ID),
 		"quality_info": common.B2s(qualityInfoStr),
-		"uploadID":     uploadID,
+		"upload_id":    uploadID,
 	}
 	resp := &BaseApiResp{}
 	err := this.inst.HttpRequestJson(&reqOptions{

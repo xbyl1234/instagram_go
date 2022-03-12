@@ -63,7 +63,7 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = false
+	config2.UseCharles = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)
@@ -75,5 +75,5 @@ func main() {
 		goinsta.InitAccountPool(intas)
 	}
 
-	PostTask()
+	ShortVideoTask()
 }

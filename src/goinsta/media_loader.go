@@ -3,6 +3,7 @@ package goinsta
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/edgeware/mp4ff/mp4"
 	"image"
 	"image/jpeg"
 	"makemoney/common"
@@ -75,6 +76,8 @@ type RawVideoMedia struct {
 	From        string
 	Waterfall   string
 	UploadId    string
+	MDatStart   int32
+	MDatLen     int32
 }
 
 const FromCamera = "camera"
@@ -188,9 +191,18 @@ func (this *RawVideoMedia) LoadVideo(videoPath string, imgPath string) error {
 	times, _ := strconv.ParseFloat(video.Duration, 64)
 	this.Duration = times * 1000
 
-	this.YcbcrMatrix = "ITU_R_601_4"
+	this.YcbcrMatrix = "ITU_R_709_2"
 
 	this.VideoData, _ = os.ReadFile(videoPath)
 	this.ImageData, _ = os.ReadFile(imgPath)
+
+	mp4File, err := mp4.ReadMP4File(videoPath)
+	if err != nil {
+		return err
+	}
+
+	this.MDatStart = int32(mp4File.Mdat.StartPos)
+	this.MDatLen = int32(mp4File.Mdat.DataLength())
+
 	return nil
 }
