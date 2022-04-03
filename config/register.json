@@ -4,30 +4,30 @@
   "res_username_path": "./data/user_nameraw.txt",
   "country": "us",
   "coro": 1,
-  "provider_name": "gmail",
-  "provider": [
-    {
-      "provider_type": "phone",
-      "provider_name": "taxin",
-      "phone": {
-        "username": "saftrfgbe",
-        "password": "sadfgfght555",
-        "url_login": "http://api.my531.com/Login/",
-        "url_req_phone_number": "http://api.my531.com/GetPhone/",
-        "url_req_phone_code": "http://api.my531.com/GetMsg/",
-        "url_req_release_phone": "http://api.my531.com/Cancel/",
-        "url_req_black_phone": "http://api.my531.com/Addblack",
-        "url_req_balance": "http://api.my531.com/Balance/",
-        "token": "0d482a8e231831f2ebbc7f4bf05298321674d81e",
-        "project_id": "10213",
-        "retry_timeout": 180,
-        "retry_delay": 3,
-        "provider": "taxin",
-        "area": "+86",
-        "city": ""
-      }
-    }
-  ],
+  "provider_name": "guerrilla",
+  "guerrilla": {
+    "retry_timeout": 180,
+    "retry_delay": 3,
+    "domain": "followmebsix.com",
+    "mysql_url": "root:Hty741852..@tcp(207.148.103.9:7707)/email"
+  },
+  "taxin": {
+    "username": "saftrfgbe",
+    "password": "sadfgfght555",
+    "url_login": "http://api.my531.com/Login/",
+    "url_req_phone_number": "http://api.my531.com/GetPhone/",
+    "url_req_phone_code": "http://api.my531.com/GetMsg/",
+    "url_req_release_phone": "http://api.my531.com/Cancel/",
+    "url_req_black_phone": "http://api.my531.com/Addblack",
+    "url_req_balance": "http://api.my531.com/Balance/",
+    "token": "0d482a8e231831f2ebbc7f4bf05298321674d81e",
+    "project_id": "10213",
+    "retry_timeout": 180,
+    "retry_delay": 3,
+    "provider": "taxin",
+    "area": "+86",
+    "city": ""
+  },
   "gmail": {
     "retry_timeout": 180,
     "retry_delay": 3,

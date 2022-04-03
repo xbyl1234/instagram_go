@@ -1,10 +1,9 @@
-package common
+package anti
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/StackExchange/wmi"
 	"golang.org/x/sys/windows"
 	"net"
 	"strconv"

@@ -1,10 +1,10 @@
-package common
+package anti
 
 import (
 	"math/rand"
 )
 
-var AntiFlag float64 = 0.45841
+var AntiFlag = 0.45841
 
 func RandFloats(min, max float64) float64 {
 	return min + rand.Float64()*(max-min)

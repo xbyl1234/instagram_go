@@ -1,29 +1,23 @@
-package emali
+package verification
 
 import (
 	"fmt"
 	"github.com/emersion/go-imap"
-	_ "github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
-	_ "github.com/emersion/go-imap/client"
 	"io/ioutil"
 	"makemoney/common"
 	"makemoney/common/log"
 	"net/mail"
 	"strings"
-	"sync"
 	"time"
 )
 
 type GMail struct {
-	Username             string `json:"username"`
-	Password             string `json:"password"`
-	RetryTimeout         int    `json:"retry_timeout"`
-	RetryDelay           int    `json:"retry_delay"`
-	client               *client.Client
-	reqLock              sync.Mutex
-	RetryTimeoutDuration time.Duration
-	RetryDelayDuration   time.Duration
+	Username string `json:"username"`
+	Password string `json:"password"`
+	client   *client.Client
+
+	EmailInfo
 }
 
 func (this *GMail) RequireAccount() (string, error) {
@@ -36,7 +30,7 @@ type RespEmail struct {
 	Body   []byte
 }
 
-func (this *GMail) RequireCode(email string) (*RespEmail, error) {
+func (this *GMail) RequireCode(email string) (string, error) {
 	this.reqLock.Lock()
 	defer this.reqLock.Unlock()
 
@@ -44,14 +38,14 @@ func (this *GMail) RequireCode(email string) (*RespEmail, error) {
 	for time.Since(start) < this.RetryTimeoutDuration {
 		_, err := this.client.Select("INBOX", false)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		criteria := imap.NewSearchCriteria()
 		criteria.WithoutFlags = []string{imap.SeenFlag}
 		criteria.Text = []string{email}
 		ids, err := this.client.Search(criteria)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		if len(ids) > 0 {
 			seqset := &imap.SeqSet{}
@@ -60,22 +54,31 @@ func (this *GMail) RequireCode(email string) (*RespEmail, error) {
 			section := &imap.BodySectionName{}
 			err = this.client.Fetch(seqset, []imap.FetchItem{section.FetchItem()}, messages)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 			for msg := range messages {
 				r := msg.GetBody(section)
 				m, err := mail.ReadMessage(r)
 				if err != nil {
-					return nil, err
+					return "", err
 				}
 				body, err := ioutil.ReadAll(m.Body)
 				if err != nil {
-					return nil, err
+					return "", err
 				}
-				return &RespEmail{
-					Header: m.Header,
-					Body:   body,
-				}, nil
+				//return &RespEmail{
+				//	Header: m.Header,
+				//	Body:   body,
+				//}, nil
+
+				bodyStr := strings.ReplaceAll(string(body), "=\r\n", "")
+				tag := "padding-bottom:25px;\">"
+				p := strings.Index(bodyStr, tag) + len(tag)
+				if p == -1 {
+					return "", &common.MakeMoneyError{ErrStr: "not find code"}
+				}
+				code := bodyStr[p : p+6]
+				return code, nil
 			}
 		}
 
@@ -83,19 +86,7 @@ func (this *GMail) RequireCode(email string) (*RespEmail, error) {
 		time.Sleep(this.RetryDelayDuration)
 	}
 
-	return nil, &common.MakeMoneyError{ErrStr: "require code timeout", ErrType: common.RecvPhoneCodeError}
-}
-
-func (this *GMail) ReleaseAccount(number string) error {
-	return nil
-}
-
-func (this *GMail) BlackAccount(number string) error {
-	return nil
-}
-
-func (this *GMail) GetBalance() (string, error) {
-	return "", nil
+	return "", &common.MakeMoneyError{ErrStr: "require code timeout", ErrType: common.RecvPhoneCodeError}
 }
 
 func (this *GMail) Login() error {

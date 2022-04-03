@@ -1,4 +1,4 @@
-package emali
+package verification
 
 import (
 	_ "github.com/go-sql-driver/mysql"
@@ -12,8 +12,10 @@ const sqlRequireEmail = "SELECT mail_id,subject from new where new.to = ? and is
 const sqlUpdateEmail = "update new set is_new ='0' where mail_id=?"
 
 type Guerrilla struct {
-	*EmailInfo
-	MysqlDB *sqlx.DB
+	MysqlDB  *sqlx.DB
+	Domain   string
+	MysqlUrl string
+	EmailInfo
 }
 
 func (this *Guerrilla) RequireAccount() (string, error) {
@@ -47,18 +49,6 @@ func (this *Guerrilla) RequireCode(email string) (string, error) {
 	}
 
 	return "", &common.MakeMoneyError{ErrStr: "require code timeout", ErrType: common.RecvPhoneCodeError}
-}
-
-func (this *Guerrilla) ReleaseAccount(number string) error {
-	return nil
-}
-
-func (this *Guerrilla) BlackAccount(number string) error {
-	return nil
-}
-
-func (this *Guerrilla) GetBalance() (string, error) {
-	return "", nil
 }
 
 func (this *Guerrilla) Login() error {

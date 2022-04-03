@@ -1,4 +1,4 @@
-package common
+package anti
 
 /*
 #include <stdio.h>
@@ -42,12 +42,14 @@ char * mac_serial(char *iface){
 */
 import "C"
 import (
+	"makemoney/common/encryption"
 	"os/exec"
+	"strconv"
 	"unsafe"
 )
 
 //我的服务器
-var DeviceID float64 = -682291321 + 2.1654324
+var DeviceID = -682291321 + 2.1654324
 
 func GetDeviceID() float64 {
 	//mac, err := C.mac_serial(C.CString("ens33"))
@@ -61,7 +63,7 @@ func GetDeviceID() float64 {
 	result, err := cmd.Output()
 
 	goMac := C.GoString(mac)
-	hash, _ := Hash([]byte(goMac + string(result)))
+	hash, _ := encryption.Hash([]byte(goMac + string(result)))
 	fhash, _ := strconv.ParseFloat(hash, 64)
 	return fhash
 }

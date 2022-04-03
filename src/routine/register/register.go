@@ -8,25 +8,24 @@ import (
 	"makemoney/common/log"
 	"makemoney/common/proxys"
 	"makemoney/common/verification"
-	"makemoney/common/verification/emali"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
 type Config struct {
-	ProxyPath       string                   `json:"proxy_path"`
-	ResIcoPath      string                   `json:"res_ico_path"`
-	ResUsernamePath string                   `json:"res_username_path"`
-	Coro            int                      `json:"coro"`
-	Country         string                   `json:"country"`
-	ProviderName    string                   `json:"provider_name"`
-	Provider        []*verification.Provider `json:"provider"`
-	Gmail           emali.GmailConfig        `json:"gmail"`
+	ProxyPath       string                        `json:"proxy_path"`
+	ResIcoPath      string                        `json:"res_ico_path"`
+	ResUsernamePath string                        `json:"res_username_path"`
+	Coro            int                           `json:"coro"`
+	Country         string                        `json:"country"`
+	ProviderName    string                        `json:"provider_name"`
+	Gmail           *verification.GmailConfig     `json:"gmail"`
+	Guerrilla       *verification.GuerrillaConfig `json:"guerrilla"`
+	Taxin           *verification.PhoneInfo       `json:"taxin"`
 }
 
 var ConfigPath = flag.String("config", "./config/register.json", "")
@@ -47,8 +46,10 @@ var ErrorFeedback = 0
 var ErrorOther = 0
 
 var WaitAll sync.WaitGroup
-
 var logTicker *time.Ticker
+
+var PhoneProvider verification.VerificationCodeProvider
+var Guerrilla verification.VerificationCodeProvider
 
 func LogStatus() {
 	for range logTicker.C {
@@ -86,7 +87,7 @@ func GenAddressBook() []goinsta.AddressBook {
 }
 
 func RegisterByPhone() {
-	provider := verification.VerificationProvider[config.ProviderName]
+	provider := PhoneProvider
 	for true {
 		var err error
 		curCount := atomic.AddInt32(&Count, 1)
@@ -205,9 +206,15 @@ func RegisterByPhone() {
 }
 
 func RegisterByEmail() {
-	gmail := emali.GetGMails()
-	if gmail == nil {
-		log.Error("get gmail error,so return!")
+	var mail verification.VerificationCodeProvider
+	if config.ProviderName == "gmail" {
+		mail = verification.GetGMails()
+	} else {
+		mail = Guerrilla
+	}
+
+	if mail == nil {
+		log.Error("get mail error,so return!")
 		return
 	}
 
@@ -221,17 +228,20 @@ func RegisterByEmail() {
 			log.Error("get proxy error: %v", _proxy)
 			break
 		}
+		var err error
 
-		account, err := gmail.RequireAccount()
+		account, err := mail.RequireAccount()
+		//account := "admin1@followmebsix.com"
 		if err != nil {
 			log.Error("require account error: %v", err)
 			break
 		}
 
 		username := common.Resource.ChoiceUsername()
-		password := common.GenString(common.CharSet_ABC, 4) +
-			common.GenString(common.CharSet_abc, 4) +
+		password := common.GenString(common.CharSet_abc, 4) +
 			common.GenString(common.CharSet_123, 4)
+		//password := "xbyl1234"
+
 		inst := goinsta.New("", "", _proxy)
 		regisert := goinsta.Register{
 			Inst:         inst,
@@ -269,23 +279,13 @@ func RegisterByEmail() {
 			log.Error("email %s send error: %v", account, err)
 			continue
 		}
-		respEmail, err := gmail.RequireCode(account)
+		code, err := mail.RequireCode(account)
 		if err != nil {
 			ErrorRecvCodeCount++
 			statError(err)
 			log.Error("email %s require code error: %v", account, err)
 			continue
 		}
-		body := strings.ReplaceAll(string(respEmail.Body), "=\r\n", "")
-		tag := "padding-bottom:25px;\">"
-		p := strings.Index(body, tag) + len(tag)
-		if p == -1 {
-			ErrorRecvCodeCount++
-			statError(err)
-			log.Error("email %s require code error: %v", account, err)
-			continue
-		}
-		code := body[p : p+6]
 
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
 		_, err = regisert.CheckConfirmationCode(code)
@@ -364,19 +364,22 @@ func main() {
 	common.UseTruncation = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
-
-	err := verification.InitVerificationProviderByJson(config.Provider)
-	if err != nil {
-		log.Error("create phone provider error!%v", err)
-		os.Exit(0)
+	var err error
+	switch config.ProviderName {
+	case "taxin":
+		PhoneProvider, err = verification.InitTaxin(config.Taxin)
+		break
+	case "gmail":
+		err = verification.InitDefaultGMail(config.Gmail)
+		break
+	case "guerrilla":
+		Guerrilla, err = verification.InitGuerrilla(config.Guerrilla)
+		break
 	}
-	//if verification.VerificationProvider[config.ProviderName] == nil {
-	//	log.Error("no find phone provider %s", config.ProviderName)
-	//	os.Exit(0)
-	//}
-	err = emali.InitDefaultGMail(&config.Gmail)
+
 	if err != nil {
-		return
+		log.Error("create provider error! %v", err)
+		os.Exit(0)
 	}
 
 	err = common.InitResource(config.ResIcoPath, config.ResUsernamePath)
@@ -387,7 +390,7 @@ func main() {
 
 	WaitAll.Add(config.Coro)
 
-	if config.ProviderName == "gmail" {
+	if config.ProviderName == "gmail" || config.ProviderName == "guerrilla" {
 		for i := 0; i < config.Coro; i++ {
 			go RegisterByEmail()
 		}
