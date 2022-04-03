@@ -3,7 +3,7 @@ package routine
 import (
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/common/proxy"
+	"makemoney/common/proxys"
 	"makemoney/goinsta"
 	math_rand "math/rand"
 	"time"
@@ -23,7 +23,7 @@ func InitRoutine(proxyPath string) {
 		panic(err)
 	}
 	goinsta.InitMogoDB(dbConfig.MogoUri)
-	err = proxy.InitProxyPool(proxyPath)
+	err = proxys.InitProxyPool(proxyPath)
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)
 		panic(err)
@@ -61,10 +61,10 @@ func ReqAccount(OperName string, AccountTag string) *goinsta.Instagram {
 }
 
 func SetProxy(inst *goinsta.Instagram) bool {
-	var _proxy *proxy.Proxy
+	var _proxy *common.Proxy
 	if inst.Proxy != nil {
 		if inst.Proxy.ID != "" {
-			_proxy = proxy.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, inst.Proxy.ID)
+			_proxy = proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, inst.Proxy.ID)
 			if _proxy == nil {
 				log.Warn("find insta proxy %s error!", inst.Proxy.ID)
 			}
@@ -72,7 +72,7 @@ func SetProxy(inst *goinsta.Instagram) bool {
 	}
 
 	if _proxy == nil {
-		_proxy = proxy.ProxyPool.GetNoRisk(inst.AccountInfo.Register.RegisterIpCountry, false, false)
+		_proxy = proxys.ProxyPool.GetNoRisk(inst.AccountInfo.Register.RegisterIpCountry, false, false)
 		if _proxy == nil {
 			log.Error("get insta proxy error!")
 		}
@@ -86,17 +86,17 @@ func SetProxy(inst *goinsta.Instagram) bool {
 	return true
 }
 
-func ProxyCallBack(country string, id string) (*proxy.Proxy, error) {
-	var _proxy *proxy.Proxy
+func ProxyCallBack(country string, id string) (*common.Proxy, error) {
+	var _proxy *common.Proxy
 	if country != "" {
-		_proxy = proxy.ProxyPool.Get(country, id)
+		_proxy = proxys.ProxyPool.Get(country, id)
 		if _proxy == nil {
 			log.Warn("find insta proxy %s error!", country)
 		}
 	}
 
 	if _proxy == nil {
-		_proxy = proxy.ProxyPool.GetNoRisk(country, false, false)
+		_proxy = proxys.ProxyPool.GetNoRisk(country, false, false)
 	}
 
 	if _proxy == nil {

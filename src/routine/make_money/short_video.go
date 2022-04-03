@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/goinsta"
+	"strings"
 	"time"
 )
 
@@ -108,6 +111,37 @@ func SendShortVideo(inst *goinsta.Instagram, video *goinsta.RawVideoMedia) {
 	print(clips)
 }
 
+var RawMedias []*goinsta.RawVideoMedia
+
+func LoadVideo(path string) {
+	dir, err := ioutil.ReadDir(path + "video/")
+	if err != nil {
+		log.Error("load video error: %v", err)
+		return
+	}
+	RawMedias = make([]*goinsta.RawVideoMedia, len(dir))
+	index := 0
+	for _, item := range dir {
+		if !item.IsDir() && strings.Contains(item.Name(), ".mp4") {
+			rawMedia := &goinsta.RawVideoMedia{
+				Caption:    "can you give me a start? #fashion #followme #like4like #love#test5555555555555555555 " + common.GenString(common.CharSet_All, 5),
+				AudioTitle: "like and follow please~",
+				From:       goinsta.FromCamera,
+			}
+			name := strings.ReplaceAll(item.Name(), ".mp4", "")
+			err = rawMedia.LoadVideo(path+"video/"+item.Name(),
+				path+"cover/"+name+".jpg")
+			if err != nil {
+				log.Error("load video %s error: %v", item.Name(), err)
+				continue
+			}
+			RawMedias[index] = rawMedia
+			index++
+		}
+	}
+	RawMedias = RawMedias[:index]
+}
+
 func ShortVideoTask() {
 	//inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
 	//rawMedia := &goinsta.RawVideoMedia{
@@ -118,21 +152,18 @@ func ShortVideoTask() {
 	//rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\test.mp4",
 	//	"C:\\Users\\Administrator\\Desktop\\mn\\暴风截图2022310297691375.jpg")
 	//SendShortVideo(inst, rawMedia)
-	video := []string{"3x4xi3fbcrnyxx2",
-		"3x7xezca43zbzjq",
-		"3x8ed8wkpaeyg4a",
-		"3x84ah9q8gejs2e",
-		"3x84swhrem9inpq",
-	}
-	for idx, inst := range goinsta.AccountPool.Accounts {
-		rawMedia := &goinsta.RawVideoMedia{
-			Caption:    "can you give me a start? #fashion #followme #like4like #love#test5555555555555555555",
-			AudioTitle: "Like and follow",
-			From:       goinsta.FromLibrary,
-		}
+	LoadVideo("C:/Users/Administrator/Desktop/mn/刘二/")
 
-		rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\刘二\\video_ico_text\\"+video[idx]+".mp4",
-			"C:\\Users\\Administrator\\Desktop\\mn\\刘二\\cover\\"+video[idx]+".jpg")
-		SendShortVideo(inst, rawMedia)
+	for idx, inst := range goinsta.AccountPool.Accounts {
+		//rawMedia := &goinsta.RawVideoMedia{
+		//	Caption:    "can you give me a start? #fashion #followme #like4like #love#test5555555555555555555",
+		//	AudioTitle: "Like and follow",
+		//	From:       goinsta.FromLibrary,
+		//}
+		//
+		//rawMedia.LoadVideo("C:\\Users\\Administrator\\Desktop\\mn\\刘二\\video\\"+video[idx]+".mp4",
+		//	"C:\\Users\\Administrator\\Desktop\\mn\\刘二\\cover\\"+video[idx]+".jpg")
+		rawMedias := RawMedias[idx]
+		SendShortVideo(inst, rawMedias)
 	}
 }

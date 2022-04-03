@@ -83,18 +83,18 @@ func SendTask(WaitAll *sync.WaitGroup) {
 
 	for user := range UserChan {
 		inst := routine.ReqAccount(goinsta.OperNameSendMsg, config.AccountTag)
-
-		_, err = inst.GetMessage().GetThreadId(user.User.ID)
-		if err != nil {
-			goinsta.AccountPool.ReleaseOne(inst)
-			routine.SaveBlackUser(user)
-			continue
-		}
 		//236
 		err = inst.GetUserOperate().LikeUser(user.User.ID)
 		if err != nil {
 			log.Error("account %s like %d error: %v", inst.User, user.User.ID, err)
 			goinsta.AccountPool.ReleaseOne(inst)
+			continue
+		}
+
+		_, err = inst.GetMessage().GetThreadId(user.User.ID)
+		if err != nil {
+			goinsta.AccountPool.ReleaseOne(inst)
+			routine.SaveBlackUser(user)
 			continue
 		}
 

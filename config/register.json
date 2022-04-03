@@ -3,8 +3,8 @@
   "res_ico_path": "./data/girl_picture",
   "res_username_path": "./data/user_nameraw.txt",
   "country": "us",
-  "coro": 10,
-  "provider_name": "taxin",
+  "coro": 1,
+  "provider_name": "gmail",
   "provider": [
     {
       "provider_type": "phone",
@@ -27,5 +27,16 @@
         "city": ""
       }
     }
-  ]
+  ],
+  "gmail": {
+    "retry_timeout": 180,
+    "retry_delay": 3,
+    "accounts": [
+      {
+        "username": "xbyl282@gmail.com",
+        "password": "xbyl1234",
+        "repet": 15
+      }
+    ]
+  }
 }

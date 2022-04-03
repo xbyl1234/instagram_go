@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/common/proxy"
+	"makemoney/common/proxys"
 	"makemoney/common/verification"
-	config2 "makemoney/config"
+	"makemoney/common/verification/emali"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -25,6 +26,7 @@ type Config struct {
 	Country         string                   `json:"country"`
 	ProviderName    string                   `json:"provider_name"`
 	Provider        []*verification.Provider `json:"provider"`
+	Gmail           emali.GmailConfig        `json:"gmail"`
 }
 
 var ConfigPath = flag.String("config", "./config/register.json", "")
@@ -91,7 +93,7 @@ func RegisterByPhone() {
 		if curCount > int32(*RegisterCount) {
 			break
 		}
-		_proxy := proxy.ProxyPool.GetNoRisk(config.Country, true, true)
+		_proxy := proxys.ProxyPool.GetNoRisk(config.Country, true, true)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break
@@ -178,7 +180,7 @@ func RegisterByPhone() {
 			_, err = regisert.NewAccountNuxSeen()
 			_, err = inst.AddressBookLink(GenAddressBook())
 			var uploadID string
-			uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
+			uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco(), nil)
 			err = inst.GetAccount().ChangeProfilePicture(uploadID)
 			SuccessCount++
 		} else {
@@ -203,19 +205,24 @@ func RegisterByPhone() {
 }
 
 func RegisterByEmail() {
-	provider := verification.VerificationProvider[config.ProviderName]
+	gmail := emali.GetGMails()
+	if gmail == nil {
+		log.Error("get gmail error,so return!")
+		return
+	}
+
 	for true {
 		curCount := atomic.AddInt32(&Count, 1)
 		if curCount > int32(*RegisterCount) {
 			break
 		}
-		_proxy := proxy.ProxyPool.GetNoRisk(config.Country, true, true)
+		_proxy := proxys.ProxyPool.GetNoRisk(config.Country, true, true)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break
 		}
 
-		account, err := provider.RequireAccount()
+		account, err := gmail.RequireAccount()
 		if err != nil {
 			log.Error("require account error: %v", err)
 			break
@@ -262,13 +269,24 @@ func RegisterByEmail() {
 			log.Error("email %s send error: %v", account, err)
 			continue
 		}
-		code, err := provider.RequireCode(account)
+		respEmail, err := gmail.RequireCode(account)
 		if err != nil {
 			ErrorRecvCodeCount++
 			statError(err)
 			log.Error("email %s require code error: %v", account, err)
 			continue
 		}
+		body := strings.ReplaceAll(string(respEmail.Body), "=\r\n", "")
+		tag := "padding-bottom:25px;\">"
+		p := strings.Index(body, tag) + len(tag)
+		if p == -1 {
+			ErrorRecvCodeCount++
+			statError(err)
+			log.Error("email %s require code error: %v", account, err)
+			continue
+		}
+		code := body[p : p+6]
+
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(0, 1000)))
 		_, err = regisert.CheckConfirmationCode(code)
 		if err != nil {
@@ -291,33 +309,24 @@ func RegisterByEmail() {
 			log.Error("email %s create error: %v", account, err)
 			continue
 		}
-
-		_, err = regisert.NewAccountNuxSeen()
 		_, err = regisert.GetSteps()
 
-		err = goinsta.SaveInstToDB(inst)
-
-		var uploadID string
-		uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco())
-		err = inst.GetAccount().ChangeProfilePicture(uploadID)
-
-		if err != nil {
+		if err == nil {
+			log.Info("email: %s register success!   account: %s password: %s", account, inst.User, inst.Pass)
+			_ = goinsta.SaveInstToDB(inst)
+			_, err = regisert.NewAccountNuxSeen()
+			_, err = inst.AddressBookLink(GenAddressBook())
+			var uploadID string
+			uploadID, _, err = inst.GetUpload().UploadPhotoFromPath(common.Resource.ChoiceIco(), nil)
+			err = inst.GetAccount().ChangeProfilePicture(uploadID)
+			SuccessCount++
+		} else {
+			_ = goinsta.SaveInstToDB(inst)
+			accInfo, _ := json.Marshal(inst.AccountInfo)
+			log.Error("email %s create error: %v,   account info: %s", account, err, accInfo)
 			statError(err)
-			if common.IsError(err, common.ChallengeRequiredError) {
-				log.Error("email: %s had been challenge_required", account)
-				ErrorCreateCount++
-				continue
-			} else if common.IsError(err, common.FeedbackError) {
-				ErrorCreateCount++
-				log.Error("email: %s had been feedback_required", account)
-				continue
-			}
-
-			log.Warn("email: %s change ico error: %v", account, err)
+			ErrorCreateCount++
 		}
-
-		SuccessCount++
-		log.Info("email: %s register success!", account)
 	}
 	WaitAll.Done()
 }
@@ -351,8 +360,8 @@ func initParams() {
 //girlchina001
 //a123456789
 func main() {
-	config2.UseCharles = false
-	config2.UseTruncation = true
+	common.UseCharles = false
+	common.UseTruncation = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 
@@ -361,9 +370,13 @@ func main() {
 		log.Error("create phone provider error!%v", err)
 		os.Exit(0)
 	}
-	if verification.VerificationProvider[config.ProviderName] == nil {
-		log.Error("no find phone provider %s", config.ProviderName)
-		os.Exit(0)
+	//if verification.VerificationProvider[config.ProviderName] == nil {
+	//	log.Error("no find phone provider %s", config.ProviderName)
+	//	os.Exit(0)
+	//}
+	err = emali.InitDefaultGMail(&config.Gmail)
+	if err != nil {
+		return
 	}
 
 	err = common.InitResource(config.ResIcoPath, config.ResUsernamePath)
@@ -374,7 +387,7 @@ func main() {
 
 	WaitAll.Add(config.Coro)
 
-	if config.ProviderName == "guerrilla" {
+	if config.ProviderName == "gmail" {
 		for i := 0; i < config.Coro; i++ {
 			go RegisterByEmail()
 		}

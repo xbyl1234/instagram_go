@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"makemoney/common"
-	"makemoney/common/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
@@ -22,7 +21,7 @@ var (
 	InsAccountError_RateLimitError    = "rate_limit_error"
 )
 
-var ProxyCallBack func(country string, id string) (*proxy.Proxy, error)
+var ProxyCallBack func(country string, id string) (*common.Proxy, error)
 
 type Operation struct {
 	OperName string    `json:"oper_name"`
@@ -57,7 +56,7 @@ type Instagram struct {
 
 	Status       string
 	Tags         string
-	Proxy        *proxy.Proxy
+	Proxy        *common.Proxy
 	c            *http.Client
 	SpeedControl map[string]*SpeedControl
 	Operate      InstagramOperate
@@ -76,30 +75,21 @@ func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 	return nil
 }
 
-func New(username, password string, _proxy *proxy.Proxy) *Instagram {
-	var tr *http.Transport
-	if _proxy != nil {
-		tr = _proxy.GetProxy()
-	}
-
-	jar, _ := cookiejar.New(nil)
+func New(username, password string, _proxy *common.Proxy) *Instagram {
+	c := common.CreateGoHttpClient(common.DefaultHttpTimeout(), common.NeedJar(), _proxy.GetProxy())
 	inst := &Instagram{
 		User: username,
 		Pass: password,
 
 		sessionID: strings.ToUpper(common.GenUUID()),
 		Proxy:     _proxy,
-		c: &http.Client{
-			Jar:       jar,
-			Transport: tr,
-		},
+		c:         c,
 	}
 
 	inst.AccountInfo = GenInstDeviceInfo()
 	inst.Operate.Graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
 	inst.SpeedControl = make(map[string]*SpeedControl)
-	common.DebugHttpClient(inst.c)
 	return inst
 }
 
@@ -149,10 +139,9 @@ func (this *Instagram) GetMessage() *Message {
 	return this.Operate.Message
 }
 
-func (this *Instagram) SetProxy(_proxy *proxy.Proxy) {
+func (this *Instagram) SetProxy(_proxy *common.Proxy) {
 	this.Proxy = _proxy
-	this.c.Transport = _proxy.GetProxy()
-	common.DebugHttpClient(this.c)
+	_proxy.GetProxy()(this.c)
 }
 
 func (this *Instagram) IsBad() bool {

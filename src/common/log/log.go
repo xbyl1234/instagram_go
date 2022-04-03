@@ -15,6 +15,7 @@ var (
 	errorRed   = 31
 	warnYellow = 33
 	infoBlue   = 34
+	debugBlack = 35
 )
 
 type Log struct {
@@ -42,6 +43,10 @@ func (this *Log) Warn(format string, v ...interface{}) {
 	this.PrintLog(warnYellow, fmt.Sprintf(format, v...))
 }
 
+func (this *Log) Debug(format string, v ...interface{}) {
+	this.PrintLog(debugBlack, fmt.Sprintf(format, v...))
+}
+
 func (this *Log) PrintLog(lev int, data string) {
 	_, file, line, ok := runtime.Caller(2)
 
@@ -49,7 +54,8 @@ func (this *Log) PrintLog(lev int, data string) {
 	if this.preFit != "" {
 		log = this.preFit + " "
 	}
-	log += time.Now().Format("2006-01-02 15:04:05") + " "
+	location, _ := time.LoadLocation("Asia/Shanghai")
+	log += time.Now().In(location).Format("2006-01-02 15:04:05") + " "
 	panding := 19
 	if ok {
 		short := file
@@ -84,6 +90,9 @@ func (this *Log) PrintLog(lev int, data string) {
 	case infoBlue:
 		log += "Info"
 		break
+	case debugBlack:
+		log += "Debug"
+		break
 	}
 	log += ": "
 	log += data
@@ -96,6 +105,10 @@ func (this *Log) PrintLog(lev int, data string) {
 	if this.write2Front {
 		fmt.Print(log)
 	}
+}
+
+func Debug(format string, v ...interface{}) {
+	defaultLog.PrintLog(debugBlack, fmt.Sprintf(format, v...))
 }
 
 func Info(format string, v ...interface{}) {

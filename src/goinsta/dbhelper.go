@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/common/proxy"
 	"net/http"
 	"net/http/cookiejar"
 	neturl "net/url"
@@ -201,6 +200,9 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	jar.SetCookies(url, config.Cookies)
 	jar.SetCookies(urlb, config.CookiesB)
 
+	c := common.CreateGoHttpClient(common.DefaultHttpTimeout())
+	c.Jar = jar
+
 	inst := &Instagram{
 		ID:           config.ID,
 		User:         config.Username,
@@ -212,10 +214,8 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 		Status:       config.Status,
 		SpeedControl: config.SpeedControl,
 		sessionID:    strings.ToUpper(common.GenUUID()),
-		c: &http.Client{
-			Jar: jar,
-		},
-		Tags: config.Tags,
+		c:            c,
+		Tags:         config.Tags,
 	}
 
 	if inst.AccountInfo == nil {
@@ -229,9 +229,6 @@ func ConvConfig(config *AccountCookies) (*Instagram, error) {
 	}
 
 	inst.Operate.Graph = &Graph{inst: inst}
-	inst.Proxy = &proxy.Proxy{ID: config.ProxyID}
-	common.DebugHttpClient(inst.c)
-
 	return inst, nil
 }
 

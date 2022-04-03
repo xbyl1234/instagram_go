@@ -5,7 +5,6 @@ import (
 	"flag"
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/common/proxy"
 	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
@@ -37,6 +36,7 @@ var (
 	TaskRefreshInfo = "refresh_info"
 	TaskTestAccount = "test"
 	TaskSetEmail    = "email"
+	TaskSetBio      = "bio"
 )
 var (
 	SendAll          = "all"
@@ -123,6 +123,18 @@ func InstRefreshAccountInfo(inst *goinsta.Instagram) error {
 	return err
 }
 
+func InstSetBio(inst *goinsta.Instagram) error {
+	err := inst.GetAccount().Sync()
+	inst.GetAccount().EditProfile(&goinsta.UserProfile{
+		ExternalUrl: "followmebsix.com",
+		Biography:   "I have the pictures you want on my blog: followmebsix.com",
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func InstTestAccount(inst *goinsta.Instagram) error {
 	var err error
 	if inst.ID == 0 || inst.IsLogin == false {
@@ -178,6 +190,10 @@ func DispatchAccount() {
 		break
 	case TaskSetEmail:
 		Consumer = InstEmail
+		break
+	case TaskSetBio:
+		Consumer = InstSetBio
+		break
 	default:
 		return
 	}
@@ -257,7 +273,7 @@ func SendAccount(insts []*goinsta.Instagram) {
 
 func TestDevice() {
 	for true {
-		_proxy := proxy.ProxyPool.GetNoRisk("us", true, true)
+		_proxy := proxys.ProxyPool.GetNoRisk("us", true, true)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			continue
@@ -282,10 +298,10 @@ func main() {
 	routine.InitRoutine(config.ProxyPath)
 	var err error
 
-	for i := 0; i < 10; i++ {
-		go TestDevice()
-	}
-	select {}
+	//for i := 0; i < 10; i++ {
+	//	go TestDevice()
+	//}
+	//select {}
 	//login, err := Login("impatient2017116", "KJVEkjve8752")
 	//if err != nil {
 	//	return
@@ -297,15 +313,15 @@ func main() {
 	//goinsta.SaveInstToDB(login)
 	//goinsta.CleanStatus()
 	//goinsta.ReStruct()
-	return
+	//return
 	err = common.InitResource(config.ResIcoPath, "")
 	if err != nil {
 		log.Error("load res error: %v", err)
 		os.Exit(0)
 	}
 
-	insts := goinsta.LoadAllAccount()
-	//insts := goinsta.LoadAccountByTags("craw_tags")
+	//insts := goinsta.LoadAllAccount()
+	insts := goinsta.LoadAccountByTags([]string{"msg"})
 	if len(insts) == 0 {
 		log.Error("there have no account!")
 		os.Exit(0)

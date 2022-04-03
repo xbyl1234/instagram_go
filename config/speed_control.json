@@ -16,17 +16,17 @@
     },
     {
       "oper_name": "send_msg",
-      "each_second": 0,
-      "each_minute": 0,
-      "each_hour": 0,
-      "each_day": 0
+      "each_second": 1,
+      "each_minute": 2,
+      "each_hour": 40,
+      "each_day": 200
     },
     {
       "oper_name": "like_user",
-      "each_second": 5,
-      "each_minute": 0,
-      "each_hour": 0,
-      "each_day": 0
+      "each_second": 1,
+      "each_minute": 2,
+      "each_hour": 40,
+      "each_day": 200
     }
   ]
 }

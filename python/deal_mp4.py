@@ -51,18 +51,21 @@ index = 1
 for file in files:
     print("---------", index)
     index += 1
-    mp4_info = {}
-    name = file.replace(".mp4", "")
-    mp4_info["caption"] = name[:name.rfind("-")]
-    mp4_info["file_name"] = name[name.rfind("-") + 1:]
-    os.rename(video_dir + "raw_video/" + file,
-              video_dir + "raw_video/" + mp4_info["file_name"] + ".mp4")
+    try:
+        mp4_info = {}
+        name = file.replace(".mp4", "")
+        mp4_info["caption"] = name[:name.rfind("-")]
+        mp4_info["file_name"] = name[name.rfind("-") + 1:]
+        os.rename(video_dir + "raw_video/" + file,
+                  video_dir + "raw_video/" + mp4_info["file_name"] + ".mp4")
 
-    os.rename(video_dir + "cover/" + name + ".jpg",
-              video_dir + "cover/" + mp4_info["file_name"] + ".jpg")
+        os.rename(video_dir + "cover/" + name + ".jpg",
+                  video_dir + "cover/" + mp4_info["file_name"] + ".jpg")
 
-    mp4_info["file_name"] = mp4_info["file_name"] + ".mp4"
-    mp4_infos.append(mp4_info)
-    conv_mp4_format(video_dir, mp4_info["file_name"], ico_path, text)
+        mp4_info["file_name"] = mp4_info["file_name"] + ".mp4"
+        mp4_infos.append(mp4_info)
+        conv_mp4_format(video_dir, mp4_info["file_name"], ico_path, text)
+    except Exception as e:
+        print(e)
 
 print(json.dumps(mp4_infos))

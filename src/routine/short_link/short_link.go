@@ -12,16 +12,6 @@ import (
 	"sync"
 )
 
-//function encryptionCode(str){
-//   var len=str.length;
-//   var rs="";
-//   for(var i=0;i<len;i++){
-//          var k=str.substring(i,i+1);
-//          rs+= (i==0?"":",")+str.charCodeAt(i);
-//   }
-//   return rs;
-//}
-
 type Config struct {
 	ShortLink []struct {
 		Key  string `json:"key"`
@@ -131,8 +121,8 @@ func CheckBlack(req *http.Request, params map[string]string) bool {
 	}
 	if !hasHost {
 		log.Warn("ip %s host is black", IP)
-		//AddBlack(IP, "host", req)
-		//return true
+		AddBlack(IP, "host", req)
+		return true
 	}
 
 	if req.Method != "GET" {
@@ -281,6 +271,14 @@ func (this *ShortLinkApp) ServeHTTP(write http.ResponseWriter, req *http.Request
 	doHttpLog(vars, visitor, req)
 }
 
+func encryptionCode(link string) string {
+	var ret string
+	for _, c := range link {
+		ret += fmt.Sprintf("%d,", c)
+	}
+	return ret[:len(ret)-1]
+}
+
 func main() {
 	log.InitDefaultLog("short_link", true, true)
 	err := common.LoadJsonFile("./short_link.json", &config)
@@ -323,8 +321,8 @@ func main() {
 	RedirectHtmlData = make(map[string][]byte)
 	config.ShortLinkMap = make(map[string]string)
 	for _, item := range config.ShortLink {
-		config.ShortLinkMap[item.Key] = item.Link
-		RedirectHtmlData[item.Key] = bytes.ReplaceAll(data, []byte("flag1"), []byte(item.Link))
+		config.ShortLinkMap[item.Key] = encryptionCode(item.Link)
+		RedirectHtmlData[item.Key] = bytes.ReplaceAll(data, []byte("flag1"), []byte(encryptionCode(item.Link)))
 	}
 
 	App.Router = mux.NewRouter()

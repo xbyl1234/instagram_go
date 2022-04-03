@@ -224,27 +224,46 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 	if err != nil {
 		return nil, err
 	}
-	params := map[string]interface{}{
-		"do_not_auto_login_if_credentials_match": "0",
-		"tos_version":                            this.tosVersion,
-		"month":                                  this.Month,
-		"device_id":                              this.Inst.AccountInfo.Device.DeviceID,
-		"ck_container":                           "iCloud.com.burbn.instagram",
-		"has_seen_aart_on":                       "0",
-		"ck_error":                               "CKErrorDomain: 9",
-		"day":                                    this.Day,
-		"waterfall_id":                           this.Inst.AccountInfo.Device.WaterID,
-		"year":                                   this.Year,
-		"email":                                  this.Account,
-		"enc_password":                           encodePasswd,
-		"force_create_account":                   "0",
-		"attribution_details":                    "{\n  \"Version3.1\" : {\n    \"iad-attribution\" : \"false\"\n  }\n}",
-		"ck_environment":                         "production",
-		"force_sign_up_code":                     this.signUpCode,
-		"adid":                                   this.Inst.AccountInfo.Device.IDFA,
-		"phone_id":                               this.Inst.AccountInfo.Device.DeviceID,
-		"first_name":                             this.Username,
-		"username":                               this.RealUsername,
+	params := struct {
+		ForceSignUpCode                  string `json:"force_sign_up_code"`
+		Adid                             string `json:"adid"`
+		HasSeenAartOn                    string `json:"has_seen_aart_on"`
+		PhoneId                          string `json:"phone_id"`
+		DoNotAutoLoginIfCredentialsMatch string `json:"do_not_auto_login_if_credentials_match"`
+		ForceCreateAccount               string `json:"force_create_account"`
+		TosVersion                       string `json:"tos_version"`
+		Day                              string `json:"day"`
+		WaterfallId                      string `json:"waterfall_id"`
+		CkError                          string `json:"ck_error"`
+		EncPassword                      string `json:"enc_password"`
+		FirstName                        string `json:"first_name"`
+		CkContainer                      string `json:"ck_container"`
+		Username                         string `json:"username"`
+		DeviceId                         string `json:"device_id"`
+		Month                            string `json:"month"`
+		Year                             string `json:"year"`
+		CkEnvironment                    string `json:"ck_environment"`
+		Email                            string `json:"email"`
+	}{
+		ForceSignUpCode:                  this.signUpCode,
+		Adid:                             this.Inst.AccountInfo.Device.IDFA,
+		HasSeenAartOn:                    "0",
+		PhoneId:                          this.Inst.AccountInfo.Device.DeviceID,
+		DoNotAutoLoginIfCredentialsMatch: "0",
+		ForceCreateAccount:               "0",
+		TosVersion:                       this.tosVersion,
+		Day:                              this.Day,
+		WaterfallId:                      this.Inst.AccountInfo.Device.WaterID,
+		CkError:                          "CKErrorDomain: 9",
+		EncPassword:                      encodePasswd,
+		FirstName:                        this.Username,
+		CkContainer:                      "iCloud.com.burbn.instagram",
+		Username:                         this.RealUsername,
+		DeviceId:                         this.Inst.AccountInfo.Device.DeviceID,
+		Month:                            this.Month,
+		Year:                             this.Year,
+		CkEnvironment:                    "production",
+		Email:                            this.Account,
 	}
 
 	resp := &RespCreatUser{}
@@ -252,7 +271,7 @@ func (this *Register) CreateEmail() (*RespCreatUser, error) {
 		ApiPath: urlCreate,
 		IsPost:  true,
 		Signed:  true,
-		Query:   params,
+		Json:    params,
 	}, resp)
 
 	err = resp.CheckError(err)

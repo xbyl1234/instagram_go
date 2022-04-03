@@ -2,7 +2,6 @@ package phone
 
 import (
 	"makemoney/common"
-	"makemoney/common/http_helper"
 	"makemoney/common/log"
 	"strings"
 	"time"
@@ -20,7 +19,7 @@ type BaseRespPhoneTaxin struct {
 	Code    int    `json:"code"`
 }
 
-type PhoneTaxin_Login struct {
+type PhoneTaxinLogin struct {
 	BaseRespPhoneTaxin
 	Data struct {
 		Money string `json:"money"`
@@ -30,8 +29,8 @@ type PhoneTaxin_Login struct {
 }
 
 func (this *PhoneTaxin) Login() error {
-	var respJson PhoneTaxin_Login
-	err := http_helper.HttpDoJson(this.Client, &http_helper.RequestOpt{
+	var respJson PhoneTaxinLogin
+	err := common.HttpDoJson(this.Client, &common.RequestOpt{
 		ReqUrl: this.UrlLogin,
 		Params: map[string]string{
 			"username": this.Username,
@@ -47,14 +46,14 @@ func (this *PhoneTaxin) Login() error {
 	return nil
 }
 
-type PhoneTaxin_RequirePhone struct {
+type PhoneTaxinRequirephone struct {
 	BaseRespPhoneTaxin
 	Data string `json:"data"`
 }
 
 func (this *PhoneTaxin) RequireAccount() (string, error) {
-	var respJson PhoneTaxin_RequirePhone
-	err := http_helper.HttpDoJson(this.Client, &http_helper.RequestOpt{
+	var respJson PhoneTaxinRequirephone
+	err := common.HttpDoJson(this.Client, &common.RequestOpt{
 		ReqUrl: this.UrlReqPhoneNumber,
 		Params: map[string]string{
 			"token": this.Token,
@@ -78,7 +77,7 @@ func (this *PhoneTaxin) RequireAccount() (string, error) {
 func (this *PhoneTaxin) RequireCode(number string) (string, error) {
 	start := time.Now()
 	for time.Since(start) < this.RetryTimeoutDuration {
-		resp, err := http_helper.HttpDo(this.Client, &http_helper.RequestOpt{ReqUrl: this.UrlReqPhoneCode,
+		resp, err := common.HttpDo(this.Client, &common.RequestOpt{ReqUrl: this.UrlReqPhoneCode,
 			Params: map[string]string{
 				"token": this.Token,
 				"id":    this.ProjectID,
@@ -105,13 +104,13 @@ func (this *PhoneTaxin) RequireCode(number string) (string, error) {
 	return "", &common.MakeMoneyError{ErrStr: "require code timeout", ErrType: common.RecvPhoneCodeError}
 }
 
-type PhoneTaxin_ReleasePhone struct {
+type PhoneTaxinReleasePhone struct {
 	BaseRespPhoneTaxin
 }
 
 func (this *PhoneTaxin) ReleaseAccount(number string) error {
-	var respJson PhoneTaxin_ReleasePhone
-	err := http_helper.HttpDoJson(this.Client, &http_helper.RequestOpt{
+	var respJson PhoneTaxinReleasePhone
+	err := common.HttpDoJson(this.Client, &common.RequestOpt{
 		ReqUrl: this.UrlReqReleasePhone,
 		Params: map[string]string{
 			"token": this.Token,
@@ -129,13 +128,13 @@ func (this *PhoneTaxin) ReleaseAccount(number string) error {
 	return nil
 }
 
-type PhoneTaxin_BlackPhone struct {
+type PhoneTaxinBlackPhone struct {
 	BaseRespPhoneTaxin
 }
 
 func (this *PhoneTaxin) BlackAccount(number string) error {
-	var respJson PhoneTaxin_ReleasePhone
-	err := http_helper.HttpDoJson(this.Client, &http_helper.RequestOpt{ReqUrl: this.UrlReqBlackPhone,
+	var respJson PhoneTaxinReleasePhone
+	err := common.HttpDoJson(this.Client, &common.RequestOpt{ReqUrl: this.UrlReqBlackPhone,
 		Params: map[string]string{
 			"token": this.Token,
 			"id":    this.ProjectID,
@@ -152,7 +151,7 @@ func (this *PhoneTaxin) BlackAccount(number string) error {
 	return nil
 }
 
-type PhoneTaxin_Balance struct {
+type PhoneTaxinBalance struct {
 	BaseRespPhoneTaxin
 	Data struct {
 		Money string `json:"money"`
@@ -161,8 +160,8 @@ type PhoneTaxin_Balance struct {
 }
 
 func (this *PhoneTaxin) GetBalance() (string, error) {
-	var respJson PhoneTaxin_Balance
-	err := http_helper.HttpDoJson(this.Client, &http_helper.RequestOpt{ReqUrl: this.UrlReqBalance,
+	var respJson PhoneTaxinBalance
+	err := common.HttpDoJson(this.Client, &common.RequestOpt{ReqUrl: this.UrlReqBalance,
 		Params: map[string]string{
 			"token": this.Token,
 			"type":  "json",

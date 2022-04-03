@@ -37,10 +37,10 @@ func InitVerificationProviderByJson(config []*Provider) error {
 	VerificationProvider = make(map[string]VerificationCodeProvider)
 	for _, item := range config {
 		var Provider VerificationCodeProvider
-		if item.ProviderType == "email" {
-			Provider, err = InitEmailVerification(&item.Email)
-		} else {
+		if item.ProviderType == "phone" {
 			Provider, err = InitPhoneVerification(&item.Phone)
+		} else {
+			Provider, err = InitEmailVerification(&item.Email)
 		}
 		if err != nil {
 			log.Error("init provider %s error: %v", item.ProviderName, err)
@@ -76,7 +76,6 @@ func InitPhoneVerification(phoneInfo *phone.PhoneInfo) (VerificationCodeProvider
 		ret.RetryTimeoutDuration = time.Duration(ret.RetryTimeout) * time.Second
 		ret.Client = &http.Client{}
 
-		common.DebugHttpClient(ret.Client)
 		var err error
 		if ret.Token == "" {
 			err = ret.Login()

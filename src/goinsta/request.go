@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/config"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -114,7 +113,7 @@ func (this *Instagram) setHeader(reqOpt *reqOptions, req *http.Request) {
 		fun(this, reqOpt, req)
 	}
 
-	if config.IsDebug {
+	if common.IsDebug {
 		for _, header := range seq.HeaderSeq {
 			if req.Header.Get(header) == "" && header != "Content-Length" {
 				//log.Warn("api path: %s, header: %s is null", reqOpt.ApiPath, header)
@@ -143,7 +142,7 @@ func (this *Instagram) afterRequest(reqUrl *url.URL, resp *http.Response) {
 		}
 		if header != "" {
 			this.httpHeader[header] = value
-			if config.IsDebug {
+			if common.IsDebug {
 				//log.Info("account: %s set header %s = %s", this.User, header, value)
 			}
 		}
@@ -299,7 +298,7 @@ func truncation(body []byte) []byte {
 	if body == nil {
 		return []byte("body is nil!")
 	}
-	if config.UseTruncation {
+	if common.UseTruncation {
 		if len(body) > 100 {
 			return body[:100]
 		}
@@ -315,7 +314,7 @@ func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 			//this.ReqContError++
 		}
 	} else {
-		if config.IsDebug {
+		if common.IsDebug {
 			log.Info("account: %s, url: %s, api resp %s", this.User, url, truncation(body))
 		}
 		//this.ReqContError = 0

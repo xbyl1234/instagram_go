@@ -4,7 +4,7 @@
   "proxy_path": "./config/proxy_config_ios.json",
   "target_user_db": "game_craw",
   "target_user_collection": "users",
-  "account_tag": "make_money",
+  "account_tag": "make_money1",
   "msgs": [
     [
       {

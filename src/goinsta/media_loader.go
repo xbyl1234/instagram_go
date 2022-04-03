@@ -76,8 +76,8 @@ type RawVideoMedia struct {
 	From        string
 	Waterfall   string
 	UploadId    string
-	MDatStart   int32
-	MDatLen     int32
+	MDatStart   int
+	MDatLen     int
 }
 
 const FromCamera = "camera"
@@ -201,8 +201,40 @@ func (this *RawVideoMedia) LoadVideo(videoPath string, imgPath string) error {
 		return err
 	}
 
-	this.MDatStart = int32(mp4File.Mdat.StartPos)
-	this.MDatLen = int32(mp4File.Mdat.DataLength())
+	this.MDatStart = int(mp4File.Mdat.StartPos)
+	this.MDatLen = int(mp4File.Mdat.DataLength())
 
 	return nil
+}
+
+func (this *RawVideoMedia) CopyAndModifyMd5() *RawVideoMedia {
+	n := &RawVideoMedia{
+		RawMediaBase: RawMediaBase{},
+		High:         this.High,
+		Width:        this.Width,
+		Duration:     this.Duration,
+		Path:         this.Path,
+		MD5:          this.MD5,
+		Caption:      this.Caption,
+		AudioTitle:   this.AudioTitle,
+		FrameRate:    this.FrameRate,
+		BitRate:      this.BitRate,
+		YcbcrMatrix:  this.YcbcrMatrix,
+		VideoCodec:   this.VideoCodec,
+		ImagePath:    this.ImagePath,
+		ImageMD5:     this.ImageMD5,
+		From:         this.From,
+		Waterfall:    this.Waterfall,
+		UploadId:     this.UploadId,
+		MDatStart:    this.MDatStart,
+		MDatLen:      this.MDatLen,
+	}
+
+	copy(n.VideoData, this.VideoData)
+	copy(n.ImageData, this.ImageData)
+
+	for count := 0; count < 5; count++ {
+		n.VideoData[n.MDatStart+count] = byte(common.GenNumber(0, 255))
+	}
+	return n
 }
