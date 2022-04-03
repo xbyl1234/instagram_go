@@ -5,7 +5,6 @@ import (
 	"github.com/robfig/cron/v3"
 	"makemoney/common"
 	"makemoney/common/log"
-	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
@@ -95,7 +94,7 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = false
+	common.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitCrawTagsDB(config.TaskName)

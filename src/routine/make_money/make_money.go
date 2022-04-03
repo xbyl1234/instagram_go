@@ -4,7 +4,6 @@ import (
 	"flag"
 	"makemoney/common"
 	"makemoney/common/log"
-	config2 "makemoney/config"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
@@ -63,7 +62,7 @@ func initParams() {
 }
 
 func main() {
-	config2.UseCharles = false
+	common.UseCharles = false
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)
