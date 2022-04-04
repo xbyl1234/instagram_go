@@ -112,7 +112,7 @@ type UserProfile struct {
 	ExternalUrl string `json:"external_url"`
 	Biography   string `json:"biography"`
 	FirstName   string `json:"first_name"`
-	UploadId    string `json:"upload_id"`
+	//UploadId    string `json:"upload_id"`
 	//Username    string `json:"username"`
 	Email string `json:"email"`
 }
@@ -134,28 +134,36 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 		profile.Email = this.Detail.Email
 	}
 
-	params := map[string]interface{}{
-		//"client_timestamp": fmt.Sprintf("%d", time.Now().Unix()),
-		//"timezone_offset":  this.inst.AccountInfo.Location.Timezone,.
-		"_uuid":        this.inst.AccountInfo.Device.DeviceID,
-		"_uid":         this.inst.ID,
-		"phone_number": this.Detail.PhoneNumber,
-		"external_url": profile.ExternalUrl,
-		"biography":    profile.Biography,
-		"first_name":   profile.FirstName,
-		"username":     this.inst.User,
-		"device_id":    this.inst.AccountInfo.Device.DeviceID,
-		"email":        profile.Email,
+	params := &struct {
+		Uuid        string `json:"_uuid"`
+		DeviceId    string `json:"device_id"`
+		ExternalUrl string `json:"external_url"`
+		Uid         string `json:"_uid"`
+		Username    string `json:"username"`
+		Email       string `json:"email"`
+		PhoneNumber string `json:"phone_number"`
+		Biography   string `json:"biography"`
+		FirstName   string `json:"first_name"`
+	}{
+		Uuid:        this.inst.AccountInfo.Device.DeviceID,
+		Uid:         fmt.Sprintf("%d", this.inst.ID),
+		PhoneNumber: this.Detail.PhoneNumber,
+		ExternalUrl: profile.ExternalUrl,
+		Biography:   profile.Biography,
+		FirstName:   profile.FirstName,
+		Username:    this.inst.User,
+		DeviceId:    this.inst.AccountInfo.Device.DeviceID,
+		Email:       profile.Email,
 	}
 
-	if profile.UploadId != "" {
-		params["upload_id"] = profile.UploadId
-	}
+	//if profile.UploadId != "" {
+	//	params["upload_id"] = profile.UploadId
+	//}
 
 	var resp RespChangeProfilePicture
 	err := this.inst.HttpRequestJson(&reqOptions{
 		ApiPath: urlEditProfile,
-		Query:   params,
+		Json:    params,
 		Signed:  true,
 		IsPost:  true},
 		&resp)

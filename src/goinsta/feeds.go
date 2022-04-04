@@ -1,155 +1,121 @@
 package goinsta
 
-//
-//import (
-//	"encoding/json"
-//	"fmt"
-//)
-//
-//// Feed is the object for all feed endpoints.
-//type Feed struct {
-//	inst *Instagram
-//}
-//
-//// newFeed creates new Feed structure
-//func newFeed(inst *Instagram) *Feed {
-//	return &Feed{
-//		inst: inst,
-//	}
-//}
-//
-//// Feed search by locationID
-//func (feed *Feed) LocationID(locationID int64) (*FeedLocation, error) {
-//	insta := feed.inst
-//	body, err := insta.sendRequest(
-//		&reqOptions{
-//			ApiPath: fmt.Sprintf(urlFeedLocationID, locationID),
-//			Query: map[string]string{
-//				"rank_token":     insta.rankToken,
-//				"ranked_content": "true",
-//			},
-//		},
-//	)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	res := &FeedLocation{}
-//	err = json.Unmarshal(body, res)
-//	return res, err
-//}
-//
-//// FeedLocation is the struct that fits the structure returned by instagram on LocationID search.
-//type FeedLocation struct {
-//	RankedItems         []Item   `json:"ranked_items"`
-//	Items               []Item   `json:"items"`
-//	NumResults          int      `json:"num_results"`
-//	NextID              string   `json:"next_max_id"`
-//	MoreAvailable       bool     `json:"more_available"`
-//	AutoLoadMoreEnabled bool     `json:"auto_load_more_enabled"`
-//	MediaCount          int      `json:"media_count"`
-//	Location            Location `json:"location"`
-//	Status              string   `json:"status"`
-//}
-//
-//// Tags search by Tag in user Feed
-////
-//// (sorry for returning FeedTag. See #FeedTag)
-//func (feed *Feed) Tags(tag string) (*FeedTag, error) {
-//	insta := feed.inst
-//	body, err := insta.sendRequest(
-//		&reqOptions{
-//			ApiPath: fmt.Sprintf(urlFeedTag, tag),
-//			Query: map[string]string{
-//				"rank_token":     insta.rankToken,
-//				"ranked_content": "true",
-//			},
-//		},
-//	)
-//	if err != nil {
-//		return nil, err
-//	}
-//	res := &FeedTag{}
-//	err = json.Unmarshal(body, res)
-//	if err != nil {
-//		return nil, err
-//	}
-//	res.name = tag
-//	res.inst = feed.inst
-//	res.setValues()
-//
-//	return res, nil
-//}
-//
-//// FeedTag is the struct that fits the structure returned by instagram on TagSearch.
-//type FeedTag struct {
-//	inst *Instagram
-//	err  error
-//
-//	name string
-//
-//	RankedItems         []Item     `json:"ranked_items"`
-//	Images              []Item     `json:"items"`
-//	NumResults          int        `json:"num_results"`
-//	NextID              string     `json:"next_max_id"`
-//	MoreAvailable       bool       `json:"more_available"`
-//	AutoLoadMoreEnabled bool       `json:"auto_load_more_enabled"`
-//	Story               StoryMedia `json:"story"`
-//	Status              string     `json:"status"`
-//}
-//
-//func (ft *FeedTag) setValues() {
-//	for i := range ft.RankedItems {
-//		ft.RankedItems[i].media = &FeedMedia{
-//			inst:   ft.inst,
-//			NextID: ft.RankedItems[i].ID,
-//		}
-//	}
-//
-//	for i := range ft.Images {
-//		ft.Images[i].media = &FeedMedia{
-//			inst:   ft.inst,
-//			NextID: ft.Images[i].ID,
-//		}
-//	}
-//}
-//
-//// Next paginates over hashtag feed.
-//func (ft *FeedTag) Next() bool {
-//	if ft.err != nil {
-//		return false
-//	}
-//
-//	insta := ft.inst
-//	name := ft.name
-//	body, err := insta.sendRequest(
-//		&reqOptions{
-//			Query: map[string]string{
-//				"max_id":     ft.NextID,
-//				"rank_token": insta.rankToken,
-//			},
-//			ApiPath: fmt.Sprintf(urlFeedTag, name),
-//		},
-//	)
-//	if err == nil {
-//		newFT := &FeedTag{}
-//		err = json.Unmarshal(body, newFT)
-//		if err == nil {
-//			*ft = *newFT
-//			ft.inst = insta
-//			ft.name = name
-//			if !ft.MoreAvailable {
-//				ft.err = ErrNoMore
-//			}
-//			ft.setValues()
-//			return true
-//		}
-//	}
-//	ft.err = err
-//	return false
-//}
-//
-////Error returns hashtag error
-//func (ft *FeedTag) Error() error {
-//	return ft.err
-//}
+import (
+	"encoding/json"
+	"fmt"
+	"makemoney/common"
+	"strings"
+	"time"
+)
+
+const clipsTab = "clips_tab"
+const containerModule = "clips_viewer_clips_tab"
+const pctReels = "0"
+
+type Feed struct {
+	Inst        *Instagram
+	LastMedias  *VideosFeedResp
+	lastReqTime time.Time
+
+	TabType         string
+	ContainerModule string
+	PctReels        string
+	SessionInfo     string
+	SessionId       string
+	SeenReels       string
+	MaxId           string
+	MoreAvailable   bool
+}
+
+type NumLoop struct {
+	Value         int `json:"value"`
+	LastLoopEndTs int `json:"last_loop_end_ts"`
+}
+type TotalWatchTime struct {
+	Value           int     `json:"value"`
+	LatestPlayEndTs float64 `json:"latest_play_end_ts"`
+}
+
+type SeenInfoItem struct {
+	NumLoops         NumLoop        `json:"num_loops"`
+	TotalWatchTimeMs TotalWatchTime `json:"total_watch_time_ms"`
+}
+
+type SeenInfo struct {
+	Items map[string]*SeenInfoItem
+}
+
+func newFeed(inst *Instagram) *Feed {
+	return &Feed{
+		Inst:            inst,
+		MoreAvailable:   true,
+		TabType:         clipsTab,
+		ContainerModule: containerModule,
+		PctReels:        pctReels,
+		SessionId:       fmt.Sprintf("%d_%s", inst.ID, strings.ToUpper(common.GenUUID())),
+	}
+}
+
+func (this *Feed) Next() (*VideosFeedResp, error) {
+	if this.MoreAvailable {
+		return nil, &common.MakeMoneyError{ErrStr: "no more", ErrType: common.NoMoreError}
+	}
+
+	params := map[string]interface{}{
+		"tab_type":         this.TabType,
+		"session_id":       this.SessionId,
+		"_uuid":            this.Inst.AccountInfo.Device.DeviceID,
+		"container_module": this.ContainerModule,
+		"pct_reels":        this.PctReels,
+	}
+
+	if this.MaxId != "" {
+		params["max_id"] = this.MaxId
+		type SeenReel struct {
+			Id string `json:"id"`
+		}
+		var seenReels []SeenReel
+		var seenInfo SeenInfo
+		used := 0
+		for _, item := range this.LastMedias.Items {
+			//item.Media.Pk
+			id := fmt.Sprintf("%d", item.Media.Pk)
+			seenReels = append(seenReels, SeenReel{Id: id})
+			used += common.GenNumber(100, 2000)
+			seenInfo.Items[id] = &SeenInfoItem{
+				NumLoops: NumLoop{
+					Value:         0,
+					LastLoopEndTs: 0,
+				},
+				TotalWatchTimeMs: TotalWatchTime{
+					Value:           used,
+					LatestPlayEndTs: float64(this.lastReqTime.Add(time.Duration(used) * time.Millisecond).Unix()),
+				},
+			}
+		}
+		marshal, err := json.Marshal(seenReels)
+		if err == nil {
+			params["seen_reels"] = common.B2s(marshal)
+		}
+		marshal, err = json.Marshal(seenInfo.Items)
+		if err == nil {
+			params["session_info"] = common.B2s(marshal)
+		}
+	}
+
+	ret := &VideosFeedResp{}
+	err := this.Inst.HttpRequestJson(&reqOptions{
+		IsPost:         false,
+		ApiPath:        urlDiscoverVideosFeed,
+		HeaderSequence: LoginHeaderMap[urlDiscoverVideosFeed],
+		Query:          params,
+	}, ret)
+
+	this.lastReqTime = time.Now()
+	err = ret.CheckError(err)
+	if err == nil {
+		this.MaxId = ret.PagingInfo.MaxId
+		this.MoreAvailable = ret.PagingInfo.MoreAvailable
+	}
+	return ret, err
+}

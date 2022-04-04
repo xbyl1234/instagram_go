@@ -208,28 +208,20 @@ func (this *Instagram) httpDo(reqOpt *reqOptions) ([]byte, error) {
 	} else if reqOpt.Json != nil {
 		bf = bytes.NewBuffer([]byte{})
 		var query string
-
-		if reqOpt.IsPost && this.IsLogin && !reqOpt.IsApiGraph {
-			if this.token != "" {
-				reqOpt.Query["_csrftoken"] = this.token
-			}
-			//reqOpt.Query["_uuid"] = this.Device.DeviceID
-			//reqOpt.Query["_uid"] = this.ID
+		_query, err := json.Marshal(reqOpt.Json)
+		if err != nil {
+			return nil, err
 		}
-
+		query = common.B2s(_query)
 		if reqOpt.Signed {
-			_query, err := json.Marshal(reqOpt.Json)
-			if err != nil {
-				return nil, err
-			}
-			query = strings.ReplaceAll(common.B2s(_query), "\\\\", "\\") //for password
+			query = strings.ReplaceAll(query, "\\\\", "\\") //for password
 			query = "signed_body=SIGNATURE." + common.InstagramQueryEscape(query)
 		}
 
 		if reqOpt.IsPost {
 			bf.WriteString(query)
 		} else {
-			_url.RawQuery = query
+			log.Warn("url %s get not allow Json", reqOpt.ApiPath)
 		}
 	} else {
 		bf = bytes.NewBuffer([]byte{})

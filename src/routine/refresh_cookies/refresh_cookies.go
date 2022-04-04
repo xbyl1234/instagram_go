@@ -5,7 +5,7 @@ import (
 	"flag"
 	"makemoney/common"
 	"makemoney/common/log"
-	config2 "makemoney/config"
+	"makemoney/common/proxys"
 	"makemoney/goinsta"
 	"makemoney/routine"
 	"os"
@@ -291,8 +291,8 @@ func TestDevice() {
 }
 
 func main() {
-	config2.UseCharles = false
-	config2.UseTruncation = true
+	common.UseCharles = false
+	common.UseTruncation = true
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
@@ -320,8 +320,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	//insts := goinsta.LoadAllAccount()
-	insts := goinsta.LoadAccountByTags([]string{"msg"})
+	insts := goinsta.LoadAllAccount()
+	//insts := goinsta.LoadAccountByTags([]string{"msg"})
 	if len(insts) == 0 {
 		log.Error("there have no account!")
 		os.Exit(0)

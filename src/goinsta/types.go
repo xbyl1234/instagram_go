@@ -113,16 +113,6 @@ type Candidate struct {
 	URL    string `json:"url"`
 }
 
-// Tag is the information of an user being tagged on any media.
-type UserTag struct {
-	In []struct {
-		User                  User        `json:"user"`
-		Position              []float64   `json:"position"`
-		StartTimeInVideoInSec interface{} `json:"start_time_in_video_in_sec"`
-		DurationInVideoInSec  interface{} `json:"duration_in_video_in_sec"`
-	} `json:"in"`
-}
-
 // Caption is media caption
 type Caption struct {
 	ID                 int64  `json:"pk"`

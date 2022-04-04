@@ -164,6 +164,10 @@ func CleanStatus() error {
 func SaveInstToDB(inst *Instagram) error {
 	url, _ := neturl.Parse(InstagramHost)
 	urlb, _ := neturl.Parse(InstagramHost_B)
+	var proxyId string
+	if inst.Proxy != nil {
+		proxyId = inst.Proxy.ID
+	}
 
 	Cookies := AccountCookies{
 		ID:           inst.ID,
@@ -174,7 +178,7 @@ func SaveInstToDB(inst *Instagram) error {
 		Cookies:      inst.c.Jar.Cookies(url),
 		CookiesB:     inst.c.Jar.Cookies(urlb),
 		HttpHeader:   inst.httpHeader,
-		ProxyID:      inst.Proxy.ID,
+		ProxyID:      proxyId,
 		IsLogin:      inst.IsLogin,
 		Status:       inst.Status,
 		SpeedControl: inst.SpeedControl,
