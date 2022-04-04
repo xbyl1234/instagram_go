@@ -15,7 +15,6 @@ var (
 type Item struct {
 	Inst *Instagram `bson:"-"`
 	//Comments *Comments  `json:"-" bson:"-"`
-
 	CanSeeInsightsAsBrand      bool   `json:"can_see_insights_as_brand" bson:"can_see_insights_as_brand"`
 	CanViewMorePreviewComments bool   `json:"can_view_more_preview_comments" bson:"can_view_more_preview_comments"`
 	CommercialityStatus        string `json:"commerciality_status" bson:"commerciality_status"`

@@ -31,53 +31,6 @@ type reqOptions struct {
 	RawApiPath     string
 }
 
-type BaseApiResp struct {
-	url  string
-	inst *Instagram
-
-	Status     string `json:"status"`
-	ErrorType  string `json:"error_type"`
-	Message    string `json:"message"`
-	ErrorTitle string `json:"error_title"`
-}
-
-func (this *BaseApiResp) SetInfo(url string, inst *Instagram) {
-	this.inst = inst
-	this.url = url
-}
-
-func (this *BaseApiResp) isError() bool {
-	return this.Status != "ok"
-}
-
-func (this *BaseApiResp) CheckError(err error) error {
-	if err != nil {
-		return err
-	}
-	if this == nil {
-		return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.OtherError}
-	}
-	if this.Status != "ok" {
-		log.Warn("account: %s, url: %s, api error: %s",
-			this.inst.User,
-			this.url,
-			this.ErrorType+":"+this.Message)
-		if this.Message == InsAccountError_ChallengeRequired {
-			this.inst.Status = InsAccountError_ChallengeRequired
-			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ChallengeRequiredError}
-		} else if this.Message == InsAccountError_Feedback {
-			this.inst.Status = InsAccountError_Feedback
-			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.FeedbackError}
-		} else if this.Message == InsAccountError_LoginRequired {
-			this.inst.Status = InsAccountError_LoginRequired
-			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.LoginRequiredError}
-		} else {
-			return &common.MakeMoneyError{ErrStr: this.Message, ErrType: common.ApiError}
-		}
-	}
-	return nil
-}
-
 func SetHeader(req *http.Request, key string, vul string) {
 	//req.Header[key] = []string{vul}
 	req.Header.Set(key, vul)

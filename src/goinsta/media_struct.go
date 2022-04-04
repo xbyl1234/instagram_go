@@ -29,6 +29,7 @@ type MediaUser struct {
 	HasPrimaryCountryInFeed    bool          `json:"has_primary_country_in_feed"`
 	HasPrimaryCountryInProfile bool          `json:"has_primary_country_in_profile"`
 }
+
 type CommentUser struct {
 	Pk                 int64  `json:"pk"`
 	Username           string `json:"username"`
@@ -441,4 +442,76 @@ type VideosFeedResp struct {
 		MaxId         string `json:"max_id"`
 		MoreAvailable bool   `json:"more_available"`
 	} `json:"paging_info"`
+}
+
+type Comment struct {
+	Pk              int64  `json:"pk"`
+	UserId          int64  `json:"user_id"`
+	Text            string `json:"text"`
+	Type            int    `json:"type"`
+	CreatedAt       int    `json:"created_at"`
+	CreatedAtUtc    int    `json:"created_at_utc"`
+	ContentType     string `json:"content_type"`
+	Status          string `json:"status"`
+	BitFlags        int    `json:"bit_flags"`
+	DidReportAsSpam bool   `json:"did_report_as_spam"`
+	ShareEnabled    bool   `json:"share_enabled"`
+	User            struct {
+		Pk                 int64  `json:"pk"`
+		Username           string `json:"username"`
+		FullName           string `json:"full_name"`
+		IsPrivate          bool   `json:"is_private"`
+		ProfilePicUrl      string `json:"profile_pic_url"`
+		ProfilePicId       string `json:"profile_pic_id,omitempty"`
+		IsVerified         bool   `json:"is_verified"`
+		FollowFrictionType int    `json:"follow_friction_type"`
+		GrowthFrictionInfo struct {
+			HasActiveInterventions bool `json:"has_active_interventions"`
+			Interventions          struct {
+			} `json:"interventions"`
+		} `json:"growth_friction_info"`
+		IsMentionable          bool          `json:"is_mentionable"`
+		AccountBadges          []interface{} `json:"account_badges"`
+		LatestReelMedia        int           `json:"latest_reel_media"`
+		LatestBestiesReelMedia int           `json:"latest_besties_reel_media"`
+	} `json:"user"`
+	IsCovered            bool          `json:"is_covered"`
+	HasLikedComment      bool          `json:"has_liked_comment"`
+	CommentLikeCount     int           `json:"comment_like_count"`
+	ChildCommentCount    int           `json:"child_comment_count"`
+	PreviewChildComments []interface{} `json:"preview_child_comments"`
+	OtherPreviewUsers    []struct {
+		Id            int64  `json:"id"`
+		ProfilePicUrl string `json:"profile_pic_url"`
+	} `json:"other_preview_users"`
+	InlineComposerDisplayCondition string `json:"inline_composer_display_condition"`
+	CommentIndex                   int    `json:"comment_index"`
+	PrivateReplyStatus             int    `json:"private_reply_status"`
+	NumTailChildComments           int    `json:"num_tail_child_comments,omitempty"`
+	HasMoreTailChildComments       bool   `json:"has_more_tail_child_comments,omitempty"`
+	HasMoreHeadChildComments       bool   `json:"has_more_head_child_comments,omitempty"`
+}
+
+type RespComments struct {
+	BaseApiResp
+	CommentLikesEnabled     bool         `json:"comment_likes_enabled"`
+	Comments                []Comment    `json:"comments"`
+	CommentCount            int          `json:"comment_count"`
+	Caption                 MediaCaption `json:"caption"`
+	CaptionIsEdited         bool         `json:"caption_is_edited"`
+	HasMoreComments         bool         `json:"has_more_comments"`
+	HasMoreHeadloadComments bool         `json:"has_more_headload_comments"`
+	ThreadingEnabled        bool         `json:"threading_enabled"`
+	MediaHeaderDisplay      string       `json:"media_header_display"`
+	InitiateAtTop           bool         `json:"initiate_at_top"`
+	InsertNewCommentToTop   bool         `json:"insert_new_comment_to_top"`
+	QuickResponseEmojis     []struct {
+		Unicode string `json:"unicode"`
+	} `json:"quick_response_emojis"`
+	PreviewComments            []interface{} `json:"preview_comments"`
+	CanViewMorePreviewComments bool          `json:"can_view_more_preview_comments"`
+	NextMinId                  string        `json:"next_min_id"`
+	ScrollBehavior             int           `json:"scroll_behavior"`
+	CommentCoverPos            string        `json:"comment_cover_pos"`
+	IsRanked                   bool          `json:"is_ranked"`
 }
