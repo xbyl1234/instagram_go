@@ -24,8 +24,36 @@
     {
       "oper_name": "like_user",
       "each_second": 1,
+      "each_minute": 5,
+      "each_hour": 20,
+      "each_day": 200
+    },
+    {
+      "oper_name": "comment",
+      "each_second": 1,
+      "each_minute": 5,
+      "each_hour": 20,
+      "each_day": 200
+    },
+    {
+      "oper_name": "post_img",
+      "each_second": 1,
+      "each_minute": 1,
+      "each_hour": 1,
+      "each_day": 1
+    },
+    {
+      "oper_name": "post_video",
+      "each_second": 1,
+      "each_minute": 1,
+      "each_hour": 1,
+      "each_day": 1
+    },
+    {
+      "oper_name": "feed_video",
+      "each_second": 1,
       "each_minute": 2,
-      "each_hour": 40,
+      "each_hour": 30,
       "each_day": 200
     }
   ]

@@ -12,7 +12,7 @@ const clipsTab = "clips_tab"
 const containerModule = "clips_viewer_clips_tab"
 const pctReels = "0"
 
-type Feed struct {
+type VideoFeed struct {
 	Inst        *Instagram
 	LastMedias  *VideosFeedResp
 	lastReqTime time.Time
@@ -36,17 +36,18 @@ type TotalWatchTime struct {
 	LatestPlayEndTs float64 `json:"latest_play_end_ts"`
 }
 
-type SeenInfoItem struct {
+type SeenMediaInfoItem struct {
 	NumLoops         NumLoop        `json:"num_loops"`
 	TotalWatchTimeMs TotalWatchTime `json:"total_watch_time_ms"`
 }
 
 type SeenInfo struct {
-	Items map[string]*SeenInfoItem
+	Items     map[string]*SeenMediaInfoItem `json:"media_info"`
+	SessionId string                        `json:"session_id"`
 }
 
-func newFeed(inst *Instagram) *Feed {
-	return &Feed{
+func newVideoFeed(inst *Instagram) *VideoFeed {
+	return &VideoFeed{
 		Inst:            inst,
 		MoreAvailable:   true,
 		TabType:         clipsTab,
@@ -56,10 +57,13 @@ func newFeed(inst *Instagram) *Feed {
 	}
 }
 
-func (this *Feed) Next() (*VideosFeedResp, error) {
-	if this.MoreAvailable {
-		return nil, &common.MakeMoneyError{ErrStr: "no more", ErrType: common.NoMoreError}
+func (this *VideoFeed) Next() (*VideosFeedResp, error) {
+	if !this.MoreAvailable {
+		this.MoreAvailable = true
+		this.SessionId = fmt.Sprintf("%d_%s", this.Inst.ID, strings.ToUpper(common.GenUUID()))
+		//return nil, &common.MakeMoneyError{ErrStr: "no more", ErrType: common.NoMoreError}
 	}
+	this.Inst.Increase(OperNameFeedVideo)
 
 	params := map[string]interface{}{
 		"tab_type":         this.TabType,
@@ -75,14 +79,18 @@ func (this *Feed) Next() (*VideosFeedResp, error) {
 			Id string `json:"id"`
 		}
 		var seenReels []SeenReel
-		var seenInfo SeenInfo
+		var seenInfo = SeenInfo{
+			Items:     map[string]*SeenMediaInfoItem{},
+			SessionId: this.SessionId,
+		}
+
 		used := 0
 		for _, item := range this.LastMedias.Items {
 			//item.Media.Pk
 			id := fmt.Sprintf("%d", item.Media.Pk)
 			seenReels = append(seenReels, SeenReel{Id: id})
 			used += common.GenNumber(100, 2000)
-			seenInfo.Items[id] = &SeenInfoItem{
+			seenInfo.Items[id] = &SeenMediaInfoItem{
 				NumLoops: NumLoop{
 					Value:         0,
 					LastLoopEndTs: 0,
@@ -97,7 +105,7 @@ func (this *Feed) Next() (*VideosFeedResp, error) {
 		if err == nil {
 			params["seen_reels"] = common.B2s(marshal)
 		}
-		marshal, err = json.Marshal(seenInfo.Items)
+		marshal, err = json.Marshal(seenInfo)
 		if err == nil {
 			params["session_info"] = common.B2s(marshal)
 		}
@@ -105,7 +113,8 @@ func (this *Feed) Next() (*VideosFeedResp, error) {
 
 	ret := &VideosFeedResp{}
 	err := this.Inst.HttpRequestJson(&reqOptions{
-		IsPost:         false,
+		IsPost:         true,
+		Signed:         true,
 		ApiPath:        urlDiscoverVideosFeed,
 		HeaderSequence: LoginHeaderMap[urlDiscoverVideosFeed],
 		Query:          params,
@@ -114,8 +123,15 @@ func (this *Feed) Next() (*VideosFeedResp, error) {
 	this.lastReqTime = time.Now()
 	err = ret.CheckError(err)
 	if err == nil {
+		this.LastMedias = ret
 		this.MaxId = ret.PagingInfo.MaxId
 		this.MoreAvailable = ret.PagingInfo.MoreAvailable
+		if !ret.PagingInfo.MoreAvailable {
+			ret.PagingInfo.MoreAvailable = false
+		}
+		if len(ret.Items) == 0 {
+			ret.PagingInfo.MoreAvailable = false
+		}
 	}
 	return ret, err
 }

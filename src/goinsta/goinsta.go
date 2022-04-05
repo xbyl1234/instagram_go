@@ -14,13 +14,6 @@ import (
 	"time"
 )
 
-var (
-	InsAccountError_ChallengeRequired = "challenge_required"
-	InsAccountError_LoginRequired     = "login_required"
-	InsAccountError_Feedback          = "feedback_required"
-	InsAccountError_RateLimitError    = "rate_limit_error"
-)
-
 var ProxyCallBack func(country string, id string) (*common.Proxy, error)
 
 type Operation struct {
@@ -41,6 +34,7 @@ type InstagramOperate struct {
 	Account     *Account
 	Message     *Message
 	UserOperate *UserOperate
+	VideoFeed   *VideoFeed
 }
 
 type Instagram struct {
@@ -120,6 +114,17 @@ func (this *Instagram) GetAccount() *Account {
 		this.Operate.Account = &Account{ID: this.ID, inst: this}
 	}
 	return this.Operate.Account
+}
+
+func (this *Instagram) GetVideoFeed() *VideoFeed {
+	if this.Operate.VideoFeed == nil {
+		this.Operate.VideoFeed = newVideoFeed(this)
+	}
+	return this.Operate.VideoFeed
+}
+
+func (this *Instagram) NewComments(id string) *Comments {
+	return newComments(this, id)
 }
 
 func (this *Instagram) NewUser(id string) *User {

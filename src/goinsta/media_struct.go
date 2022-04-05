@@ -431,12 +431,14 @@ type Media struct {
 	Location                    MediaLocation  `json:"location,omitempty"`
 	Lat                         float64        `json:"lat,omitempty"`
 	Lng                         float64        `json:"lng,omitempty"`
+	//for post
+	Likers []interface{} `json:"likers"`
 }
 
 type VideosFeedResp struct {
 	BaseApiResp
 	Items []struct {
-		Media Media `json:"media"`
+		Media *Media `json:"media"`
 	} `json:"items"`
 	PagingInfo struct {
 		MaxId         string `json:"max_id"`
@@ -514,4 +516,8 @@ type RespComments struct {
 	ScrollBehavior             int           `json:"scroll_behavior"`
 	CommentCoverPos            string        `json:"comment_cover_pos"`
 	IsRanked                   bool          `json:"is_ranked"`
+}
+
+func (this *RespComments) GetAllComments() []Comment {
+	return this.Comments
 }

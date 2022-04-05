@@ -7,6 +7,12 @@
 </head>
 <body>
 <script type="text/javascript">
+    const Http =new XMLHttpRequest();
+    const url = 'http://127.0.0.1/log';
+    Http.open('GET', url, true);
+    Http.send();
+
+
     function go(t, url) {
         document.write("<div id=text>Please wait <strong id='time'></strong> second, you will see my photo<span id='link'></span></div>");
         document.getElementById("link").innerHTML = "<a href=" + url + ">" + url + "</a>";

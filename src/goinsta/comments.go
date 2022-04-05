@@ -7,8 +7,7 @@ import (
 )
 
 type Comments struct {
-	media *Item      `bson:"-"`
-	Inst  *Instagram `bson:"-"`
+	Inst *Instagram `bson:"-"`
 
 	MediaID string `json:"media_id" bson:"media_id"`
 	//Next    struct {
@@ -19,12 +18,17 @@ type Comments struct {
 	HasMore bool   `json:"has_more" bson:"has_more"`
 }
 
-func (this *Comments) SetAccount(inst *Instagram) {
-	this.Inst = inst
+func newComments(inst *Instagram, mediaID string) *Comments {
+	return &Comments{
+		Inst:    inst,
+		MediaID: mediaID,
+		Next:    "",
+		HasMore: true,
+	}
 }
 
-func (this *RespComments) GetAllComments() []Comment {
-	return this.Comments
+func (this *Comments) SetAccount(inst *Instagram) {
+	this.Inst = inst
 }
 
 func (this *Comments) NextComments() (*RespComments, error) {

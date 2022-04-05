@@ -7,7 +7,6 @@ import (
 )
 
 type ProxyImpl interface {
-	GetNoRisk(busy bool, used bool) *common.Proxy
 	Get(id string) *common.Proxy
 	Remove(proxy *common.Proxy)
 	Dumps()
@@ -38,21 +37,13 @@ func (this *ProxyPoolt) Get(country string, id string) *common.Proxy {
 	if p == nil {
 		return nil
 	}
-	return p.Get(id)
-}
-
-func (this *ProxyPoolt) GetNoRisk(country string, busy bool, used bool) *common.Proxy {
-	if country == "" {
-		for key := range this.proxys {
-			country = key
-			break
+	for true {
+		proxy := p.Get(id)
+		if !proxy.IsOutLiveTime() {
+			return proxy
 		}
 	}
-	p := this.proxys[country]
-	if p == nil {
-		return nil
-	}
-	return p.GetNoRisk(busy, used)
+	return nil
 }
 
 var ProxyPool ProxyPoolt

@@ -6,6 +6,12 @@ import (
 )
 
 var UsePanic = true
+var (
+	InsAccountError_ChallengeRequired = "challenge_required"
+	InsAccountError_LoginRequired     = "login_required"
+	InsAccountError_Feedback          = "feedback_required"
+	InsAccountError_RateLimitError    = "rate_limit_error"
+)
 
 type BaseApiResp struct {
 	url  string

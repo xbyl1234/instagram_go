@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"makemoney/common"
 	"makemoney/goinsta"
 )
 
@@ -35,10 +36,30 @@ func InitCrawFansDB(taskName string, targetFansDBName string, targetFansCollName
 }
 
 var SendTargeUserColl *mongo.Collection
+var ShareMediaLogColl *mongo.Collection
 
 func InitSendMsgDB(TargetUserDB string, TargetUserCollection string) {
 	targetDB := goinsta.GetDB(TargetUserDB)
 	SendTargeUserColl = targetDB.Collection(TargetUserCollection)
+
+	logDB := goinsta.GetDB("instagram_log")
+	ShareMediaLogColl = logDB.Collection("share_media2")
+}
+
+type ShareMediaLog struct {
+	Username string         `bson:"username"`
+	Link     string         `bson:"link"`
+	Media    *goinsta.Media `bson:"media"`
+	Time     string         `bson:"time"`
+}
+
+func SaveShareMediaLog(log *ShareMediaLog) error {
+	log.Time = common.GetShanghaiTimeString()
+	_, err := ShareMediaLogColl.InsertOne(context.TODO(), log)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func SaveTags(tags *goinsta.Tags) error {

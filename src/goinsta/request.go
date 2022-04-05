@@ -281,7 +281,7 @@ func (this *Instagram) PrepareProxy() error {
 }
 
 func (this *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
-	if this.Proxy == nil || this.Proxy.Ip == "" {
+	if this.Proxy == nil || this.Proxy.Ip == "" || this.Proxy.IsOutLiveTime() {
 		err := this.PrepareProxy()
 		if err != nil {
 			return nil, err
@@ -305,7 +305,7 @@ func (this *Instagram) HttpRequest(reqOpt *reqOptions) ([]byte, error) {
 }
 
 func (this *Instagram) HttpRequestJson(reqOpt *reqOptions, response interface{}) error {
-	if this.Proxy == nil || this.Proxy.Ip == "" {
+	if this.Proxy == nil || this.Proxy.Ip == "" || this.Proxy.IsOutLiveTime() {
 		err := this.PrepareProxy()
 		if err != nil {
 			return err

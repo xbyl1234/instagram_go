@@ -20,18 +20,24 @@ const (
 )
 
 type Proxy struct {
-	ID        string    `json:"id"`
-	Ip        string    `json:"ip"`
-	Port      string    `json:"port"`
-	Username  string    `json:"username"`
-	Passwd    string    `json:"passwd"`
-	Rip       string    `json:"rip"`
-	ProxyType ProxyType `json:"proxy_type"`
-	NeedAuth  bool      `json:"need_auth"`
-	Country   string    `json:"country"`
-	LiveTime  int       `json:"live_time"`
-	liveTime  time.Duration
+	ID        string        `json:"id"`
+	Ip        string        `json:"ip"`
+	Port      string        `json:"port"`
+	Username  string        `json:"username"`
+	Passwd    string        `json:"passwd"`
+	Rip       string        `json:"rip"`
+	ProxyType ProxyType     `json:"proxy_type"`
+	NeedAuth  bool          `json:"need_auth"`
+	Country   string        `json:"country"`
+	LiveTime  time.Duration `json:"live_time"`
 	StartTime time.Time
+}
+
+func (this *Proxy) IsOutLiveTime() bool {
+	if time.Duration(float64(time.Since(this.StartTime))*0.5) > this.LiveTime {
+		return true
+	}
+	return false
 }
 
 func (this *Proxy) GetProxyUrl() string {
@@ -79,10 +85,11 @@ func (this *Proxy) GetProxy() HttpConfigFun {
 
 		err := http2.ConfigureTransport(tr)
 		if err != nil {
-			fmt.Printf("%v", err)
+			fmt.Printf("new client %v \n", err)
 		}
 	}
 }
+
 func DisableHttpSslPinng() HttpConfigFun {
 	return func(c *http.Client) {
 		tr := c.Transport.(*http.Transport)

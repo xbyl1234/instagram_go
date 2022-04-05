@@ -16,7 +16,7 @@ type SpeedControlConfig struct {
 }
 
 type SpeedControlJson struct {
-	SpeedControl []SpeedControlConfig `json:"speed_control"`
+	SpeedControl []*SpeedControlConfig `json:"speed_control"`
 }
 
 const (
@@ -24,6 +24,10 @@ const (
 	OperNameCrawComment = "craw_comment"
 	OperNameSendMsg     = "send_msg"
 	OperNameLikeUser    = "like_user"
+	OperNameComment     = "comment"
+	OperNamePostImg     = "post_img"
+	OperNamePostVideo   = "post_video"
+	OperNameFeedVideo   = "feed_video"
 )
 
 var SpeedControlConfigMap map[string]*SpeedControlConfig
@@ -36,7 +40,7 @@ func InitSpeedControl(path string) error {
 	}
 	SpeedControlConfigMap = make(map[string]*SpeedControlConfig)
 	for _, item := range config.SpeedControl {
-		SpeedControlConfigMap[item.OperName] = &item
+		SpeedControlConfigMap[item.OperName] = item
 	}
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"makemoney/common/log"
 	"net/http"
 	url2 "net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -20,6 +21,7 @@ type RolaPool struct {
 	proxyMask   []bool
 	client      *http.Client
 	Country     string
+	LiveTime    time.Duration
 }
 
 func InitRolaPool(url string) (ProxyImpl, error) {
@@ -30,14 +32,22 @@ func InitRolaPool(url string) (ProxyImpl, error) {
 	}
 
 	for key, value := range purl.Query() {
-		if key == "protocol" {
+
+		switch key {
+		case "protocol":
 			if value[0] == "socks5" {
 				pool.proxyType = common.ProxySocket
 			} else {
 				pool.proxyType = common.ProxyHttp
 			}
-		} else if key == "country" {
+			break
+		case "country":
 			pool.Country = value[0]
+			break
+		case "time":
+			t, _ := strconv.ParseInt(value[0], 10, 32)
+			pool.LiveTime = time.Duration(t) * time.Minute
+			break
 		}
 	}
 
@@ -79,7 +89,7 @@ func (this *RolaPool) RequestProxy() bool {
 	}
 	this.proxyList = make([]*common.Proxy, len(resp.Data))
 	this.proxyMask = make([]bool, len(resp.Data))
-
+	StartTime := time.Now()
 	for index := range resp.Data {
 		dp := resp.Data[index]
 		sp := strings.Split(dp, ":")
@@ -93,6 +103,8 @@ func (this *RolaPool) RequestProxy() bool {
 			ProxyType: this.proxyType,
 			NeedAuth:  false,
 			Country:   this.Country,
+			StartTime: StartTime,
+			LiveTime:  this.LiveTime,
 		}
 		this.proxyMask[index] = true
 	}

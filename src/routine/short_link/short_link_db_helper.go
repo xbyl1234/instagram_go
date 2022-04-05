@@ -34,7 +34,14 @@ func InitShortLinkDB(mogoUri string) {
 	BlackHistoryColl = Client.Database("short_link").Collection("black_ip")
 }
 
-func ShortLinkLog2DB(log *ShortLinkLogDB) error {
+func DoShortLinkLog2DB(log *ShortLinkLogDB) error {
+	log.TimeTick = time.Now().Unix()
+	log.Time = time.Now().String()
+	_, err := ShortLinkLogColl.InsertOne(context.TODO(), log)
+	return err
+}
+
+func DoShortLinkJsLogDB(log *ShortLinkJsLogDB) error {
 	log.TimeTick = time.Now().Unix()
 	log.Time = time.Now().String()
 	_, err := ShortLinkLogColl.InsertOne(context.TODO(), log)

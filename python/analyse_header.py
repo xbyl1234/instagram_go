@@ -192,7 +192,10 @@ file_name = [
     # "发story拍照.xml",
     # "快拍设置不私.xml"
     # "注册第二次风控.xml"
-    "bio.xml"
+    # "bio.xml"
+    # "刷视频主页.xml",
+    # "评论.xml"
+    "分享视频链接.xml"
 ]
 
 maps = []

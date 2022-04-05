@@ -186,9 +186,9 @@ func LoadScreenplay() error {
 
 func MessageTask() {
 	var WaitAll sync.WaitGroup
-	WaitAll.Add(config.CoroCount + 1)
+	WaitAll.Add(config.Coro + 1)
 	go SendUser(&WaitAll)
-	for index := 0; index < config.CoroCount; index++ {
+	for index := 0; index < config.Coro; index++ {
 		go SendTask(&WaitAll)
 	}
 	WaitAll.Wait()

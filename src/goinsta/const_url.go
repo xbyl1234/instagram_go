@@ -177,5 +177,6 @@ const (
 	//feed
 	urlDiscoverVideosFeed = "api/v1/discover/videos_feed/"
 
-	checkOffensiveComment = "api/v1/media/comment/check_offensive_comment/"
+	urlCheckOffensiveComment = "api/v1/media/comment/check_offensive_comment/"
+	urlShareMedia            = "api/v1/media/%s/permalink/"
 )

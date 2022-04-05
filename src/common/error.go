@@ -1,7 +1,5 @@
 package common
 
-import "fmt"
-
 type MakeMoneyError struct {
 	ErrStr    string
 	ErrType   ErrType
@@ -10,7 +8,14 @@ type MakeMoneyError struct {
 
 // 实现 `error` 接口
 func (this *MakeMoneyError) Error() string {
-	errHead := ""
+	if this.ErrStr != "" {
+		return this.ErrStr
+	}
+	if this.ExternErr != nil {
+		return this.ExternErr.Error()
+	}
+
+	var errHead string
 	switch this.ErrType {
 	case ApiError:
 		errHead = "api error"
@@ -27,12 +32,6 @@ func (this *MakeMoneyError) Error() string {
 	case RequestError:
 		errHead = "request error"
 		break
-	}
-	if this.ErrStr != "" {
-		errHead += "," + this.ErrStr
-	}
-	if this.ExternErr != nil {
-		errHead += "," + fmt.Sprintf("%v", this.ExternErr)
 	}
 	return errHead
 }
