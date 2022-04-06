@@ -67,7 +67,7 @@ func main() {
 	goinsta.UsePanic = true
 	initParams()
 	routine.InitRoutine(config.ProxyPath)
-	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection)
+	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection, config.Develop.LogCollName)
 
 	DevelopAccount()
 }

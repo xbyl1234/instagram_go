@@ -30,10 +30,12 @@ func CheckBlack(req *http.Request, params map[string]string) bool {
 
 	var hasHost = false
 	for _, item := range config.Hosts {
-		if item == req.Host {
+		if strings.Contains(item, req.Host) ||
+			strings.Contains(req.Host, item) {
 			hasHost = true
 		}
 	}
+
 	if !hasHost {
 		log.Warn("ip %s host is black", IP)
 		AddBlack(IP, "host", req)

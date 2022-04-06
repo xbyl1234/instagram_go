@@ -11,6 +11,7 @@ import (
 
 var Client *mongo.Client
 var ShortLinkLogColl *mongo.Collection
+var RedirectColl *mongo.Collection
 var BlackHistoryColl *mongo.Collection
 
 func InitShortLinkDB(mogoUri string) {
@@ -31,6 +32,7 @@ func InitShortLinkDB(mogoUri string) {
 	}
 
 	ShortLinkLogColl = Client.Database("short_link").Collection("short_link_log")
+	RedirectColl = Client.Database("short_link").Collection("redirect_log")
 	BlackHistoryColl = Client.Database("short_link").Collection("black_ip")
 }
 
@@ -41,10 +43,10 @@ func DoShortLinkLog2DB(log *ShortLinkLogDB) error {
 	return err
 }
 
-func DoShortLinkJsLogDB(log *ShortLinkJsLogDB) error {
+func DoRedirectLog(log *RedirectLog) error {
 	log.TimeTick = time.Now().Unix()
 	log.Time = time.Now().String()
-	_, err := ShortLinkLogColl.InsertOne(context.TODO(), log)
+	_, err := RedirectColl.InsertOne(context.TODO(), log)
 	return err
 }
 

@@ -1,10 +1,10 @@
 {
   "task_name": "make_money",
-  "coro": 1,
-  "proxy_path": "./config/proxy_config_ios.json",
+  "coro": 20,
+  "proxy_path": "./config/proxy_config_dove.json",
   "target_user_db": "game_craw",
   "target_user_collection": "users",
-  "account_tag": "dev8",
+  "account_tag": "dev7",
   "msgs": [
     [
       {
@@ -14,7 +14,7 @@
     ]
   ],
   "develop": {
-    "max_sub_comment": 2,
+    "max_sub_comment": 10,
     "comments": [
       "I'm an overseas student and I need some help.%s Can you support me live on the this website   followmebsix.com",
       "%s Can you come to my studio and watch me perform on this followmebsix.com",
@@ -24,6 +24,7 @@
     "need_push_img": false,
     "need_push_video": false,
     "need_like": true,
-    "feed_back_sleep": 3600
+    "feed_back_sleep": 3600,
+    "log_coll_name": "share_media3"
   }
 }

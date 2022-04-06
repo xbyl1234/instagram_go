@@ -6,6 +6,7 @@ import (
 	"makemoney/common/log"
 	"net/http"
 	url2 "net/url"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -20,6 +21,7 @@ type DovePool struct {
 	proxyMask   []bool
 	client      *http.Client
 	Country     string
+	LiveTime    time.Duration
 }
 
 //https://dvapi.doveip.com/cmapi.php?rq=distribute&user=safrg534524&token=RklaOXZUbFp6WTFZQjBSUzVJTkt4QT09&auth=1&geo=US&city=all&agreement=0&timeout=35&num=10
@@ -31,14 +33,21 @@ func InitDovePool(url string) (ProxyImpl, error) {
 	}
 
 	for key, value := range purl.Query() {
-		if key == "agreement" {
+		switch key {
+		case "timeout":
+			t, _ := strconv.ParseInt(value[0], 10, 32)
+			pool.LiveTime = time.Duration(t) * time.Minute
+			break
+		case "agreement":
 			if value[0] == "0" {
 				pool.proxyType = common.ProxySocket
 			} else {
 				pool.proxyType = common.ProxyHttp
 			}
-		} else if key == "geo" {
+			break
+		case "geo":
 			pool.Country = value[0]
+			break
 		}
 	}
 
@@ -95,7 +104,7 @@ func (this *DovePool) RequestProxy() bool {
 	}
 	this.proxyList = make([]*common.Proxy, len(resp.Data))
 	this.proxyMask = make([]bool, len(resp.Data))
-
+	now := time.Now()
 	for index := range resp.Data {
 		dp := &resp.Data[index]
 		this.proxyList[index] = &common.Proxy{
@@ -108,6 +117,8 @@ func (this *DovePool) RequestProxy() bool {
 			ProxyType: this.proxyType,
 			NeedAuth:  true,
 			Country:   this.Country,
+			StartTime: now,
+			LiveTime:  this.LiveTime,
 		}
 		this.proxyMask[index] = true
 	}

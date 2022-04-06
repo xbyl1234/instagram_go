@@ -7,6 +7,7 @@ type Config struct {
 	} `json:"short_link"`
 	FakeHtmlPath     string   `json:"fake_html_path"`
 	RedirectHtmlPath string   `json:"redirect_html_path"`
+	LogUrl           string   `json:"log_url"`
 	MogoUri          string   `json:"mogo_uri"`
 	Black            []Black  `json:"black"`
 	Hosts            []string `json:"hosts"`
@@ -33,16 +34,17 @@ type ShortLinkLogDB struct {
 	ShortLink   string              `bson:"short_link"`
 	Url         string              `bson:"url"`
 	UA          string              `bson:"ua"`
-	IP          string              `bson:"ip"`
-	Host        string              `bson:"host"`
+	RemoteIP    string              `bson:"remote_ip"`
+	RequestHost string              `bson:"request_host"`
 	VisitorType string              `bson:"visitor_type"`
 	ReqHeader   map[string][]string `bson:"req_header"`
 }
 
-type ShortLinkJsLogDB struct {
+type RedirectLog struct {
 	TimeTick  int64               `bson:"time_tick"`
 	Time      string              `bson:"time"`
+	Url       string              `bson:"url"`
 	UA        string              `bson:"ua"`
-	IP        string              `bson:"ip"`
+	RemoteIP  string              `bson:"remote_ip"`
 	ReqHeader map[string][]string `bson:"req_header"`
 }

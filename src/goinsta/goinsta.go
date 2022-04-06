@@ -149,6 +149,11 @@ func (this *Instagram) SetProxy(_proxy *common.Proxy) {
 	_proxy.GetProxy()(this.c)
 }
 
+func (this *Instagram) ResetProxy() {
+	this.Proxy, _ = ProxyCallBack(this.AccountInfo.Register.RegisterIpCountry, "")
+	this.Proxy.GetProxy()(this.c)
+}
+
 func (this *Instagram) IsBad() bool {
 	if this.Status == InsAccountError_ChallengeRequired ||
 		this.Status == InsAccountError_Feedback ||

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/gorilla/mux"
 	"makemoney/common"
 	"makemoney/common/log"
@@ -17,36 +16,6 @@ var FakeHtmlData []byte
 var RedirectHtmlData map[string][]byte
 var blackHistory map[string]*BlackHistory
 var historyLock sync.Mutex
-
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("http: %s\n", r.RemoteAddr)
-	fmt.Printf("get: %s\n", r.URL.RequestURI())
-	fmt.Printf("header:\n")
-	for k, v := range r.Header {
-		fmt.Printf("---\t%s\t\t:\t%s\n", k, v)
-	}
-	fmt.Printf("\n\n")
-	w.Write([]byte("123"))
-}
-
-//time ip is_fb url ua
-
-func doHttpLog(vars map[string]string, visitorType string, req *http.Request) {
-	err := DoShortLinkLog2DB(&ShortLinkLogDB{
-		UserID:      vars["user_id"],
-		ShortLink:   vars["short_link"],
-		Url:         req.RequestURI,
-		UA:          req.UserAgent(),
-		IP:          req.RemoteAddr,
-		Host:        req.Host,
-		VisitorType: visitorType,
-		ReqHeader:   req.Header,
-	})
-
-	if err != nil {
-		log.Error("save log error: %v", err)
-	}
-}
 
 func main() {
 	log.InitDefaultLog("short_link", true, true)
@@ -86,6 +55,7 @@ func main() {
 		log.Error("load %s error: %v", config.RedirectHtmlPath, err)
 		return
 	}
+	data = bytes.ReplaceAll(data, []byte("flag2"), []byte(encryptionCode(config.LogUrl)))
 
 	RedirectHtmlData = make(map[string][]byte)
 	config.ShortLinkMap = make(map[string]string)

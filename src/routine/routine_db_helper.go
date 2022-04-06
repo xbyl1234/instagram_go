@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"makemoney/common"
+	"makemoney/common/log"
 	"makemoney/goinsta"
 )
 
@@ -38,12 +39,24 @@ func InitCrawFansDB(taskName string, targetFansDBName string, targetFansCollName
 var SendTargeUserColl *mongo.Collection
 var ShareMediaLogColl *mongo.Collection
 
-func InitSendMsgDB(TargetUserDB string, TargetUserCollection string) {
+func InitSendMsgDB(TargetUserDB string, TargetUserCollection string, logColl string) {
 	targetDB := goinsta.GetDB(TargetUserDB)
 	SendTargeUserColl = targetDB.Collection(TargetUserCollection)
 
 	logDB := goinsta.GetDB("instagram_log")
-	ShareMediaLogColl = logDB.Collection("share_media2")
+	ShareMediaLogColl = logDB.Collection(logColl)
+	_, err := ShareMediaLogColl.Indexes().CreateOne(
+		context.Background(),
+		mongo.IndexModel{
+			Keys: bson.M{
+				"media.pk": 1,
+			},
+			Options: options.Index().SetSparse(true),
+		},
+	)
+	if err != nil {
+		log.Error("mongo create index error: %v", err)
+	}
 }
 
 type ShareMediaLog struct {
@@ -53,9 +66,21 @@ type ShareMediaLog struct {
 	Time     string         `bson:"time"`
 }
 
+func SaveShareMediaPk(pk int64) error {
+	_, err := ShareMediaLogColl.InsertOne(context.TODO(), bson.M{"media": bson.M{"pk": pk}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func SaveShareMediaLog(log *ShareMediaLog) error {
 	log.Time = common.GetShanghaiTimeString()
-	_, err := ShareMediaLogColl.InsertOne(context.TODO(), log)
+	_, err := ShareMediaLogColl.UpdateOne(context.TODO(),
+		bson.D{
+			{"media.id", log.Media.Pk},
+		}, bson.D{{"$set", log}}, options.Update().SetUpsert(true))
+
 	if err != nil {
 		return err
 	}

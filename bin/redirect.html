@@ -7,12 +7,10 @@
 </head>
 <body>
 <script type="text/javascript">
-    const Http =new XMLHttpRequest();
-    const url = 'http://127.0.0.1/log';
-    Http.open('GET', url, true);
+    const Http = new XMLHttpRequest();
+    const log_url = "flag2";
+    Http.open('GET', unEncryptionCode(log_url), true);
     Http.send();
-
-
     function go(t, url) {
         document.write("<div id=text>Please wait <strong id='time'></strong> second, you will see my photo<span id='link'></span></div>");
         document.getElementById("link").innerHTML = "<a href=" + url + ">" + url + "</a>";
@@ -23,14 +21,12 @@
             go_to(url);
         }, 1000);
     }
-
     function go_to(url) {
         div_time.innerHTML = ta--;
         if (ta < 0) {
             location.href = url;
         }
     }
-
     function unEncryptionCode(str) {
         var k = str.split(",");
         var rs = "";
@@ -39,7 +35,6 @@
         }
         return rs;
     }
-
     url = "flag1"
     if (true) {
         go(2, unEncryptionCode(url))

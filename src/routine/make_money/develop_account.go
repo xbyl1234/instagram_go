@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
-	"makemoney/common/proxys"
 	"makemoney/goinsta"
 	"makemoney/routine"
-	"strings"
 	"sync"
 	"time"
 )
@@ -20,6 +18,7 @@ type DevelopAccountConfig struct {
 	NeedPushVideo bool     `json:"need_push_video"`
 	NeedLike      bool     `json:"need_like"`
 	FeedBackSleep int      `json:"feed_back_sleep"`
+	LogCollName   string   `json:"log_coll_name"`
 	//Spec          string   `json:"spec"`
 }
 
@@ -61,6 +60,7 @@ type DevelopMeta struct {
 
 	addSubCommentFinish bool
 	hadShareMedia       bool
+	hadCheckMedia       bool
 
 	lastFeedBackTime time.Time
 	isRunning        bool
@@ -73,6 +73,7 @@ func feedVideo(meta *DevelopMeta) error {
 	meta.nextVideoIdx = 0
 	meta.nextCommentIdx = 0
 	meta.addSubCommentFinish = false
+	meta.hadCheckMedia = false
 
 	if meta.inst.IsSpeedLimit(goinsta.OperNameFeedVideo) {
 		return laterError
@@ -80,10 +81,12 @@ func feedVideo(meta *DevelopMeta) error {
 	var err error
 	meta.curVideoList, err = meta.feed.Next()
 	if err != nil {
+		meta.inst.ResetProxy()
 		log.Error("account: %s feedVideo.Next error: %v", meta.inst.User, err)
 		return err
 	}
 	if len(meta.curVideoList.Items) == 0 {
+		meta.inst.ResetProxy()
 		log.Error("account: %s not feedVideo any", meta.inst.User)
 		return laterError
 	}
@@ -113,6 +116,14 @@ func doDevelopMeta(meta *DevelopMeta) (retErr error) {
 			media := meta.curVideoList.Items[meta.nextVideoIdx]
 			if media.Media.CommentingDisabledForViewer {
 				continue
+			}
+			if !meta.hadCheckMedia {
+				meta.hadCheckMedia = true
+				err = routine.SaveShareMediaPk(media.Media.Pk)
+				if err != nil {
+					log.Warn("repeated pk: %d", media.Media.Pk)
+					continue
+				}
 			}
 
 			if !meta.hadShareMedia {
@@ -216,6 +227,7 @@ func doDevelopMeta(meta *DevelopMeta) (retErr error) {
 				}
 			}
 
+			meta.hadCheckMedia = false
 			meta.subCommentCount = 0
 			meta.hadShareMedia = false
 			meta.addSubCommentFinish = false
@@ -341,29 +353,29 @@ func developServer() {
 }
 
 func DevelopAccount() {
-	//developServer()
-	insts := goinsta.LoadAccountByTags([]string{"dev8"})
-	inst := insts[0]
-	feed := inst.GetVideoFeed()
-	inst.GetAccount().Sync()
-
-	inst.SetProxy(proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, ""))
-	for true {
-		log.Info("%s", inst.Proxy.Rip)
-		curVideoList, err := feed.Next()
-		if err != nil {
-			feed.MoreAvailable = true
-			feed.SessionId = fmt.Sprintf("%d_%s", inst.ID, strings.ToUpper(common.GenUUID()))
-			log.Error("account: %s feedVideo.Next error: %v", inst.User, err)
-		}
-		print(curVideoList)
-		if len(curVideoList.Items) == 0 {
-			log.Error("account: %s not feedVideo any", inst.User)
-		}
-		inst.SetProxy(proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, ""))
-		//time.Sleep(5 * time.Second)
-	}
-
+	developServer()
+	//insts := goinsta.LoadAccountByTags([]string{"dev8"})
+	//inst := insts[0]
+	//feed := inst.GetVideoFeed()
+	//inst.GetAccount().Sync()
+	//
+	//inst.SetProxy(proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, ""))
+	//for true {
+	//	log.Info("%s", inst.Proxy.Rip)
+	//	curVideoList, err := feed.Next()
+	//	if err != nil {
+	//		feed.MoreAvailable = true
+	//		feed.SessionId = fmt.Sprintf("%d_%s", inst.ID, strings.ToUpper(common.GenUUID()))
+	//		log.Error("account: %s feedVideo.Next error: %v", inst.User, err)
+	//	}
+	//	print(curVideoList)
+	//	if len(curVideoList.Items) == 0 {
+	//		log.Error("account: %s not feedVideo any", inst.User)
+	//	}
+	//	inst.SetProxy(proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, ""))
+	//	time.Sleep(5 * time.Second)
+	//}
+	//
 	//dev := &DevelopMeta{
 	//	inst:      insts[0],
 	//	feed:      insts[0].GetVideoFeed(),
