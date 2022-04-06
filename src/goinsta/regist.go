@@ -413,6 +413,7 @@ func (this *Register) GenUsername() string {
 	} else {
 		this.RealUsername = usernameSuggestions.Suggestions[0]
 	}
+	this.Inst.User = this.RealUsername
 	return this.RealUsername
 }
 
