@@ -18,7 +18,7 @@ type LayoutSection struct {
 	LayoutType    string `json:"layout_type"`
 	LayoutContent struct {
 		Medias []struct {
-			Media Item `json:"media"`
+			Media *Media `json:"media"`
 		} `json:"medias"`
 	} `json:"layout_content"`
 	FeedType        string `json:"feed_type"`

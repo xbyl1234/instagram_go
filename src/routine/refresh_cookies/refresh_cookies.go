@@ -152,7 +152,6 @@ func InstTestAccount(inst *goinsta.Instagram) error {
 	err = inst.GetAccount().Sync()
 	if err != nil {
 		log.Error("account: %s, error: %v", inst.User, err)
-
 		//if strings.Index(err.Error(), "invalid character") != -1 {
 		//	log.Error("account: %s, cookies error: %v", inst.User, err)
 		//	inst.CleanCookiesAndHeader()
@@ -273,7 +272,7 @@ func SendAccount(insts []*goinsta.Instagram) {
 
 func TestDevice() {
 	for true {
-		_proxy := proxys.ProxyPool.GetNoRisk("us", true, true)
+		_proxy := proxys.ProxyPool.Get("us", "")
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			continue
@@ -291,6 +290,7 @@ func TestDevice() {
 }
 
 func main() {
+	goinsta.UsePanic = false
 	common.UseCharles = false
 	common.UseTruncation = true
 
@@ -320,8 +320,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	insts := goinsta.LoadAllAccount()
-	//insts := goinsta.LoadAccountByTags([]string{"msg"})
+	//insts := goinsta.LoadAllAccount()
+	insts := goinsta.LoadAccountByTags([]string{"dev"})
 	if len(insts) == 0 {
 		log.Error("there have no account!")
 		os.Exit(0)

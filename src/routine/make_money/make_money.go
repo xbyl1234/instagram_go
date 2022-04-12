@@ -10,14 +10,15 @@ import (
 )
 
 type MakeMoneyConfig struct {
-	TaskName             string               `json:"task_name"`
-	Coro                 int                  `json:"coro"`
-	ProxyPath            string               `json:"proxy_path"`
-	TargetUserDB         string               `json:"target_user_db"`
-	TargetUserCollection string               `json:"target_user_collection"`
-	AccountTag           string               `json:"account_tag"`
-	Msgs                 [][]*Message         `json:"msgs"`
-	Develop              DevelopAccountConfig `json:"develop"`
+	TaskName             string `json:"task_name"`
+	Coro                 int    `json:"coro"`
+	ProxyPath            string `json:"proxy_path"`
+	TargetUserDB         string `json:"target_user_db"`
+	TargetUserCollection string `json:"target_user_collection"`
+	AccountTag           string `json:"account_tag"`
+	//Msgs                 [][]*Message         `json:"msgs"`
+	Redis   common.QueueConfig   `json:"redis"`
+	Develop DevelopAccountConfig `json:"develop"`
 }
 
 var config MakeMoneyConfig
@@ -51,11 +52,11 @@ func initParams() {
 		log.Error("TargetUserCollection is null")
 		os.Exit(0)
 	}
-	if config.Msgs == nil || len(config.Msgs) == 0 {
-		log.Error("Msgs is null")
-		os.Exit(0)
-	}
-	err = LoadScreenplay()
+	//if config.Msgs == nil || len(config.Msgs) == 0 {
+	//	log.Error("Msgs is null")
+	//	os.Exit(0)
+	//}
+	//err = LoadScreenplay()
 	if err != nil {
 		log.Error("LoadScreenplay error: %v", err)
 		os.Exit(0)

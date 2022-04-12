@@ -1,3 +1,8 @@
 {
-  "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@207.148.103.9:55510"
+  "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@207.148.103.9:55510",
+  "redis": {
+    "address": "207.148.103.9:44261",
+    "password": "Hty76785.@",
+    "db": 1
+  }
 }

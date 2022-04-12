@@ -202,6 +202,9 @@ func (this *UserOperate) ConfigurePost(caption string, mediaInfo *UploadMediaInf
 	}, resp)
 
 	err = resp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNamePostVideo)
+	}
 	return resp, err
 }
 
@@ -739,6 +742,8 @@ func (this *UserOperate) SendShortVideo(video *RawVideoMedia) (*RespConfigureCli
 	clips, err := this.configureToClips(video)
 	if err != nil {
 		log.Error("configure to clips error: %v", err)
+	} else {
+		this.inst.IncreaseSuccess(OperNamePostVideo)
 	}
 	return clips, err
 }

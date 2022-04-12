@@ -1,10 +1,10 @@
 {
-  "proxy_path": "./config/proxy_config_dove.json",
+  "proxy_path": "./config/proxy_config_rola.json",
   "res_ico_path": "./data/girl_picture",
   "res_username_path": "./data/user_nameraw.txt",
   "country": "us",
   "coro": 1,
-  "provider_name": "guerrilla",
+  "provider_name": "taxin",
   "guerrilla": {
     "retry_timeout": 180,
     "retry_delay": 3,

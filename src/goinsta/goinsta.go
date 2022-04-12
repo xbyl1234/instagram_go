@@ -95,6 +95,10 @@ func (this *Instagram) NewSearch(q string) *Search {
 	return newSearch(this, q)
 }
 
+func (this *Instagram) NewTagsFeed(tagName string, tab string) *TagsFeed {
+	return NewTagsFeed(this, tagName, tab)
+}
+
 func (this *Instagram) GetUpload() *Upload {
 	if this.Operate.Upload == nil {
 		this.Operate.Upload = newUpload(this)
@@ -178,9 +182,24 @@ func (this *Instagram) IsSpeedLimit(OperName string) bool {
 	return sc.IsSpeedLimit()
 }
 
+func (this *Instagram) IsSpeedLimitInDay(OperName string) bool {
+	sc := this.InitSpeedControl(OperName)
+	return sc.IsSpeedLimitInDay()
+}
+
+func (this *Instagram) GetCoolTime(OperName string) time.Duration {
+	sc := this.InitSpeedControl(OperName)
+	return sc.GetCoolTime()
+}
+
 func (this *Instagram) Increase(OperName string) (int, int, int, int) {
 	sc := this.InitSpeedControl(OperName)
 	return sc.Increase()
+}
+
+func (this *Instagram) IncreaseSuccess(OperName string) {
+	sc := this.InitSpeedControl(OperName)
+	sc.IncreaseSuccess()
 }
 
 func (this *Instagram) GetSpeed(OperName string) (int, int, int, int) {

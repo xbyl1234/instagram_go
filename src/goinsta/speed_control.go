@@ -58,6 +58,14 @@ func (this *LimitRate) Increase() int {
 	return this.Count
 }
 
+func (this *LimitRate) GetCool() time.Duration {
+	if this.Count < this.Rate {
+		return -1
+	}
+
+	return this.Interval - time.Now().Sub(this.Begin)
+}
+
 func (this *LimitRate) IsLimit(block bool) bool {
 	result := false
 	this.Lock.Lock()
@@ -74,11 +82,16 @@ func (this *LimitRate) IsLimit(block bool) bool {
 }
 
 type SpeedControl struct {
-	EachSecond LimitRate `bson:"each_second"`
-	EachMinute LimitRate `bson:"each_minute"`
-	EachHour   LimitRate `bson:"each_hour"`
-	EachDay    LimitRate `bson:"each_day"`
-	History    int       `bson:"History"`
+	EachSecond     LimitRate `bson:"each_second"`
+	EachMinute     LimitRate `bson:"each_minute"`
+	EachHour       LimitRate `bson:"each_hour"`
+	EachDay        LimitRate `bson:"each_day"`
+	History        int       `bson:"history"`
+	SuccessHistory int       `bson:"success_history"`
+}
+
+func (this *SpeedControl) IncreaseSuccess() {
+	this.SuccessHistory++
 }
 
 func (this *SpeedControl) Increase() (int, int, int, int) {
@@ -95,6 +108,31 @@ func (this *SpeedControl) GetSpeed() (int, int, int, int) {
 		this.EachMinute.Count,
 		this.EachHour.Count,
 		this.EachDay.Count
+}
+
+func (this *SpeedControl) GetCoolTime() time.Duration {
+	if this.EachDay.GetCool() > 0 {
+		return this.EachDay.GetCool()
+	}
+	if this.EachHour.GetCool() > 0 {
+		return this.EachHour.GetCool()
+	}
+	if this.EachMinute.GetCool() > 0 {
+		return this.EachMinute.GetCool()
+	}
+	if this.EachSecond.GetCool() > 0 {
+		return this.EachSecond.GetCool()
+	}
+	return -1
+}
+
+func (this *SpeedControl) IsSpeedLimitInDay() bool {
+	if this.EachDay.Rate != 0 {
+		if this.EachDay.IsLimit(false) {
+			return true
+		}
+	}
+	return false
 }
 
 func (this *SpeedControl) IsSpeedLimit() bool {

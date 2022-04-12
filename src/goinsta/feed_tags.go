@@ -12,17 +12,36 @@ var TabRecent = "recent"
 var TabTop = "top"
 
 type Tags struct {
-	Inst          *Instagram `bson:"-"`
-	Name          string     `json:"name" bson:"name"`
-	Id            int64      `json:"id" bson:"id"`
-	MediaCount    int        `json:"media_count" bson:"media_count"`
-	ProfilePicUrl string     `json:"profile_pic_url" bson:"profile_pic_url"`
-	Session       string     `json:"session" bson:"session"`
-	Tab           string     `json:"tab" bson:"tab"`
-	MoreAvailable bool       `json:"more_available" bson:"more_available"`
-	NextID        string     `json:"next_max_id" bson:"next_id"`
-	NextPage      int        `json:"next_page" bson:"next_page"`
-	NextMediaIds  []int64    `json:"next_media_ids" bson:"next_media_ids"`
+	Id                   int64  `json:"id"`
+	Name                 string `json:"name"`
+	MediaCount           int    `json:"media_count"`
+	FormattedMediaCount  string `json:"formatted_media_count"`
+	SearchResultSubtitle string `json:"search_result_subtitle"`
+	ProfilePicUrl        string `json:"profile_pic_url"`
+	UseDefaultAvatar     bool   `json:"use_default_avatar"`
+}
+
+type TagsFeed struct {
+	Feed
+	Name          string
+	MediaCount    int
+	Session       string
+	Tab           string
+	MoreAvailable bool
+	NextID        string
+	NextPage      int
+	NextMediaIds  []int64
+}
+
+func NewTagsFeed(inst *Instagram, tagName string, tab string) *TagsFeed {
+	t := &TagsFeed{
+		Feed:          Feed{Inst: inst},
+		Name:          tagName,
+		Session:       "0_" + common.GenUUID(),
+		Tab:           tab,
+		MoreAvailable: true,
+	}
+	return t
 }
 
 type RespHashtag struct {
@@ -32,12 +51,12 @@ type RespHashtag struct {
 		LayoutType    string `json:"layout_type"`
 		LayoutContent struct {
 			FillItems []struct {
-				Media Item `json:"media"`
+				Media Media `json:"media"`
 			} `json:"fill_items"`
 			OneByTwoItem struct {
 				Clips struct {
 					Items []struct {
-						Media Item `json:"media"`
+						Media Media `json:"media"`
 					} `json:"items"`
 					Id            string `json:"id"`
 					Tag           string `json:"tag"`
@@ -49,7 +68,7 @@ type RespHashtag struct {
 			} `json:"one_by_two_item"`
 			TwoByTwoItem struct {
 				Channel struct {
-					Media       Item   `json:"media"`
+					Media       Media  `json:"media"`
 					ChannelId   string `json:"channel_id"`
 					ChannelType string `json:"channel_type"`
 					Context     string `json:"context"`
@@ -59,7 +78,7 @@ type RespHashtag struct {
 				} `json:"channel"`
 			} `json:"two_by_two_item"`
 			Medias []struct {
-				Item Item `json:"media"`
+				Item Media `json:"media"`
 			} `json:"medias"`
 		} `json:"layout_content"`
 		FeedType        string `json:"feed_type"`
@@ -78,7 +97,7 @@ type RespHashtag struct {
 	AutoLoadMoreEnabled bool    `json:"auto_load_more_enabled"`
 }
 
-func (this *RespHashtag) GetAllMedias() []*Item {
+func (this *RespHashtag) GetAllMedias() []*Media {
 	buff := list.New()
 
 	for sectionIndex := range this.Sections {
@@ -104,11 +123,10 @@ func (this *RespHashtag) GetAllMedias() []*Item {
 		}
 	}
 
-	ret := make([]*Item, buff.Len())
+	ret := make([]*Media, buff.Len())
 	var index = 0
 	for item := buff.Front(); item != nil; item = item.Next() {
-		ret[index] = item.Value.(*Item)
-		ret[index].Inst = this.inst
+		ret[index] = item.Value.(*Media)
 		index++
 	}
 	return ret
@@ -141,12 +159,7 @@ type RespTagsInfo struct {
 	Subtitle                   string        `json:"subtitle"`
 }
 
-func (this *Tags) SetAccount(inst *Instagram) {
-	this.Inst = inst
-}
-
-// Sync updates Tags information preparing it to Next call.
-func (this *Tags) Sync(tab string) error {
+func (this *TagsFeed) Sync(tab string) error {
 	this.Tab = tab
 
 	resp := &RespTagsInfo{}
@@ -158,8 +171,7 @@ func (this *Tags) Sync(tab string) error {
 	return err
 }
 
-// Stories returns hashtag stories.
-func (this *Tags) Stories() (*StoryMedia, error) {
+func (this *TagsFeed) Stories() (*StoryMedia, error) {
 	var resp struct {
 		BaseApiResp
 		Story StoryMedia `json:"story"`
@@ -174,8 +186,7 @@ func (this *Tags) Stories() (*StoryMedia, error) {
 	return &resp.Story, err
 }
 
-// Next paginates over hashtag pages (xd).
-func (this *Tags) Next() (*RespHashtag, error) {
+func (this *TagsFeed) Next() (*RespHashtag, error) {
 	if !this.MoreAvailable {
 		return nil, &common.MakeMoneyError{
 			ErrType: common.NoMoreError,
@@ -212,6 +223,7 @@ func (this *Tags) Next() (*RespHashtag, error) {
 
 	err = ht.CheckError(err)
 	if err == nil {
+		this.Inst.IncreaseSuccess(OperNameCrawMedia)
 		this.NextID = ht.NextID
 		this.NextPage = ht.NextPage
 		this.NextMediaIds = ht.NextMediaIds
@@ -220,4 +232,18 @@ func (this *Tags) Next() (*RespHashtag, error) {
 	}
 
 	return ht, err
+}
+
+func (this *TagsFeed) NextPost() (*Media, error) {
+	if this.media == nil || this.indexMedia >= len(this.media) {
+		next, err := this.Next()
+		if err != nil {
+			return nil, err
+		}
+		this.media = next.GetAllMedias()
+		this.indexMedia = 0
+	}
+	ret := this.media[this.indexMedia]
+	this.indexMedia++
+	return ret, nil
 }

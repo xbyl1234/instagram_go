@@ -283,6 +283,9 @@ func (this *Message) SendTextMessage(id int64, msg string) error {
 		Query:   params,
 	}, resp)
 	err = resp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNameSendMsg)
+	}
 	return err
 }
 
@@ -322,6 +325,9 @@ func (this *Message) SendImgMessage(id int64, imageID string) error {
 		Query: params,
 	}, resp)
 	err = resp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNameSendMsg)
+	}
 	return err
 }
 
@@ -363,6 +369,9 @@ func (this *Message) SendVoiceMessage(id int64, voiceID string) error {
 		Query: params,
 	}, resp)
 	err = resp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNameSendMsg)
+	}
 	return err
 }
 
@@ -396,5 +405,8 @@ func (this *Message) SendLinkMessage(id int64, link string) error {
 		Query:   params,
 	}, resp)
 	err = resp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNameSendMsg)
+	}
 	return err
 }

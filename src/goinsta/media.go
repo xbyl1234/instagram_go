@@ -30,12 +30,6 @@ type StoryCTA struct {
 }
 
 type StoryMedia struct {
-	inst     *Instagram
-	endpoint string
-	uid      int64
-
-	err error
-
 	Pk              interface{} `json:"id"`
 	LatestReelMedia int64       `json:"latest_reel_media"`
 	ExpiringAt      float64     `json:"expiring_at"`
@@ -45,7 +39,7 @@ type StoryMedia struct {
 	CanReshare      bool        `json:"can_reshare"`
 	ReelType        string      `json:"reel_type"`
 	User            User        `json:"user"`
-	Items           []Item      `json:"items"`
+	Items           []*Media    `json:"items"`
 	ReelMentions    []string    `json:"reel_mentions"`
 	PrefetchCount   int         `json:"prefetch_count"`
 	// this field can be int or bool

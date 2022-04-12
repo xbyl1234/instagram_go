@@ -38,23 +38,19 @@ func (this *Search) SetAccount(inst *Instagram) {
 
 type SearchResult struct {
 	search *Search
-
 	BaseApiResp
 	HasMore   bool   `json:"has_more"`
 	RankToken string `json:"rank_token"`
 	PageToken string `json:"page_token"`
 
-	Tags []Tags `json:"results"`
+	Tags []*Tags `json:"results"`
 
-	NumResults int64 `json:"num_results"`
-	// User search results
-	Users []User `json:"users"`
+	NumResults int64  `json:"num_results"`
+	Users      []User `json:"users"`
 
-	// Tag search results
 	InformModule interface{} `json:"inform_module"`
-	// Location search result
-	RequestID string `json:"request_id"`
-	Venues    []struct {
+	RequestID    string      `json:"request_id"`
+	Venues       []struct {
 		ExternalIDSource string  `json:"external_id_source"`
 		ExternalID       string  `json:"external_id"`
 		Lat              float64 `json:"lat"`
@@ -63,8 +59,6 @@ type SearchResult struct {
 		Name             string  `json:"name"`
 	} `json:"venues"`
 
-	// Facebook
-	// Facebook also uses `Users`
 	Places   []interface{} `json:"places"`
 	Hashtags []struct {
 		Position int `json:"position"`
@@ -77,48 +71,16 @@ type SearchResult struct {
 	ClearClientCache bool `json:"clear_client_cache"`
 }
 
-func (this *SearchResult) GetTags() []Tags {
+func (this *SearchResult) GetTags(tab string) []*TagsFeed {
 	if this.Tags == nil {
 		return nil
 	}
-
+	tf := make([]*TagsFeed, len(this.Tags))
 	for index := range this.Tags {
-		this.Tags[index].Inst = this.search.Inst
-		this.Tags[index].MoreAvailable = true
-		this.Tags[index].Session = "0_" + common.GenUUID()
+		tf[index] = NewTagsFeed(this.inst, this.Tags[index].Name, tab)
 	}
-	return this.Tags
+	return tf
 }
-
-// User search by username, you can use count optional parameter to get more than 50 items.
-//func (this *Search) User(user string, countParam ...int) (*SearchResult, error) {
-//	count := 50
-//	if len(countParam) > 0 {
-//		count = countParam[0]
-//	}
-//	insta := this.inst
-//	res := &SearchResult{}
-//
-//	err := insta.HttpRequestJson(
-//		&reqOptions{
-//			ApiPath: urlSearchUser,
-//			Query: map[string]interface{}{
-//				"ig_sig_key_version": goInstaSigKeyVersion,
-//				"is_typeahead":       "true",
-//				"q":                  user,
-//				"count":              fmt.Sprintf("%d", count),
-//				//"rank_token":         insta.rankToken,
-//			}}, res)
-//
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	for id := range res.Users {
-//		res.Users[id].inst = insta
-//	}
-//	return res, err
-//}
 
 func (this *Search) NextTags() (*SearchResult, error) {
 	this.Type = SearchType_Tags

@@ -68,5 +68,10 @@ func (this *BaseApiResp) CheckError(err error) error {
 			}
 		}
 	}
+
+	if this.inst.Status != "" {
+		log.Info("account: %s status %s clean!", this.inst.User, this.inst.Status)
+		this.inst.Status = ""
+	}
 	return nil
 }

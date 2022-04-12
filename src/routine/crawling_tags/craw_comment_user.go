@@ -1,132 +1,61 @@
 package main
 
 import (
-	"makemoney/common"
 	"makemoney/common/log"
 	"makemoney/goinsta"
 	"makemoney/routine"
-	"strings"
-	"time"
+	"sync"
 )
 
-var CrawCommentAccountTag = "craw_comment"
-
-//816
-//1320
-func CrawCommentUser() {
-	var currAccount *goinsta.Instagram
-
-	var SetNewAccount = func(mediaComb *routine.MediaComb, inst *goinsta.Instagram) {
-		mediaComb.Media.SetAccount(inst)
-		if mediaComb.Comments == nil {
-			mediaComb.Comments = mediaComb.Media.GetComments()
-		} else {
-			mediaComb.Comments.SetAccount(inst)
+func CrawCommentUser(combChan chan *MediaComb, waitCraw *sync.WaitGroup) {
+	defer waitCraw.Done()
+	for item := range combChan {
+		inst := goinsta.AccountPool.GetOneBlock(goinsta.OperNameCrawComment, config.AccountTag)
+		err := crawCommentUser(inst, item.Media, item.Tag)
+		if err != nil {
+			log.Error("CrawCommentUser: account %s error %v", inst.User, err)
 		}
-	}
-
-	var RequireAccont = func(mediaComb *routine.MediaComb) {
-		if currAccount == nil || currAccount.IsSpeedLimit(goinsta.OperNameCrawComment) || currAccount.IsBad() {
-			var oldUser string
-			if currAccount != nil {
-				oldUser = currAccount.User
-				goinsta.AccountPool.ReleaseOne(currAccount)
-			}
-
-			inst := routine.ReqAccount(goinsta.OperNameCrawComment, CrawCommentAccountTag)
-			if inst == nil {
-				log.Error("CrawCommentUser req account error!")
-			}
-			currAccount = inst
-
-			SetNewAccount(mediaComb, currAccount)
-			log.Warn("CrawCommentUser replace account to %s->%s", oldUser, currAccount.User)
-			return
-		} else {
-			SetNewAccount(mediaComb, currAccount)
-			return
-		}
-	}
-
-	defer func() {
-		if currAccount != nil {
-			goinsta.AccountPool.ReleaseOne(currAccount)
-		}
-	}()
-
-	for mediaComb := range MediaChan {
-		if mediaComb.Media.CommentCount == 0 {
-			mediaComb.Comments.HasMore = false
-			mediaComb.Flag = "no comment"
-			routine.SaveMedia(mediaComb)
-			continue
-		}
-		log.Info("craw_comment_user %s", mediaComb.Media.ID)
-
-		for true {
-			RequireAccont(mediaComb)
-			respComm, err := mediaComb.Comments.NextComments()
-
-			_, min, hour, day := currAccount.GetSpeed(goinsta.OperNameCrawComment)
-			log.Info("account %s craw_comment_user count %d,%d,%d status %s", currAccount.User, min, hour, day, currAccount.Status)
-			if err != nil {
-				if common.IsNoMoreError(err) {
-					log.Info("media %s comments has craw finish!", mediaComb.Media.ID)
-					mediaComb.Comments.HasMore = false
-					mediaComb.Flag = "finish"
-					routine.SaveMedia(mediaComb)
-					break
-				} else if common.IsError(err, common.ChallengeRequiredError) ||
-					common.IsError(err, common.FeedbackError) ||
-					common.IsError(err, common.LoginRequiredError) {
-					log.Error("user %s status is %s from CrawCommentUser task, err: %v", currAccount.User,
-						currAccount.Status, err)
-					RequireAccont(mediaComb)
-					continue
-				} else if common.IsError(err, common.RequestError) {
-					log.Warn("CrawCommentUser retrying...user: %s, err: %v", currAccount.User, err)
-					continue
-				} else if strings.Index(err.Error(), "Media is unavailable") >= 0 {
-					log.Warn("Media %d is unavailable", mediaComb.Media.ID)
-					mediaComb.Comments.HasMore = false
-					mediaComb.Flag = "unavailable"
-					routine.SaveMedia(mediaComb)
-					break
-				} else {
-					log.Error("NextComments unknow error:%v", err)
-					continue
-				}
-			}
-
-			comments := respComm.GetAllComments()
-			var userComb routine.UserComb
-			for index := range comments {
-				userComb.User = &comments[index].User
-				userComb.Source = "comments"
-				err = routine.SaveUser(routine.CrawTagsUserColl, &userComb)
-				if err != nil {
-					log.Error("SaveUser error:%v", err)
-					break
-				}
-			}
-		}
+		goinsta.AccountPool.ReleaseOne(inst)
 	}
 }
 
-func SendMedias() {
+func crawCommentUser(inst *goinsta.Instagram, media *goinsta.Media, tag string) (errRet error) {
+	if err := recover(); err != nil {
+		log.Error("account: %s crawCommentUser panic error: %v", inst.User, err)
+		errRet = err.(error)
+	}
+	putRedisCount := 0
 	for true {
-		medias, err := routine.LoadMedia(100)
+		comment := inst.NewComments(media.Id)
+		result, err := comment.NextComments()
 		if err != nil {
-			log.Error("load media error: %v", err)
-			continue
+			return err
 		}
-		if len(medias) == 0 {
-			time.Sleep(time.Second * 60)
-			continue
-		}
-		for index := range medias {
-			MediaChan <- &medias[index]
+		comments := result.GetAllComments()
+		var commentData routine.CrawData
+		for index := range comments {
+			commentData.UserPk = comments[index].User.Pk
+			commentData.UserName = comments[index].User.Username
+			commentData.MediaId = media.Id
+			commentData.MediaPk = media.Pk
+			commentData.ParentCommentId = comments[index].Pk
+			commentData.LoggingInfoToken = media.LoggingInfoToken
+			commentData.Tag = tag
+
+			err = routine.SaveUser(routine.CrawTagsUserColl, &commentData)
+			if err != nil {
+				return err
+			}
+
+			if putRedisCount < config.AddCommentCount {
+				putRedisCount++
+				err = mediaRedis.PutJson(tag, &commentData)
+				if err != nil {
+					log.Error("mediaRedis PutJson error %v", err)
+				}
+			}
 		}
 	}
-	close(MediaChan)
+
+	return nil
 }

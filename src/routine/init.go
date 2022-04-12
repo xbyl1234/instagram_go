@@ -10,19 +10,20 @@ import (
 )
 
 type DataBaseConfig struct {
-	MogoUri string `json:"mogo_uri"`
+	MogoUri string             `json:"mogo_uri"`
+	Redis   common.QueueConfig `json:"redis"`
 }
 
-var dbConfig DataBaseConfig
+var DBConfig DataBaseConfig
 
 func InitRoutine(proxyPath string) {
 	math_rand.Seed(time.Now().UnixNano())
-	err := common.LoadJsonFile("./config/dbconfig.json", &dbConfig)
+	err := common.LoadJsonFile("./config/dbconfig.json", &DBConfig)
 	if err != nil {
 		log.Error("load db config error:%v", err)
 		panic(err)
 	}
-	goinsta.InitMogoDB(dbConfig.MogoUri)
+	goinsta.InitMogoDB(DBConfig.MogoUri)
 	err = proxys.InitProxyPool(proxyPath)
 	if err != nil {
 		log.Error("init ProxyPool error:%v", err)

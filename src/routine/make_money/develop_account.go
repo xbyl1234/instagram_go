@@ -46,26 +46,6 @@ func getComments() string {
 	return fmt.Sprintf(comment, str)
 }
 
-type DevelopMeta struct {
-	inst      *goinsta.Instagram
-	feed      *goinsta.VideoFeed
-	comments  *goinsta.Comments
-	followSet map[int64]bool
-
-	curVideoList    *goinsta.VideosFeedResp
-	curComments     *goinsta.RespComments
-	nextVideoIdx    int
-	nextCommentIdx  int
-	subCommentCount int
-
-	addSubCommentFinish bool
-	hadShareMedia       bool
-	hadCheckMedia       bool
-
-	lastFeedBackTime time.Time
-	isRunning        bool
-}
-
 func feedVideo(meta *DevelopMeta) error {
 	meta.comments = nil
 	meta.curVideoList = nil

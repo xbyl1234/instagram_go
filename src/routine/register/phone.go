@@ -41,6 +41,16 @@ func RegisterByPhone() {
 			Month:    fmt.Sprintf("%02d", common.GenNumber(1, 11)),
 			Day:      fmt.Sprintf("%02d", common.GenNumber(1, 27)),
 		}
+		for true {
+			regisert.Account = "18501750803"
+			_, err = regisert.SendSignupSmsCode()
+			if err != nil {
+				log.Error("phone %s send error: %v", "", err)
+			}
+			time.Sleep(10 * time.Second)
+			regisert.Inst.ResetProxy()
+		}
+
 		inst.AccountInfo.Register.RegisterIpCountry = _proxy.Country
 		prepare := inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))

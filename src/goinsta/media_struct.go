@@ -28,23 +28,9 @@ type MediaUser struct {
 	HasHighlightReels          bool          `json:"has_highlight_reels"`
 	HasPrimaryCountryInFeed    bool          `json:"has_primary_country_in_feed"`
 	HasPrimaryCountryInProfile bool          `json:"has_primary_country_in_profile"`
-}
-
-type CommentUser struct {
-	Pk                 int64  `json:"pk"`
-	Username           string `json:"username"`
-	FullName           string `json:"full_name"`
-	IsPrivate          bool   `json:"is_private"`
-	ProfilePicUrl      string `json:"profile_pic_url"`
-	ProfilePicId       string `json:"profile_pic_id,omitempty"`
-	IsVerified         bool   `json:"is_verified"`
-	FollowFrictionType int    `json:"follow_friction_type"`
-	GrowthFrictionInfo struct {
-		HasActiveInterventions bool `json:"has_active_interventions"`
-		Interventions          struct {
-		} `json:"interventions"`
-	} `json:"growth_friction_info"`
-	AccountBadges []interface{} `json:"account_badges"`
+	IsMentionable              bool          `json:"is_mentionable"`
+	LatestReelMedia            int           `json:"latest_reel_media"`
+	LatestBestiesReelMedia     int           `json:"latest_besties_reel_media"`
 }
 
 type AddCommentRespUser struct {
@@ -72,23 +58,23 @@ type AddCommentRespUser struct {
 }
 
 type PreviewComment struct {
-	Pk                 int64       `json:"pk"`
-	UserId             int64       `json:"user_id"`
-	Text               string      `json:"text"`
-	Type               int         `json:"type"`
-	CreatedAt          int         `json:"created_at"`
-	CreatedAtUtc       int         `json:"created_at_utc"`
-	ContentType        string      `json:"content_type"`
-	Status             string      `json:"status"`
-	BitFlags           int         `json:"bit_flags"`
-	DidReportAsSpam    bool        `json:"did_report_as_spam"`
-	ShareEnabled       bool        `json:"share_enabled"`
-	User               CommentUser `json:"user"`
-	IsCovered          bool        `json:"is_covered"`
-	MediaId            int64       `json:"media_id"`
-	PrivateReplyStatus int         `json:"private_reply_status"`
-	HasTranslation     bool        `json:"has_translation,omitempty"`
-	IsPinned           bool        `json:"is_pinned,omitempty"`
+	Pk                 int64     `json:"pk"`
+	UserId             int64     `json:"user_id"`
+	Text               string    `json:"text"`
+	Type               int       `json:"type"`
+	CreatedAt          int       `json:"created_at"`
+	CreatedAtUtc       int       `json:"created_at_utc"`
+	ContentType        string    `json:"content_type"`
+	Status             string    `json:"status"`
+	BitFlags           int       `json:"bit_flags"`
+	DidReportAsSpam    bool      `json:"did_report_as_spam"`
+	ShareEnabled       bool      `json:"share_enabled"`
+	User               MediaUser `json:"user"`
+	IsCovered          bool      `json:"is_covered"`
+	MediaId            int64     `json:"media_id"`
+	PrivateReplyStatus int       `json:"private_reply_status"`
+	HasTranslation     bool      `json:"has_translation,omitempty"`
+	IsPinned           bool      `json:"is_pinned,omitempty"`
 }
 type ImageVersion2 struct {
 	Candidates []struct {
@@ -147,22 +133,22 @@ type VideoVersion struct {
 }
 
 type MediaCaption struct {
-	Pk                 int64       `json:"pk"`
-	UserId             int64       `json:"user_id"`
-	Text               string      `json:"text"`
-	Type               int         `json:"type"`
-	CreatedAt          int         `json:"created_at"`
-	CreatedAtUtc       int         `json:"created_at_utc"`
-	ContentType        string      `json:"content_type"`
-	Status             string      `json:"status"`
-	BitFlags           int         `json:"bit_flags"`
-	DidReportAsSpam    bool        `json:"did_report_as_spam"`
-	ShareEnabled       bool        `json:"share_enabled"`
-	User               CommentUser `json:"user"`
-	IsCovered          bool        `json:"is_covered"`
-	MediaId            int64       `json:"media_id"`
-	PrivateReplyStatus int         `json:"private_reply_status"`
-	HasTranslation     bool        `json:"has_translation,omitempty"`
+	Pk                 int64     `json:"pk"`
+	UserId             int64     `json:"user_id"`
+	Text               string    `json:"text"`
+	Type               int       `json:"type"`
+	CreatedAt          int64     `json:"created_at"`
+	CreatedAtUtc       int       `json:"created_at_utc"`
+	ContentType        string    `json:"content_type"`
+	Status             string    `json:"status"`
+	BitFlags           int       `json:"bit_flags"`
+	DidReportAsSpam    bool      `json:"did_report_as_spam"`
+	ShareEnabled       bool      `json:"share_enabled"`
+	User               MediaUser `json:"user"`
+	IsCovered          bool      `json:"is_covered"`
+	MediaId            int64     `json:"media_id"`
+	PrivateReplyStatus int       `json:"private_reply_status"`
+	HasTranslation     bool      `json:"has_translation,omitempty"`
 }
 
 type ClipsMetadata struct {
@@ -447,36 +433,18 @@ type VideosFeedResp struct {
 }
 
 type Comment struct {
-	Pk              int64  `json:"pk"`
-	UserId          int64  `json:"user_id"`
-	Text            string `json:"text"`
-	Type            int    `json:"type"`
-	CreatedAt       int    `json:"created_at"`
-	CreatedAtUtc    int    `json:"created_at_utc"`
-	ContentType     string `json:"content_type"`
-	Status          string `json:"status"`
-	BitFlags        int    `json:"bit_flags"`
-	DidReportAsSpam bool   `json:"did_report_as_spam"`
-	ShareEnabled    bool   `json:"share_enabled"`
-	User            struct {
-		Pk                 int64  `json:"pk"`
-		Username           string `json:"username"`
-		FullName           string `json:"full_name"`
-		IsPrivate          bool   `json:"is_private"`
-		ProfilePicUrl      string `json:"profile_pic_url"`
-		ProfilePicId       string `json:"profile_pic_id,omitempty"`
-		IsVerified         bool   `json:"is_verified"`
-		FollowFrictionType int    `json:"follow_friction_type"`
-		GrowthFrictionInfo struct {
-			HasActiveInterventions bool `json:"has_active_interventions"`
-			Interventions          struct {
-			} `json:"interventions"`
-		} `json:"growth_friction_info"`
-		IsMentionable          bool          `json:"is_mentionable"`
-		AccountBadges          []interface{} `json:"account_badges"`
-		LatestReelMedia        int           `json:"latest_reel_media"`
-		LatestBestiesReelMedia int           `json:"latest_besties_reel_media"`
-	} `json:"user"`
+	Pk                   int64         `json:"pk"`
+	UserId               int64         `json:"user_id"`
+	Text                 string        `json:"text"`
+	Type                 int           `json:"type"`
+	CreatedAt            int           `json:"created_at"`
+	CreatedAtUtc         int           `json:"created_at_utc"`
+	ContentType          string        `json:"content_type"`
+	Status               string        `json:"status"`
+	BitFlags             int           `json:"bit_flags"`
+	DidReportAsSpam      bool          `json:"did_report_as_spam"`
+	ShareEnabled         bool          `json:"share_enabled"`
+	User                 MediaUser     `json:"user"`
 	IsCovered            bool          `json:"is_covered"`
 	HasLikedComment      bool          `json:"has_liked_comment"`
 	CommentLikeCount     int           `json:"comment_like_count"`

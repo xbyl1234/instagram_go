@@ -57,6 +57,7 @@ func (this *Comments) NextComments() (*RespComments, error) {
 
 	err = ret.CheckError(err)
 	if err == nil {
+		this.Inst.IncreaseSuccess(OperNameCrawComment)
 		this.HasMore = ret.HasMoreComments
 		if this.HasMore {
 			this.Next = strings.ReplaceAll(ret.NextMinId, "\\", "\"")

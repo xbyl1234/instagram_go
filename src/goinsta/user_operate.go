@@ -46,6 +46,9 @@ func (this *UserOperate) LikeUser(userID int64) error {
 	}, resp)
 
 	err = resp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNameLikeUser)
+	}
 	return err
 }
 
@@ -140,6 +143,9 @@ func (this *UserOperate) AddComment(params *AddCommentParams) error {
 	}, addResp)
 
 	err = addResp.CheckError(err)
+	if err == nil {
+		this.inst.IncreaseSuccess(OperNameComment)
+	}
 	return err
 }
 

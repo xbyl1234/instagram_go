@@ -2,21 +2,20 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	_ "github.com/go-redis/redis/v8"
 	"time"
 )
 
 type QueueConfig struct {
-	Name     string
-	Address  string
-	Password string
-	DB       int
-	Timeout  time.Duration
+	Address  string        `json:"address"`
+	Password string        `json:"password"`
+	DB       int           `json:"db"`
+	Timeout  time.Duration `json:"timeout"`
 }
 
 type Queue struct {
-	Name     string
 	Address  string
 	Password string
 	DB       int
@@ -27,7 +26,6 @@ type Queue struct {
 
 func CreateQueue(params *QueueConfig) (*Queue, error) {
 	q := &Queue{
-		Name:     params.Name,
 		Address:  params.Address,
 		Password: params.Password,
 		DB:       params.DB,
@@ -51,13 +49,19 @@ func CreateQueue(params *QueueConfig) (*Queue, error) {
 	return q, nil
 }
 
-func (this *Queue) Put(value string) error {
-	_, err := this.rdb.LPush(this.ctx, this.Name, value).Result()
+func (this *Queue) PutJson(name string, value interface{}) error {
+	marshal, _ := json.Marshal(value)
+	_, err := this.rdb.LPush(this.ctx, name, string(marshal)).Result()
 	return err
 }
 
-func (this *Queue) BLGet() (string, error) {
-	result, err := this.rdb.BLPop(this.ctx, this.timeout, this.Name).Result()
+func (this *Queue) Put(name string, value string) error {
+	_, err := this.rdb.LPush(this.ctx, name, value).Result()
+	return err
+}
+
+func (this *Queue) BLGet(name string) (string, error) {
+	result, err := this.rdb.BLPop(this.ctx, this.timeout, name).Result()
 	if err != nil {
 		return "", err
 	}
