@@ -17,8 +17,8 @@ type MakeMoneyConfig struct {
 	TargetUserCollection string `json:"target_user_collection"`
 	AccountTag           string `json:"account_tag"`
 	//Msgs                 [][]*Message         `json:"msgs"`
-	Redis   common.QueueConfig   `json:"redis"`
-	Develop DevelopAccountConfig `json:"develop"`
+	Develop     DevelopAccountConfig `json:"develop"`
+	KeywordPath string               `json:"keyword_path"`
 }
 
 var config MakeMoneyConfig
@@ -70,5 +70,17 @@ func main() {
 	routine.InitRoutine(config.ProxyPath)
 	routine.InitSendMsgDB(config.TargetUserDB, config.TargetUserCollection, config.Develop.LogCollName)
 
-	DevelopAccount()
+	instas := goinsta.LoadAccountByTags([]string{config.AccountTag})
+	if len(instas) == 0 {
+		log.Warn("there have no account!")
+	} else {
+		goinsta.InitAccountPool(instas)
+	}
+
+	tags, err := routine.LoadKeyWord(config.KeywordPath)
+	if err != nil {
+		log.Error("%v", err)
+		return
+	}
+	RunAddComment(40, tags)
 }

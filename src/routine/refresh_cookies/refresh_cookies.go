@@ -125,9 +125,12 @@ func InstRefreshAccountInfo(inst *goinsta.Instagram) error {
 
 func InstSetBio(inst *goinsta.Instagram) error {
 	err := inst.GetAccount().Sync()
-	inst.GetAccount().EditProfile(&goinsta.UserProfile{
-		ExternalUrl: "followmebsix.com",
-		Biography:   "I have the pictures you want on my blog: followmebsix.com",
+	if err != nil {
+		return err
+	}
+	err = inst.GetAccount().EditProfile(&goinsta.UserProfile{
+		//ExternalUrl: "http://sexy37.com/" + fmt.Sprintf("%d", inst.ID),
+		Biography: common.GenString(common.CharSet_abc, 5) + "I have the pictures you want on my blog~ ",
 	})
 	if err != nil {
 		return err
@@ -152,11 +155,8 @@ func InstTestAccount(inst *goinsta.Instagram) error {
 	err = inst.GetAccount().Sync()
 	if err != nil {
 		log.Error("account: %s, error: %v", inst.User, err)
-		//if strings.Index(err.Error(), "invalid character") != -1 {
-		//	log.Error("account: %s, cookies error: %v", inst.User, err)
-		//	inst.CleanCookiesAndHeader()
-		//	continue
-		//}
+	} else {
+		//log.Info("account %s website %s bio %s", inst.User, inst.GetAccount().Detail.)
 	}
 
 	return err
@@ -292,7 +292,7 @@ func TestDevice() {
 func main() {
 	goinsta.UsePanic = false
 	common.UseCharles = false
-	common.UseTruncation = true
+	common.UseTruncation = false
 
 	initParams()
 	routine.InitRoutine(config.ProxyPath)

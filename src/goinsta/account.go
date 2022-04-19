@@ -125,7 +125,7 @@ func (this *Account) EditProfile(profile *UserProfile) error {
 		profile.Biography = this.Detail.Biography
 	}
 	if profile.FirstName == "" {
-		profile.FirstName = this.Detail.FullName
+		//profile.FirstName = this.Detail.FullName
 	}
 	//if profile.Username == "" {
 	//	profile.Username = this.Detail.Username

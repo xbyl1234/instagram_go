@@ -1,5 +1,5 @@
 {
-  "proxy_path": "./config/proxy_config_dove.json",
+  "proxy_path": "./config/proxy_config_rola.json",
   "res_ico_path": "./data/girl_picture",
   "coro": 10
 }

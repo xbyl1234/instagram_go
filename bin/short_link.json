@@ -2,16 +2,18 @@
   "mogo_uri": "mongodb://xbyl:XBYLxbyl1234@207.148.103.9:55510",
   "fake_html_path": "./fake.html",
   "redirect_html_path": "./redirect.html",
-  "log_url": "http://followmebsix.com/log",
+  "log_url": "http://sexy37.com/log",
   "short_link": [
     {
       "key": "surprise",
-      "link": "https://securecd-smrtnd.com/smartlink/?a=156532&sm=16601&mt=29"
+      "link": "https://cdsecurecloud-dt.com/smartlink/?a=168612&sm=22420&co=218463&mt=29"
     }
   ],
   "hosts": [
     "followmebsix.com",
-    "www.followmebsix.com"
+    "www.followmebsix.com",
+    "sexy37.com",
+    "www.sexy37.com"
   ],
   "black": [
     {

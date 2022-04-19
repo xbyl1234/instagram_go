@@ -1,9 +1,10 @@
 {
-  "add_comment_count": 10,
-  "account_tag": "dev",
+  "add_comment_count": 50,
+  "craw_max_comment_each_media": 100,
+  "account_tag": "craw",
   "task_name": "craw",
-  "comment_coro_count": 10,
+  "comment_coro_count": 20,
   "proxy_path": "./config/proxy_config_rola.json",
   "craw_medias_freq": "0 0 1 * * ?",
-  "key_word_path": "./config/game_keyword.txt"
+  "keyword_path": "./config/keyword.txt"
 }

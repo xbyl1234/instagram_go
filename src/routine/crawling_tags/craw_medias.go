@@ -26,10 +26,12 @@ type MediaComb struct {
 }
 
 func crawMedias(inst *goinsta.Instagram, tag string, mediaChan chan *MediaComb, StopTime time.Time) (retErr error) {
-	if err := recover(); err != nil {
-		log.Error("account: %s doDevelopMeta panic error: %v", inst.User, err)
-		retErr = err.(error)
-	}
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("account: %s doDevelopMeta panic error: %v", inst.User, err)
+			retErr = err.(error)
+		}
+	}()
 
 	feed := inst.NewTagsFeed(tag, goinsta.TabRecent)
 

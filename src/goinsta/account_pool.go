@@ -60,6 +60,8 @@ func InitAccountPool(accounts []*Instagram) {
 
 	log.Info("init account pool available count: %d, bad account :%d",
 		accountsIndex, AccountPool.notAvailable.Len())
+
+	go AccountPool.checkBad()
 }
 
 func CheckAccount() {
@@ -76,6 +78,43 @@ func CheckAccount() {
 			}
 		}
 		AccountPool.coolingLock.Unlock()
+	}
+}
+
+func (this *AccountPoolt) checkBad() {
+	var check = func(inst *Instagram) (retErr error) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error("account: %s doDevelopMeta panic error: %v", inst.User, err)
+				retErr = err.(error)
+			}
+		}()
+		err := inst.GetAccount().Sync()
+		if err != nil {
+			log.Warn("account pool check %s %v", inst.User, err)
+		}
+		return err
+	}
+	for true {
+		ava := make([]*Instagram, 0)
+		this.noAvalLock.Lock()
+		for item := this.notAvailable.Front(); item != nil; item = item.Next() {
+			inst := item.Value.(*Instagram)
+			check(inst)
+			if !inst.IsBad() {
+				ava = append(ava, inst)
+				next := item.Next()
+				this.notAvailable.Remove(item)
+				item = next
+			}
+		}
+		this.noAvalLock.Unlock()
+		if len(ava) > 0 {
+			for _, item := range ava {
+				this.ReleaseOne(item)
+			}
+		}
+		time.Sleep(30 * time.Minute)
 	}
 }
 
@@ -131,19 +170,22 @@ func (this *AccountPoolt) GetOneNoWait(OperName string, AccountTag string) *Inst
 }
 
 func (this *AccountPoolt) ReleaseOne(insta *Instagram) {
-	this.avalLock.Lock()
-	defer this.avalLock.Unlock()
+
 	if insta.IsBad() {
+		this.noAvalLock.Lock()
 		log.Error("add black account: %s ,status: %s", insta.User, insta.Status)
 		this.notAvailable.PushBack(insta)
+		this.noAvalLock.Unlock()
 	} else {
+		this.avalLock.Lock()
 		Available := this.Available[insta.Tags]
 		if Available == nil {
 			log.Error("not find account tag: %s", insta.Tags)
-			return
+		} else {
+			Available.list.PushBack(insta)
+			log.Info("add available account: %s", insta.User)
 		}
-		Available.list.PushBack(insta)
-		log.Info("add available account: %s", insta.User)
+		this.avalLock.Unlock()
 	}
 	SaveInstToDB(insta)
 }

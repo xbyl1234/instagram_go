@@ -11,21 +11,21 @@ import (
 )
 
 func RunAddComment(coro int, tag []string) {
-	queue, _ := common.CreateQueue(&config.Redis)
+	queue, _ := common.CreateQueue(&routine.DBConfig.Redis)
 	recvChan := make(chan *routine.CrawData, 1)
-
-	go func() {
-		for _, item := range tag {
-			get, err := queue.BLGet(item)
-			if err != nil {
-				continue
+	for _, item := range tag {
+		go func(tag string) {
+			for true {
+				get, err := queue.BLGet(tag)
+				if err != nil {
+					continue
+				}
+				data := &routine.CrawData{}
+				json.Unmarshal([]byte(get), data)
+				recvChan <- data
 			}
-			data := &routine.CrawData{}
-			json.Unmarshal([]byte(get), data)
-			recvChan <- data
-		}
-	}()
-
+		}(item)
+	}
 	wait := &sync.WaitGroup{}
 	wait.Add(coro)
 

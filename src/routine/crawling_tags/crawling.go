@@ -13,13 +13,14 @@ import (
 )
 
 type CrawConfig struct {
-	AddCommentCount  int    `json:"add_comment_count"`
-	AccountTag       string `json:"account_tag"`
-	TaskName         string `json:"task_name"`
-	CommentCoroCount int    `json:"comment_coro_count"`
-	ProxyPath        string `json:"proxy_path"`
-	KeyWordPath      string `json:"key_word_path"`
-	CrawMediasFreq   string `json:"craw_medias_freq"`
+	CommentCoroCount        int    `json:"comment_coro_count"`
+	AddCommentCount         int    `json:"add_comment_count"`
+	CrawMaxCommentEachMedia int    `json:"craw_max_comment_each_media"`
+	AccountTag              string `json:"account_tag"`
+	TaskName                string `json:"task_name"`
+	ProxyPath               string `json:"proxy_path"`
+	KeywordPath             string `json:"keyword_path"`
+	CrawMediasFreq          string `json:"craw_medias_freq"`
 }
 
 var config CrawConfig
@@ -34,7 +35,7 @@ func TimedTasker() {
 
 	log.Info("task id %d: will running, this time is %s, scan end time is %s", timedTaskerID, now.String(), scanEnd.String())
 
-	tags, err := LoadKeyWord()
+	tags, err := routine.LoadKeyWord(config.KeywordPath)
 	if err != nil {
 		log.Error("%v", err)
 		return

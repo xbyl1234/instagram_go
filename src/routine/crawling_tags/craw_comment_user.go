@@ -20,10 +20,14 @@ func CrawCommentUser(combChan chan *MediaComb, waitCraw *sync.WaitGroup) {
 }
 
 func crawCommentUser(inst *goinsta.Instagram, media *goinsta.Media, tag string) (errRet error) {
-	if err := recover(); err != nil {
-		log.Error("account: %s crawCommentUser panic error: %v", inst.User, err)
-		errRet = err.(error)
-	}
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("account: %s crawCommentUser panic error: %v", inst.User, err)
+			errRet = err.(error)
+		}
+	}()
+
+	crawCommenCount := 0
 	putRedisCount := 0
 	for true {
 		comment := inst.NewComments(media.Id)
@@ -47,12 +51,16 @@ func crawCommentUser(inst *goinsta.Instagram, media *goinsta.Media, tag string) 
 				return err
 			}
 
-			if putRedisCount < config.AddCommentCount {
+			if putRedisCount < config.AddCommentCount || config.AddCommentCount == -1 {
 				putRedisCount++
 				err = mediaRedis.PutJson(tag, &commentData)
 				if err != nil {
 					log.Error("mediaRedis PutJson error %v", err)
 				}
+			}
+			crawCommenCount++
+			if crawCommenCount > config.CrawMaxCommentEachMedia {
+				return nil
 			}
 		}
 	}
