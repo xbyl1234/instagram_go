@@ -18,7 +18,7 @@ func RegisterByPhone() {
 		if curCount > int32(*RegisterCount) {
 			break
 		}
-		_proxy := proxys.ProxyPool.Get(config.Country, "")
+		_proxy := proxys.ProxyPool.Get(config.Country)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break
@@ -29,7 +29,7 @@ func RegisterByPhone() {
 		password := common.GenString(common.CharSet_abc, 4) +
 			common.GenString(common.CharSet_123, 4)
 
-		inst := goinsta.New("", "", _proxy)
+		inst := goinsta.New("", "", nil)
 		regisert := goinsta.Register{
 			Inst:         inst,
 			RegisterType: "phone",
@@ -41,24 +41,15 @@ func RegisterByPhone() {
 			Month:    fmt.Sprintf("%02d", common.GenNumber(1, 11)),
 			Day:      fmt.Sprintf("%02d", common.GenNumber(1, 27)),
 		}
-		for true {
-			regisert.Account = "18501750803"
-			_, err = regisert.SendSignupSmsCode()
-			if err != nil {
-				log.Error("phone %s send error: %v", "", err)
-			}
-			time.Sleep(10 * time.Second)
-			regisert.Inst.ResetProxy()
-		}
-
 		inst.AccountInfo.Register.RegisterIpCountry = _proxy.Country
-		prepare := inst.PrepareNewClient()
+		inst.PrepareNewClient()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
 		err = regisert.GetSignupConfig()
 		err = regisert.GetCommonEmailDomains()
 		err = regisert.PrecheckCloudId()
-		err = regisert.IgUser()
+		err = regisert.GetSsoAccount()
+		//err = regisert.IgUser()
 		time.Sleep(time.Millisecond * time.Duration(common.GenNumber(2000, 3000)))
 
 		var account string
@@ -108,11 +99,12 @@ func RegisterByPhone() {
 			continue
 		}
 
-		prepareStr, _ := json.Marshal(prepare)
+		//prepareStr, _ := json.Marshal(prepare)
 		_, err = regisert.GetSteps()
 
 		if err == nil {
-			log.Info("phone: %s register success! prepare: %s, account: %s password: %s", account, prepareStr, inst.User, inst.Pass)
+			//log.Info("phone: %s register success! prepare: %s, account: %s password: %s", account, prepareStr, inst.User, inst.Pass)
+			log.Info("phone: %s register success! prepare: %s, account: %s password: %s", account, "", inst.User, inst.Pass)
 			_ = goinsta.SaveInstToDB(inst)
 			_, err = regisert.NewAccountNuxSeen()
 			_, err = inst.AddressBookLink(GenAddressBook())
@@ -123,7 +115,8 @@ func RegisterByPhone() {
 		} else {
 			_ = goinsta.SaveInstToDB(inst)
 			accInfo, _ := json.Marshal(inst.AccountInfo)
-			log.Error("phone %s create error: %v, prepare: %s, account info: %s", account, err, prepareStr, accInfo)
+			//log.Error("phone %s create error: %v, prepare: %s, account info: %s", account, err, prepareStr, accInfo)
+			log.Error("phone %s create error: %v, prepare: %s, account info: %s", account, err, "", accInfo)
 			statError(err)
 			ErrorCreateCount++
 

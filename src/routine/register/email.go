@@ -30,7 +30,7 @@ func RegisterByEmail() {
 		if curCount > int32(*RegisterCount) {
 			break
 		}
-		_proxy := proxys.ProxyPool.Get(config.Country, "")
+		_proxy := proxys.ProxyPool.Get(config.Country)
 		if _proxy == nil {
 			log.Error("get proxy error: %v", _proxy)
 			break

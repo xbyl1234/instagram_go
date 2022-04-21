@@ -3,18 +3,25 @@
     {
       "path": "api/v1/accounts/check_confirmation_code/",
       "md5": "8dbd9c642451291b3c8d3b844457f241"
+    },{
+      "path": "api/v1/users/check_username/",
+      "md5": "8dbd9c642451291b3c8d3b844457f241"
+    },
+    {
+      "path": "api/v1/fxcal/get_sso_accounts/",
+      "md5": "8dbd9c642451291b3c8d3b844457f241"
     },
     {
       "path": "api/v1/accounts/validate_signup_sms_code/",
-      "md5": "6db54fd5afa1e899ea24ffd293e96f1e"
+      "md5": "8dbd9c642451291b3c8d3b844457f241"
     },
     {
       "path": "api/v1/accounts/create_validated/",
-      "md5": "6db54fd5afa1e899ea24ffd293e96f1e"
+      "md5": "8dbd9c642451291b3c8d3b844457f241"
     },
     {
       "path": "api/v1/accounts/send_signup_sms_code/",
-      "md5": "773b46a263a5f3fc1dec95b2d53aa0ea"
+      "md5": "088101a93d5178932268083b49df979b"
     },
     {
       "path": "api/v1/accounts/contact_point_prefill/",
@@ -54,7 +61,7 @@
     },
     {
       "path": "api/v1/consent/get_signup_config/",
-      "md5": "0f300a98abae9f2bb28ffc718dbea2d0"
+      "md5": "2f9d027d4286eb4a1b0778afd7e39ecf"
     },
     {
       "path": "api/v1/consent/new_user_flow_begins/",
@@ -439,6 +446,10 @@
     {
       "md5": "78a6a250ecc4a8ac7bb0fcfffe8037c9",
       "header": "X-Ig-Connection-Speed,X-Ig-Eu-Configure-Disabled,X-Ig-Device-Id,Content-Length,Ig-Intended-User-Id,X-Pigeon-Session-Id,X-Ig-Timezone-Offset,X-Ig-Capabilities,X-Pigeon-Rawclienttime,Ig-U-Rur,X-Ig-Device-Locale,X-Ig-Abr-Connection-Speed-Kbps,Ig-U-Ds-User-Id,X-Ig-Family-Device-Id,Accept-Language,Content-Type,User-Agent,X-Ig-App-Locale,X-Ig-Bandwidth-Speed-Kbps,Authorization,X-Ig-Mapped-Locale,X-Mid,X-Bloks-Is-Panorama-Enabled,X-Bloks-Version-Id,X-Ig-Www-Claim,X-Ig-App-Id,X-Ig-Connection-Type,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,"
+    },
+    {
+      "md5": "2f9d027d4286eb4a1b0778afd7e39ecf",
+      "header": "X-Bloks-Version-Id,X-Ig-App-Id,X-Pigeon-Rawclienttime,X-Ig-Connection-Type,X-Ig-Timezone-Offset,Accept-Language,X-Ig-Abr-Connection-Speed-Kbps,Ig-Intended-User-Id,X-Ig-Capabilities,User-Agent,X-Bloks-Is-Panorama-Enabled,X-Ig-Connection-Speed,X-Ig-Family-Device-Id,X-Ig-Device-Locale,X-Ig-Bandwidth-Speed-Kbps,X-Ig-Device-Id,X-Ig-Mapped-Locale,X-Ig-App-Locale,X-Pigeon-Session-Id,X-Tigon-Is-Retry,Accept-Encoding,X-Fb-Http-Engine,X-Fb-Client-Ip,X-Fb-Server-Cluster,Connection,"
     }
   ]
 }

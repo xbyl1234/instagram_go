@@ -65,15 +65,15 @@ func SetProxy(inst *goinsta.Instagram) bool {
 	var _proxy *common.Proxy
 	if inst.Proxy != nil {
 		if inst.Proxy.ID != "" {
-			_proxy = proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, inst.Proxy.ID)
+			_proxy = proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry)
 			if _proxy == nil {
-				log.Warn("find insta proxy %s error!", inst.Proxy.ID)
+				log.Warn("find insta proxy %s error!", "")
 			}
 		}
 	}
 
 	if _proxy == nil {
-		_proxy = proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry, inst.Proxy.ID)
+		_proxy = proxys.ProxyPool.Get(inst.AccountInfo.Register.RegisterIpCountry)
 		if _proxy == nil {
 			log.Error("get insta proxy error!")
 		}
@@ -87,17 +87,17 @@ func SetProxy(inst *goinsta.Instagram) bool {
 	return true
 }
 
-func ProxyCallBack(country string, id string) (*common.Proxy, error) {
+func ProxyCallBack(country string) (*common.Proxy, error) {
 	var _proxy *common.Proxy
 	if country != "" {
-		_proxy = proxys.ProxyPool.Get(country, id)
+		_proxy = proxys.ProxyPool.Get(country)
 		if _proxy == nil {
 			log.Warn("find insta proxy %s error!", country)
 		}
 	}
 
 	if _proxy == nil {
-		_proxy = proxys.ProxyPool.Get(country, id)
+		_proxy = proxys.ProxyPool.Get(country)
 	}
 
 	if _proxy == nil {

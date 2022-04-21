@@ -18,7 +18,6 @@ import (
 	"makemoney/common"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // getImageDimensionFromReader return image dimension , types is .jpg and .png
@@ -65,7 +64,8 @@ func AesGcmEncrypt(key []byte, iv []byte, plainText []byte, add []byte) ([]byte,
 
 func EncryptPassword(password string, encId string, encPubKey string) (string, error) {
 	//byte[] rand_key = new byte[32], iv = new byte[12];
-	_time := strconv.FormatInt(time.Now().Unix(), 10)
+	//_time := strconv.FormatInt(time.Now().Unix(), 10)
+	_time := "1650537345"
 	randKey := common.GenString(common.CharSet_All, 32)
 	iv := common.GenString(common.CharSet_All, 12)
 	decodedPubKey, err := base64.StdEncoding.DecodeString(encPubKey)

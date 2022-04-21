@@ -195,7 +195,8 @@ file_name = [
     # "bio.xml"
     # "刷视频主页.xml",
     # "评论.xml"
-    "分享视频链接.xml"
+    # "分享视频链接.xml"
+    "过注册风控2.xml"
 ]
 
 maps = []

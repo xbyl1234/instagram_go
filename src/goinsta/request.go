@@ -17,12 +17,13 @@ import (
 )
 
 type reqOptions struct {
-	ApiPath        string
-	IsPost         bool
-	IsApiB         bool
-	IsApiGraph     bool
-	Signed         bool
-	Query          map[string]interface{}
+	ApiPath    string
+	IsPost     bool
+	IsApiB     bool
+	IsApiGraph bool
+	Signed     bool
+	Query      map[string]interface{}
+
 	Body           *bytes.Buffer
 	Json           interface{}
 	Header         map[string]string
@@ -267,11 +268,7 @@ func (this *Instagram) CheckInstReqError(url string, body []byte, err error) {
 }
 
 func (this *Instagram) PrepareProxy() error {
-	var id = ""
-	if this.Proxy != nil {
-		id = this.Proxy.ID
-	}
-	proxy, errProxy := ProxyCallBack(this.AccountInfo.Register.RegisterIpCountry, id)
+	proxy, errProxy := ProxyCallBack(this.AccountInfo.Register.RegisterIpCountry)
 	if errProxy != nil {
 		log.Error("account: %s, get proxy error: %v", this.User, errProxy)
 		return errProxy

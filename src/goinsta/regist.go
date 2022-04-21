@@ -51,6 +51,28 @@ func (this *Register) GetCommonEmailDomains() error {
 	return err
 }
 
+func (this *Register) GetSsoAccount() error {
+	params := struct {
+		Tokens               string `json:"tokens"`
+		Surface              string `json:"surface"`
+		DeviceId             string `json:"device_id"`
+		IncludeSocialContext string `json:"include_social_context"`
+	}{
+		Tokens:               "[]",
+		Surface:              "contact_point",
+		DeviceId:             this.Inst.AccountInfo.Device.DeviceID,
+		IncludeSocialContext: "0",
+	}
+	_, err := this.Inst.HttpRequest(&reqOptions{
+		ApiPath: urlGetSsoAccounts,
+		IsPost:  true,
+		Signed:  true,
+		Json:    params,
+	})
+
+	return err
+}
+
 func (this *Register) PrecheckCloudId() error {
 	params := map[string]interface{}{
 		"ck_container":   "iCloud.com.burbn.instagram",
@@ -404,17 +426,34 @@ func (this *Register) usernameSuggestions() (*RespUsernameSuggestions, error) {
 }
 
 func (this *Register) GenUsername() string {
+	var name string
 	usernameSuggestions, err := this.usernameSuggestions()
-	if err != nil || len(usernameSuggestions.Suggestions) == 0 {
-		this.RealUsername = this.Username + fmt.Sprintf("%d%d%d",
-			common.GenNumber(1990, 2020),
-			common.GenNumber(1, 12),
-			common.GenNumber(1, 27))
-	} else {
-		this.RealUsername = usernameSuggestions.Suggestions[0]
+	if err == nil && len(usernameSuggestions.Suggestions) != 0 {
+		name = usernameSuggestions.Suggestions[0]
 	}
-	this.Inst.User = this.RealUsername
-	return this.RealUsername
+
+	for true {
+		if name == "" {
+			name = this.Username + fmt.Sprintf("%d%d%d",
+				common.GenNumber(1990, 2020),
+				common.GenNumber(1, 12),
+				common.GenNumber(1, 27))
+		}
+
+		ckname, err := this.CheckUsername(name)
+		if err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		if ckname.Available {
+			break
+		}
+		name = ""
+	}
+
+	this.RealUsername = name
+	this.Inst.User = name
+	return name
 }
 
 type RespCheckAge struct {
@@ -451,14 +490,23 @@ type RespCheckUsername struct {
 	ExistingUserPassword bool   `json:"existing_user_password"`
 }
 
-func (this *Register) CheckUsername() (*RespCheckUsername, error) {
-	encodePasswd, err := EncryptPassword(this.Password, this.Inst.GetHeader(IGHeader_EncryptionId), this.Inst.GetHeader(IGHeader_EncryptionKey))
+func (this *Register) CheckUsername(username string) (*RespCheckUsername, error) {
+	EncryptionId := this.Inst.GetHeader(IGHeader_EncryptionId)
+	if EncryptionId == "" {
+		EncryptionId = "80"
+	}
+	EncryptionKey := this.Inst.GetHeader(IGHeader_EncryptionKey)
+	if EncryptionKey == "" {
+		EncryptionKey = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF3MDA1VndmRml3cko1VHVJVnVCMwpPZjB1Ukp1Zy9YRCtQVktjOHF1VjFMTko5Ykc1cERJNDRMT1Ezc3N5Uzh2Mk5rYW51TFpCaG1ObFZDdGlrQUIrCnkvM0dZejJGd2Y5QjJMMU0rc3NaV2FXMmRRRTRBM284dmFBbEEzUjc4R2l0b0JQQUw3clZzNndocVJEeU5oNmkKRGpjNEk3T3Y1WjFrNDF1OVRSOHZXS3Vjazd5akY0VGN0b0ErU25MbGdoWTNVREhpbFNSTHFtRytNc3lRR1RFSAppd1J4WlhLSHY4SlRFUlNjTG5KYWx3MlhMVTdRZmNUV2l2ZWtRaUxqd2hidS9vaFpsalB3Zjd0eUgvN1YzNGg1CnovOWtXWTBZenZTT0tZb2xKK1l5NWpvTzl3STJuVE52UkFoWnExSEdxc2kyLzhtdGpVT2NiMjhtdzk4VEFWMzgKRVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg=="
+	}
+
+	encodePasswd, err := EncryptPassword(this.Password, EncryptionId, EncryptionKey)
 	if err != nil {
 		return nil, err
 	}
 	params := map[string]interface{}{
 		"enc_password": encodePasswd,
-		"username":     this.Username,
+		"username":     username,
 		"device_id":    this.Inst.AccountInfo.Device.DeviceID,
 	}
 	resp := &RespCheckUsername{}

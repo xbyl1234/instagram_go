@@ -34,6 +34,9 @@ type Proxy struct {
 }
 
 func (this *Proxy) IsOutLiveTime() bool {
+	if this.LiveTime == -1 {
+		return false
+	}
 	if time.Duration(float64(time.Since(this.StartTime))*0.5) > this.LiveTime {
 		return true
 	}
@@ -93,7 +96,7 @@ func (this *Proxy) GetProxy() HttpConfigFun {
 func DisableHttpSslPinng() HttpConfigFun {
 	return func(c *http.Client) {
 		tr := c.Transport.(*http.Transport)
-		tr.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		tr.TLSClientConfig.InsecureSkipVerify = true
 	}
 }
 
@@ -104,6 +107,24 @@ func DisableRedirect() HttpConfigFun {
 		}
 	}
 }
+
+func FacebookTls() HttpConfigFun {
+	return func(c *http.Client) {
+		tr := c.Transport.(*http.Transport)
+		if tr.TLSClientConfig == nil {
+			tr.TLSClientConfig = &tls.Config{}
+		}
+		tr.TLSClientConfig.NextProtos = []string{"h2", "h2-fb", "http/1.1"}
+		tr.TLSClientConfig.MinVersion = tls.VersionTLS13
+		tr.TLSClientConfig.MaxVersion = tls.VersionTLS13
+		tr.TLSClientConfig.CipherSuites = []uint16{
+			tls.TLS_AES_128_GCM_SHA256,
+			tls.TLS_AES_256_GCM_SHA384,
+			tls.TLS_CHACHA20_POLY1305_SHA256,
+		}
+	}
+}
+
 func NeedJar() HttpConfigFun {
 	return func(c *http.Client) {
 		jar, _ := cookiejar.New(nil)
@@ -133,12 +154,9 @@ func CreateGoHttpClient(httpConfigs ...HttpConfigFun) *http.Client {
 	httpClient := &http.Client{
 		Transport: tr,
 	}
+
 	for _, config := range httpConfigs {
 		config(httpClient)
-	}
-	if UseCharles {
-		DefaultHttpProxy.GetProxy()(httpClient)
-		DisableHttpSslPinng()(httpClient)
 	}
 	return httpClient
 }

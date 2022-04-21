@@ -155,6 +155,6 @@ func (this *DovePool) GetNoRisk(busy bool, used bool) *common.Proxy {
 	return this.get()
 }
 
-func (this *DovePool) Get(id string) *common.Proxy {
+func (this *DovePool) Get() *common.Proxy {
 	return this.get()
 }

@@ -47,6 +47,7 @@ const (
 	urlGetNamePrefill        = "api/v1/accounts/get_name_prefill/"
 	urlLookup                = "api/v1/users/lookup/"
 	urlNewAccountNuxSeen     = "api/v1/nux/new_account_nux_seen/"
+
 	// account
 	urlCurrentUser          = "api/v1/accounts/current_user/"
 	urlChangePass           = "api/v1/accounts/change_password/"
@@ -76,6 +77,7 @@ const (
 	urlGraphql                           = "api/v1/ads/graphql/"
 	urlLocationSearch                    = "api/v1/location_search/"
 	urlInvalidatePrivacyViolatingMediaV2 = "api/v1/feed/invalidate_privacy_violating_media_v2/"
+	urlGetSsoAccounts                    = "api/v1/fxcal/get_sso_accounts/"
 
 	// users
 	urlUserArchived      = "api/v1/feed/only_me_feed/"

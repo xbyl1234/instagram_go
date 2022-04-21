@@ -7,7 +7,7 @@ import (
 )
 
 type ProxyImpl interface {
-	Get(id string) *common.Proxy
+	Get() *common.Proxy
 	Remove(proxy *common.Proxy)
 	Dumps()
 }
@@ -25,7 +25,7 @@ type ProxyPoolt struct {
 	proxys map[string]ProxyImpl
 }
 
-func (this *ProxyPoolt) Get(country string, id string) *common.Proxy {
+func (this *ProxyPoolt) Get(country string) *common.Proxy {
 	if country == "" {
 		for key := range this.proxys {
 			country = key
@@ -38,7 +38,7 @@ func (this *ProxyPoolt) Get(country string, id string) *common.Proxy {
 		return nil
 	}
 	for true {
-		proxy := p.Get(id)
+		proxy := p.Get()
 		if !proxy.IsOutLiveTime() {
 			return proxy
 		}

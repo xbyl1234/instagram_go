@@ -5,7 +5,6 @@ import (
 	"makemoney/common/log"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 var (
@@ -153,7 +152,6 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			}
 			index++
 			break
-
 		case "X-Ig-App-Startup-Country":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
 				req.Header.Set("X-Ig-App-Startup-Country", inst.AccountInfo.Location.StartupCountry)
@@ -162,7 +160,8 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Pigeon-Rawclienttime":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Pigeon-Rawclienttime", strconv.FormatInt(time.Now().Unix(), 10)+".000000")
+				//req.Header.Set("X-Pigeon-Rawclienttime", strconv.FormatInt(time.Now().Unix(), 10)+".00000")
+				req.Header.Set("X-Pigeon-Rawclienttime", "1650537345.00000")
 			}
 			index++
 			break
@@ -260,7 +259,8 @@ func GetAutoHeaderFunc(header []string) []AutoSetHeaderFun {
 			break
 		case "X-Ig-Abr-Connection-Speed-Kbps":
 			ret[index] = func(inst *Instagram, opt *reqOptions, req *http.Request) {
-				req.Header.Set("X-Ig-Abr-Connection-Speed-Kbps", InstagramReqSpeed[common.GenNumber(0, len(InstagramReqSpeed))])
+				//req.Header.Set("X-Ig-Abr-Connection-Speed-Kbps", InstagramReqSpeed[common.GenNumber(0, len(InstagramReqSpeed))])
+				req.Header.Set("X-Ig-Abr-Connection-Speed-Kbps", "0")
 			}
 			index++
 			break

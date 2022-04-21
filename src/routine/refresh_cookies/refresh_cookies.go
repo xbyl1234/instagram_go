@@ -158,6 +158,14 @@ func InstTestAccount(inst *goinsta.Instagram) error {
 	} else {
 		//log.Info("account %s website %s bio %s", inst.User, inst.GetAccount().Detail.)
 	}
+	if err.Error() == "login_required" {
+		err = InstRelogin(inst)
+		//inst.IsLogin = false
+		//err = inst.Login()
+		if err != nil {
+			log.Error("account: %s, error: %v", inst.User, err)
+		}
+	}
 
 	return err
 }
@@ -321,7 +329,7 @@ func main() {
 	}
 
 	//insts := goinsta.LoadAllAccount()
-	insts := goinsta.LoadAccountByTags([]string{"dev"})
+	insts := goinsta.LoadAccountByTags([]string{"comment"})
 	if len(insts) == 0 {
 		log.Error("there have no account!")
 		os.Exit(0)

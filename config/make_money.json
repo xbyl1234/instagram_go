@@ -1,10 +1,10 @@
 {
   "task_name": "make_money",
-  "coro": 20,
-  "proxy_path": "./config/proxy_config_rola.json",
+  "coro": 5,
+  "proxy_path": "./config/proxy_config_dove.json",
   "target_user_db": "craw",
   "target_user_collection": "users",
-  "account_tag": "comment",
+  "account_tag": "t2",
   "msgs": [
     [
       {

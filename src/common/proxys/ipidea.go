@@ -133,6 +133,6 @@ func (this *IdeaPool) GetNoRisk(busy bool, used bool) *common.Proxy {
 	return this.get()
 }
 
-func (this *IdeaPool) Get(id string) *common.Proxy {
+func (this *IdeaPool) Get() *common.Proxy {
 	return this.get()
 }

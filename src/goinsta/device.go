@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"makemoney/common"
 	"makemoney/common/log"
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -117,8 +118,11 @@ func GenInstDeviceInfo() *InstAccountInfo {
 	FocalLength, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[4], "f/", ""), 64)
 	Aperture, _ := strconv.ParseFloat(strings.ReplaceAll(spLens[3], "mm", ""), 64)
 
-	key := "纽约中文" + common.GenString("1234", 1)
-	coord := CoordMap[key]
+	mapKeys := make([]string, 0, len(CoordMap))
+	for key := range CoordMap {
+		mapKeys = append(mapKeys, key)
+	}
+	coord := CoordMap[mapKeys[rand.Intn(len(mapKeys))]]
 
 	instVersion := &InstAccountInfo{
 		Device: InstDeviceInfo{

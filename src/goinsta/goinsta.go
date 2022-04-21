@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var ProxyCallBack func(country string, id string) (*common.Proxy, error)
+var ProxyCallBack func(country string) (*common.Proxy, error)
 
 type Operation struct {
 	OperName string    `json:"oper_name"`
@@ -70,7 +70,17 @@ func (this *Instagram) SetCookieJar(jar http.CookieJar) error {
 }
 
 func New(username, password string, _proxy *common.Proxy) *Instagram {
-	c := common.CreateGoHttpClient(common.DefaultHttpTimeout(), common.NeedJar(), _proxy.GetProxy())
+	if common.UseCharles {
+		_proxy = common.DefaultHttpProxy
+	}
+
+	c := common.CreateGoHttpClient(
+		common.DefaultHttpTimeout(),
+		common.NeedJar(),
+		_proxy.GetProxy(),
+		common.DisableRedirect(),
+		common.FacebookTls(),
+	)
 	inst := &Instagram{
 		User: username,
 		Pass: password,
@@ -80,6 +90,9 @@ func New(username, password string, _proxy *common.Proxy) *Instagram {
 		c:         c,
 	}
 
+	if common.UseCharles {
+		common.DisableHttpSslPinng()(c)
+	}
 	inst.AccountInfo = GenInstDeviceInfo()
 	inst.Operate.Graph = &Graph{inst: inst}
 	inst.httpHeader = make(map[string]string)
@@ -154,7 +167,7 @@ func (this *Instagram) SetProxy(_proxy *common.Proxy) {
 }
 
 func (this *Instagram) ResetProxy() {
-	this.Proxy, _ = ProxyCallBack(this.AccountInfo.Register.RegisterIpCountry, "")
+	this.Proxy, _ = ProxyCallBack(this.AccountInfo.Register.RegisterIpCountry)
 	this.Proxy.GetProxy()(this.c)
 }
 

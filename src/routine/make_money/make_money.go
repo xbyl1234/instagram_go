@@ -77,10 +77,12 @@ func main() {
 		goinsta.InitAccountPool(instas)
 	}
 
-	tags, err := routine.LoadKeyWord(config.KeywordPath)
-	if err != nil {
-		log.Error("%v", err)
-		return
-	}
-	RunAddComment(40, tags)
+	//tags, err := routine.LoadKeyWord(config.KeywordPath)
+	//if err != nil {
+	//	log.Error("%v", err)
+	//	return
+	//}
+	//RunAddComment(40, tags)
+
+	DevelopAccount()
 }

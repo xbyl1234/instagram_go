@@ -141,6 +141,6 @@ func (this *RolaPool) GetNoRisk(busy bool, used bool) *common.Proxy {
 	return this.get()
 }
 
-func (this *RolaPool) Get(id string) *common.Proxy {
+func (this *RolaPool) Get() *common.Proxy {
 	return this.get()
 }

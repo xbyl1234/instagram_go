@@ -1,5 +1,7 @@
 package common
 
+import "time"
+
 var IsDebug = true
 var UseCharles = true
 var UseTruncation = true
@@ -11,6 +13,8 @@ var DefaultHttpProxy = &Proxy{
 	Passwd:    "",
 	ProxyType: ProxyHttp,
 	NeedAuth:  false,
+	LiveTime:  -1,
+	StartTime: time.Now(),
 }
 
 var DefaultSocksProxy = &Proxy{
@@ -20,4 +24,6 @@ var DefaultSocksProxy = &Proxy{
 	Passwd:    "",
 	ProxyType: ProxySocket,
 	NeedAuth:  false,
+	LiveTime:  -1,
+	StartTime: time.Now(),
 }
